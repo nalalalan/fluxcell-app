@@ -10,7 +10,7 @@ const fileStore = "files";
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
-  domain: "forge.aolabs.io",
+  domain: "fluxcell.aolabs.io",
   title: "3D printed electropermanent magnet actuation",
   now: "Replace pneumatic actuation with strong printed EPMs.",
   next: "Design and test a magnet latch/driver that can move one Sarrus cell.",

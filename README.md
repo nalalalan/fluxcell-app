@@ -10,7 +10,7 @@ npm start
 
 Open `http://localhost:3000`.
 
-For the public page at `forge.aolabs.io` to sync with this computer, run the local sync server on port `3010`:
+For the public page at `fluxcell.aolabs.io` to sync with this computer, run the local sync server on port `3010`:
 
 ```bash
 $env:PORT="3010"
@@ -31,6 +31,6 @@ Deletion from the local sync folder requires `FLUXCELL_DELETE_PASSWORD`. Do not 
 
 ## Deploy
 
-The app is static and deploys from `public` to GitHub Pages with the current custom domain `forge.aolabs.io`.
+The app is static and deploys from `public` to GitHub Pages with the current custom domain `fluxcell.aolabs.io`.
 
 It can also run on Railway or any Node host with `npm start`.
