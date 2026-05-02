@@ -457,8 +457,17 @@ async function browserDeleteAllowed(password) {
 }
 
 async function detectSync() {
-  const canReachLoopback = window.isSecureContext || ["localhost", "127.0.0.1"].includes(window.location.hostname);
-  const candidates = canReachLoopback ? ["", "http://127.0.0.1:3010", "http://127.0.0.1:3000"] : [""];
+  const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  const candidates = isLocalHost
+    ? [""]
+    : window.isSecureContext
+      ? ["http://127.0.0.1:3010", "http://127.0.0.1:3000"]
+      : [];
+  if (!candidates.length) {
+    sync = { status: "browser", base: "", root: "", deleteConfigured: false };
+    render();
+    return;
+  }
   for (const base of candidates) {
     try {
       const response = await fetch(`${base}/api/health`, { cache: "no-store" });
