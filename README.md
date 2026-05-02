@@ -1,6 +1,6 @@
-# Forge
+# FluxCell
 
-A very minimal web surface for Chapter 2 prototype focus, quick notes, screenshots, and research files.
+A focused AO Labs research wall for the 3D printed electropermanent magnet actuation direction: Sarrus-cell images, evidence, CAD uploads, notes, force plots, and build artifacts.
 
 ## Run Locally
 
@@ -14,21 +14,23 @@ For the public page at `forge.aolabs.io` to sync with this computer, run the loc
 
 ```bash
 $env:PORT="3010"
-$env:FORGE_STORAGE_DIR="C:\Users\phama\Documents\research\PhD Chapter 2\Forge Files"
-$env:FORGE_DELETE_PASSWORD="<set locally>"
+$env:FLUXCELL_STORAGE_DIR="C:\Users\phama\Documents\research\PhD Chapter 2\Forge Files"
+$env:FLUXCELL_DELETE_PASSWORD="<set locally>"
 npm start
 ```
+
+The server still accepts the old `FORGE_*` variables so existing local scripts keep working.
 
 ## Data
 
 Notes are stored in the browser with `localStorage`.
 
-Files are saved to the browser vault unless the local sync server is running. With local sync running, uploads save into `FORGE_STORAGE_DIR` and are tracked by `.forge-files.json`.
+Files are saved to the browser vault unless the local sync server is running. With local sync running, uploads save into `FLUXCELL_STORAGE_DIR`. If the existing Forge index is present, the server keeps using it so current files remain visible.
 
-Deletion from the local sync folder requires `FORGE_DELETE_PASSWORD`. Do not commit that password into this repo.
+Deletion from the local sync folder requires `FLUXCELL_DELETE_PASSWORD`. Do not commit that password into this repo.
 
 ## Deploy
 
-The app is static and can be deployed from `public` to GitHub Pages with the custom domain `forge.aolabs.io`.
+The app is static and deploys from `public` to GitHub Pages with the current custom domain `forge.aolabs.io`.
 
 It can also run on Railway or any Node host with `npm start`.

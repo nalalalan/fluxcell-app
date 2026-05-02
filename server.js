@@ -7,13 +7,19 @@ const crypto = require("node:crypto");
 
 const port = Number(process.env.PORT || 3000);
 const publicDir = path.join(__dirname, "public");
+const legacyStorageRoot = path.join(os.homedir(), "Documents", "research", "PhD Chapter 2", "Forge Files");
+const focusedStorageRoot = path.join(os.homedir(), "Documents", "research", "PhD Chapter 2", "FluxCell Files");
+const configuredStorageRoot = process.env.FLUXCELL_STORAGE_DIR || process.env.FORGE_STORAGE_DIR;
 const storageRoot = path.resolve(
-  process.env.FORGE_STORAGE_DIR ||
-    path.join(os.homedir(), "Documents", "research", "PhD Chapter 2", "Forge Files")
+  configuredStorageRoot || (fs.existsSync(legacyStorageRoot) ? legacyStorageRoot : focusedStorageRoot)
 );
-const deletePassword = process.env.FORGE_DELETE_PASSWORD || "";
-const maxUploadBytes = Number(process.env.FORGE_MAX_UPLOAD_MB || 100) * 1024 * 1024;
-const indexPath = path.join(storageRoot, ".forge-files.json");
+const deletePassword = process.env.FLUXCELL_DELETE_PASSWORD || process.env.FORGE_DELETE_PASSWORD || "";
+const maxUploadBytes = Number(process.env.FLUXCELL_MAX_UPLOAD_MB || process.env.FORGE_MAX_UPLOAD_MB || 100) * 1024 * 1024;
+const legacyIndexPath = path.join(storageRoot, ".forge-files.json");
+const focusedIndexPath = path.join(storageRoot, ".fluxcell-files.json");
+const indexPath = fs.existsSync(legacyIndexPath) && !fs.existsSync(focusedIndexPath)
+  ? legacyIndexPath
+  : focusedIndexPath;
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -60,7 +66,7 @@ function isInside(root, filePath) {
 }
 
 function safeName(name) {
-  const base = path.basename(String(name || "forge-file"));
+  const base = path.basename(String(name || "fluxcell-file"));
   return base.replace(/[<>:"/\\|?*\u0000-\u001f]+/g, "-").replace(/\s+/g, " ").trim().slice(0, 140) || "forge-file";
 }
 
@@ -168,7 +174,7 @@ async function handleApi(req, res, requestUrl) {
 
   if (requestUrl.pathname === "/api/health" && req.method === "GET") {
     sendJson(res, 200, {
-      app: "Forge",
+      app: "FluxCell",
       sync: true,
       storageRoot,
       deleteConfigured: Boolean(deletePassword),
@@ -206,7 +212,7 @@ async function handleApi(req, res, requestUrl) {
       sendJson(res, 400, { error: "Missing note text" });
       return;
     }
-    const title = safeName(`${String(payload.title || "forge-note").slice(0, 80)}.md`);
+    const title = safeName(`${String(payload.title || "fluxcell-note").slice(0, 80)}.md`);
     const body = `# ${title.replace(/\.md$/i, "")}\n\n${text}\n`;
     const entry = await saveTrackedFile({
       name: title,
@@ -312,6 +318,6 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, () => {
-  console.log(`Forge running at http://localhost:${port}`);
-  console.log(`Forge local sync folder: ${storageRoot}`);
+  console.log(`FluxCell running at http://localhost:${port}`);
+  console.log(`FluxCell local sync folder: ${storageRoot}`);
 });
