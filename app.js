@@ -1,259 +1,80 @@
 const root = document.getElementById("app");
-const storageKey = "forge.entries.v1";
+const stateKey = "forge.calm.v1";
+const ownerKey = "forge.owner.delete.hash.v1";
+const dbName = "forge-file-vault";
+const fileStore = "files";
 
-const types = [
-  ["idea", "Idea"],
-  ["sketch", "Sketch"],
-  ["prototype", "Prototype"],
-  ["test", "Test"],
-  ["decision", "Decision"],
-  ["question", "Question"],
-  ["task", "Task"],
-];
+const focus = {
+  title: "Chapter 2 prototype",
+  now: "Build the printed EPM.",
+  next: "Run one clean test that says direct actuation or airflow control.",
+  watch: "Keep sensing and file evidence attached as you go.",
+};
 
-const areas = [
-  "Cell",
-  "EPM",
-  "Sarrus",
-  "Pneumatics",
-  "Sensing",
-  "Materials",
-  "Controls",
-  "Notes",
-];
-
-const statuses = [
-  ["next", "Next"],
-  ["doing", "Doing"],
-  ["waiting", "Waiting"],
-  ["done", "Done"],
-];
-
-const importanceLevels = [
-  ["normal", "Normal"],
-  ["key", "Key"],
-  ["risk", "Risk"],
-];
-
-const seedEntries = [
+const seedNotes = [
   {
-    id: "seed-epm-print",
-    title: "3D printed electropermanent magnet",
-    body: "Primary prototype path. Track print geometry, conductive paths, magnetic core choice, heat, pulse energy, holding force, and reset behavior.",
-    type: "prototype",
-    area: "EPM",
-    status: "doing",
-    importance: "key",
-    tags: ["magnet", "print", "force"],
-    createdAt: "2026-05-02T08:00:00.000Z",
-    updatedAt: "2026-05-02T08:00:00.000Z",
-    pinned: true,
-  },
-  {
-    id: "seed-sarrus-direct",
-    title: "Direct Sarrus cell actuation",
-    body: "Question: can the EPM directly drive the Sarrus-based cell without making the unit too heavy, slow, or hard to assemble?",
-    type: "question",
-    area: "Sarrus",
-    status: "next",
-    importance: "risk",
-    tags: ["direct", "kinematics"],
-    createdAt: "2026-05-02T08:08:00.000Z",
-    updatedAt: "2026-05-02T08:08:00.000Z",
-    pinned: false,
-  },
-  {
-    id: "seed-air-valve",
-    title: "EPM as pneumatic airflow control",
-    body: "Indirect path. Use the magnet as a valve, latch, or flow selector for an integrated pneumatic actuator.",
-    type: "idea",
-    area: "Pneumatics",
-    status: "next",
-    importance: "key",
-    tags: ["airflow", "valve"],
-    createdAt: "2026-05-02T08:16:00.000Z",
-    updatedAt: "2026-05-02T08:16:00.000Z",
-    pinned: true,
-  },
-  {
-    id: "seed-integrated-sensing",
-    title: "Integrated sensing target",
-    body: "Define what the cell needs to know about itself: displacement, contact, pressure, magnetic state, strain, or actuation history.",
-    type: "task",
-    area: "Sensing",
-    status: "next",
-    importance: "normal",
-    tags: ["sensor", "state"],
-    createdAt: "2026-05-02T08:24:00.000Z",
-    updatedAt: "2026-05-02T08:24:00.000Z",
-    pinned: false,
-  },
-  {
-    id: "seed-test-loop",
-    title: "Minimum useful test loop",
-    body: "One prototype cycle should answer one question: what changed, what was expected, what actually happened, what to try next.",
-    type: "decision",
-    area: "Notes",
-    status: "doing",
-    importance: "key",
-    tags: ["workflow"],
-    createdAt: "2026-05-02T08:32:00.000Z",
-    updatedAt: "2026-05-02T08:32:00.000Z",
-    pinned: false,
+    id: "seed-now",
+    text: "Current path: integrated actuation and sensing cell. Main uncertainty is whether the printed EPM directly drives the Sarrus unit or becomes the control element for pneumatic airflow.",
+    createdAt: new Date("2026-05-02T08:00:00").toISOString(),
   },
 ];
 
-let entries = loadEntries();
-let filter = "all";
-let query = "";
-let editingId = null;
-let imageDraft = null;
-let draftValues = createEmptyDraft();
+let state = loadState();
+let sync = { status: "checking", base: "", root: "", deleteConfigured: false };
+let noteDraft = "";
+let pendingFiles = [];
 let toastTimer = 0;
 
-function loadEntries() {
+function loadState() {
   try {
-    const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
-    if (Array.isArray(stored)) return stored.map(normalizeEntry);
+    const parsed = JSON.parse(localStorage.getItem(stateKey) || "null");
+    if (parsed && Array.isArray(parsed.notes) && Array.isArray(parsed.files)) {
+      return parsed;
+    }
   } catch (error) {
     console.warn(error);
   }
-  return seedEntries.map(normalizeEntry);
+  return { notes: seedNotes, files: [] };
 }
 
-function saveEntries() {
-  localStorage.setItem(storageKey, JSON.stringify(entries));
+function saveState() {
+  localStorage.setItem(stateKey, JSON.stringify(state));
 }
 
-function normalizeEntry(entry) {
-  return {
-    id: entry.id || createId(),
-    title: String(entry.title || "").trim() || "Untitled",
-    body: String(entry.body || "").trim(),
-    type: typeExists(entry.type) ? entry.type : "idea",
-    area: areas.includes(entry.area) ? entry.area : "Notes",
-    status: statusExists(entry.status) ? entry.status : "next",
-    importance: importanceLevels.some(([value]) => value === entry.importance) ? entry.importance : "normal",
-    tags: Array.isArray(entry.tags) ? entry.tags.map(cleanTag).filter(Boolean) : parseTags(entry.tags || ""),
-    image: typeof entry.image === "string" ? entry.image : "",
-    imageName: typeof entry.imageName === "string" ? entry.imageName : "",
-    createdAt: entry.createdAt || new Date().toISOString(),
-    updatedAt: entry.updatedAt || entry.createdAt || new Date().toISOString(),
-    pinned: Boolean(entry.pinned),
-  };
-}
-
-function typeExists(value) {
-  return types.some(([type]) => type === value);
-}
-
-function statusExists(value) {
-  return statuses.some(([status]) => status === value);
-}
-
-function createId() {
-  if (window.crypto?.randomUUID) return crypto.randomUUID();
-  return `entry-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-function createEmptyDraft() {
-  return {
-    title: "",
-    body: "",
-    type: "idea",
-    area: "Cell",
-    status: "next",
-    importance: "normal",
-    tags: "",
-  };
-}
-
-function entryToDraft(entry) {
-  return {
-    title: entry.title || "",
-    body: entry.body || "",
-    type: entry.type || "idea",
-    area: entry.area || "Cell",
-    status: entry.status || "next",
-    importance: entry.importance || "normal",
-    tags: Array.isArray(entry.tags) ? entry.tags.join(", ") : "",
-  };
-}
-
-function rememberDraft(form) {
-  if (!form) return;
-  const formData = new FormData(form);
-  draftValues = {
-    title: String(formData.get("title") || ""),
-    body: String(formData.get("body") || ""),
-    type: String(formData.get("type") || "idea"),
-    area: String(formData.get("area") || "Cell"),
-    status: String(formData.get("status") || "next"),
-    importance: String(formData.get("importance") || "normal"),
-    tags: String(formData.get("tags") || ""),
-  };
-}
-
-function cleanTag(tag) {
-  return String(tag).trim().replace(/^#/, "").slice(0, 28);
-}
-
-function parseTags(value) {
-  return String(value)
-    .split(",")
-    .map(cleanTag)
-    .filter(Boolean)
-    .slice(0, 8);
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
 }
 
 function formatDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-  }).format(date);
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
 }
 
-function getLabel(collection, value) {
-  const match = collection.find(([key]) => key === value);
-  return match ? match[1] : value;
+function formatSize(bytes) {
+  if (!Number.isFinite(bytes)) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(bytes > 10 * 1024 * 1024 ? 0 : 1)} MB`;
 }
 
-function sortEntries(list) {
-  return [...list].sort((a, b) => {
-    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-  });
+function createId() {
+  if (window.crypto?.randomUUID) return crypto.randomUUID();
+  return `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function visibleEntries() {
-  const text = query.trim().toLowerCase();
-  return sortEntries(entries).filter((entry) => {
-    const matchesFilter = filter === "all" || entry.status === filter || entry.type === filter || entry.area === filter;
-    if (!matchesFilter) return false;
-    if (!text) return true;
-    return [
-      entry.title,
-      entry.body,
-      entry.type,
-      entry.area,
-      entry.status,
-      entry.importance,
-      entry.tags.join(" "),
-    ].join(" ").toLowerCase().includes(text);
-  });
+function iconPath(name) {
+  return {
+    down: "M12 3v12m0 0 5-5m-5 5-5-5M4 21h16",
+    trash: "M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3",
+    file: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z M14 2v6h6",
+  }[name];
 }
 
 function icon(name) {
-  const paths = {
-    add: "M12 5v14M5 12h14",
-    search: "m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z",
-    download: "M12 3v12m0 0 5-5m-5 5-5-5M4 21h16",
-    upload: "M12 21V9m0 0 5 5m-5-5-5 5M4 3h16",
-    reset: "M3 12a9 9 0 1 0 3-6.7M3 5v7h7",
-    pin: "m14 4 6 6-4 1-4 7-2 2-2-2-7 4 1-4-6-6 8-4Z",
-  };
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("fill", "none");
@@ -261,683 +82,434 @@ function icon(name) {
   svg.setAttribute("stroke-linecap", "round");
   svg.setAttribute("stroke-linejoin", "round");
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", paths[name] || paths.add);
+  path.setAttribute("d", iconPath(name));
   svg.append(path);
   return svg;
 }
 
+function openDb() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(dbName, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(fileStore, { keyPath: "id" });
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function putBrowserFile(record) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(fileStore, "readwrite");
+    tx.objectStore(fileStore).put(record);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function getBrowserFile(id) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(fileStore, "readonly");
+    const request = tx.objectStore(fileStore).get(id);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function deleteBrowserBlob(id) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(fileStore, "readwrite");
+    tx.objectStore(fileStore).delete(id);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function hashText(text) {
+  const encoded = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", encoded);
+  return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
 function render() {
   root.replaceChildren(createShell());
-  bindEvents();
+  bind();
 }
 
 function createShell() {
-  const shell = document.createElement("div");
-  shell.className = "app-shell";
-
-  const topbar = document.createElement("header");
-  topbar.className = "topbar";
-  topbar.append(createBrand(), createTopActions());
-
-  const workspace = document.createElement("main");
-  workspace.className = "workspace";
-  workspace.append(createCapturePanel(), createBoardPanel(), createContextPanel());
-
-  shell.append(topbar, workspace);
+  const shell = el("main", "shell");
+  shell.append(createHeader(), createFocus(), createCapture(), createRecent(), createFiles());
   return shell;
 }
 
-function createBrand() {
-  const brand = document.createElement("div");
-  brand.className = "brand";
-  brand.innerHTML = `
-    <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-    <span class="brand-copy">
-      <p class="brand-kicker">forge.aolabs.io</p>
-      <h1 class="brand-title">Forge</h1>
-    </span>
-  `;
-  return brand;
+function createHeader() {
+  const header = el("header", "header");
+  const titleWrap = el("div");
+  titleWrap.append(el("p", "eyebrow", "forge.aolabs.io"), el("h1", "", "Forge"));
+  const status = el("div", `sync sync-${sync.status}`);
+  status.textContent = syncLabel();
+  header.append(titleWrap, status);
+  return header;
 }
 
-function createTopActions() {
-  const actions = document.createElement("div");
-  actions.className = "top-actions";
-
-  const exportButton = document.createElement("button");
-  exportButton.className = "button";
-  exportButton.type = "button";
-  exportButton.dataset.action = "export";
-  exportButton.append(icon("download"), "Export");
-
-  const importLabel = document.createElement("label");
-  importLabel.className = "button";
-  importLabel.append(icon("upload"), "Import");
-  const importInput = document.createElement("input");
-  importInput.className = "import-input";
-  importInput.type = "file";
-  importInput.accept = "application/json,.json";
-  importInput.dataset.action = "import";
-  importLabel.append(importInput);
-
-  const resetButton = document.createElement("button");
-  resetButton.className = "button button-ghost";
-  resetButton.type = "button";
-  resetButton.dataset.action = "reset-seed";
-  resetButton.title = "Restore starter board";
-  resetButton.append(icon("reset"), "Starter");
-
-  actions.append(exportButton, importLabel, resetButton);
-  return actions;
+function syncLabel() {
+  if (sync.status === "local") return "local sync";
+  if (sync.status === "browser") return "browser vault";
+  return "checking";
 }
 
-function createCapturePanel() {
-  const panel = document.createElement("section");
-  panel.className = "panel capture-panel";
-  panel.innerHTML = `
-    <div class="panel-head">
-      <h2 class="panel-title">${editingId ? "Edit entry" : "Capture"}</h2>
-      <span class="subtle-count">${entries.length} saved</span>
-    </div>
-  `;
+function createFocus() {
+  const section = el("section", "focus");
+  section.append(el("p", "eyebrow", focus.title));
+  const line = el("h2");
+  line.textContent = focus.now;
+  section.append(line);
 
-  const form = document.createElement("form");
-  form.className = "capture-form";
-  form.dataset.role = "capture-form";
-
-  const editingEntry = editingId ? entries.find((entry) => entry.id === editingId) : null;
-  if (editingId && !editingEntry) editingId = null;
-  const source = draftValues;
-  form.append(
-    createField("Title", "title", "input", source.title),
-    createField("Note", "body", "textarea", source.body),
-    createSelectGrid(source),
-    createField("Tags", "tags", "input", source.tags),
-    createImageField(),
-    createFormActions()
-  );
-
-  panel.append(form);
-  return panel;
+  const next = el("div", "calm-lines");
+  next.append(createLine("next", focus.next), createLine("watch", focus.watch));
+  section.append(next);
+  return section;
 }
 
-function createField(labelText, name, kind, value) {
-  const field = document.createElement("div");
-  field.className = "field";
-  const id = `field-${name}`;
-  const label = document.createElement("label");
-  label.htmlFor = id;
-  label.textContent = labelText;
-
-  const input = kind === "textarea" ? document.createElement("textarea") : document.createElement("input");
-  input.id = id;
-  input.name = name;
-  input.className = kind === "textarea" ? "textarea" : "input";
-  input.value = value || "";
-  if (name === "title") {
-    input.required = true;
-    input.placeholder = "What changed?";
-  }
-  if (name === "body") input.placeholder = "Result, idea, question, or next check";
-  if (name === "tags") input.placeholder = "magnet, airflow, print";
-
-  field.append(label, input);
-  return field;
+function createLine(label, text) {
+  const row = el("p", "line");
+  row.append(el("span", "", label), document.createTextNode(text));
+  return row;
 }
 
-function createSelectGrid(source) {
-  const grid = document.createElement("div");
-  grid.className = "field-grid";
-  grid.append(
-    createSelect("Type", "type", types, source.type),
-    createSelect("Area", "area", areas.map((area) => [area, area]), source.area),
-    createSelect("State", "status", statuses, source.status),
-    createSelect("Weight", "importance", importanceLevels, source.importance)
-  );
-  return grid;
-}
+function createCapture() {
+  const section = el("section", "capture");
+  const form = el("form", "capture-form");
+  form.dataset.role = "capture";
 
-function createSelect(labelText, name, options, value) {
-  const field = document.createElement("div");
-  field.className = "field";
-  const id = `field-${name}`;
-  const label = document.createElement("label");
-  label.htmlFor = id;
-  label.textContent = labelText;
-  const select = document.createElement("select");
-  select.id = id;
-  select.name = name;
-  select.className = "select";
-  options.forEach(([optionValue, optionLabel]) => {
-    const option = document.createElement("option");
-    option.value = optionValue;
-    option.textContent = optionLabel;
-    option.selected = optionValue === value;
-    select.append(option);
-  });
-  field.append(label, select);
-  return field;
-}
+  const textarea = el("textarea", "note-input");
+  textarea.name = "note";
+  textarea.placeholder = "One thought, result, screenshot, or file.";
+  textarea.value = noteDraft;
 
-function createImageField() {
-  const wrapper = document.createElement("div");
-  wrapper.className = "field";
-  const label = document.createElement("span");
-  label.className = "field-label";
-  label.textContent = "Image";
-
-  const drop = document.createElement("label");
-  drop.className = "image-drop";
-  drop.textContent = imageDraft ? imageDraft.name : "Add sketch or photo";
+  const bottom = el("div", "capture-bottom");
+  const fileLabel = el("label", "file-pick");
+  fileLabel.textContent = pendingFiles.length ? `${pendingFiles.length} attached` : "attach";
   const input = document.createElement("input");
   input.type = "file";
-  input.accept = "image/*";
-  input.name = "image";
-  input.dataset.action = "image";
-  drop.append(input);
+  input.multiple = true;
+  input.dataset.role = "file-input";
+  fileLabel.append(input);
 
-  const preview = document.createElement("div");
-  const previewImage = imageDraft?.src || "";
-  preview.className = `image-preview${previewImage ? " is-visible" : ""}`;
-  if (previewImage) {
-    const img = document.createElement("img");
-    img.src = previewImage;
-    img.alt = "";
-    preview.append(img);
-  }
+  const save = el("button", "save-button", "Save");
+  save.type = "submit";
+  bottom.append(fileLabel, save);
+  form.append(textarea, bottom);
 
-  wrapper.append(label, drop, preview);
-  return wrapper;
+  const helper = el("p", "helper");
+  helper.textContent = sync.status === "local"
+    ? "Synced to Chapter 2 folder."
+    : "Browser-only until local sync is running.";
+
+  section.append(form, helper);
+  return section;
 }
 
-function createFormActions() {
-  const actions = document.createElement("div");
-  actions.className = "form-actions";
+function createRecent() {
+  const section = el("section", "quiet-section");
+  section.append(el("h3", "", "Recent"));
 
-  const submit = document.createElement("button");
-  submit.className = "button button-primary";
-  submit.type = "submit";
-  submit.append(icon("add"), editingId ? "Update" : "Add");
+  const recent = [
+    ...state.notes.map((note) => ({ ...note, entryType: "note" })),
+    ...state.files.map((file) => ({ ...file, entryType: "file" })),
+  ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
 
-  const cancel = document.createElement("button");
-  cancel.className = "button icon-button";
-  cancel.type = "button";
-  cancel.dataset.action = editingId ? "cancel-edit" : "clear-form";
-  cancel.title = editingId ? "Cancel edit" : "Clear form";
-  cancel.textContent = editingId ? "X" : "-";
-
-  actions.append(submit, cancel);
-  return actions;
-}
-
-function createBoardPanel() {
-  const panel = document.createElement("section");
-  panel.className = "panel board-panel";
-  panel.append(createBoardTools(), createStatusStrip(), createBoard());
-  return panel;
-}
-
-function createBoardTools() {
-  const tools = document.createElement("div");
-  tools.className = "board-tools";
-
-  const search = document.createElement("div");
-  search.className = "search-wrap";
-  search.append(icon("search"));
-  const input = document.createElement("input");
-  input.className = "input search-input";
-  input.type = "search";
-  input.placeholder = "Search board";
-  input.value = query;
-  input.dataset.action = "search";
-  search.append(input);
-
-  const segmented = document.createElement("div");
-  segmented.className = "segmented";
-  const filters = [["all", "All"], ...statuses, ["question", "Questions"], ["decision", "Decisions"]];
-  filters.forEach(([value, label]) => {
-    const button = document.createElement("button");
-    button.className = `segment${filter === value ? " is-active" : ""}`;
-    button.type = "button";
-    button.dataset.action = "filter";
-    button.dataset.value = value;
-    button.textContent = label;
-    segmented.append(button);
-  });
-
-  tools.append(search, segmented);
-  return tools;
-}
-
-function createStatusStrip() {
-  const strip = document.createElement("div");
-  strip.className = "status-strip";
-  statuses.forEach(([status, label]) => {
-    const count = entries.filter((entry) => entry.status === status).length;
-    const cell = document.createElement("button");
-    cell.className = "status-cell";
-    cell.type = "button";
-    cell.dataset.action = "filter";
-    cell.dataset.value = status;
-    cell.innerHTML = `<span class="status-label">${label}</span><span class="status-value">${count}</span>`;
-    strip.append(cell);
-  });
-  return strip;
-}
-
-function createBoard() {
-  const board = document.createElement("div");
-  board.className = "board";
-  const list = visibleEntries();
-  if (!list.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = "No matching entries.";
-    board.append(empty);
-    return board;
-  }
-  list.forEach((entry) => board.append(createCard(entry)));
-  return board;
-}
-
-function createCard(entry) {
-  const card = document.createElement("article");
-  card.className = `note-card type-${entry.type}${entry.pinned ? " is-pinned" : ""}`;
-  card.dataset.id = entry.id;
-
-  if (entry.image) {
-    const img = document.createElement("img");
-    img.className = "card-image";
-    img.src = entry.image;
-    img.alt = entry.imageName || "";
-    card.append(img);
-  }
-
-  const body = document.createElement("div");
-  body.className = "card-body";
-
-  const meta = document.createElement("div");
-  meta.className = "card-meta";
-  const pill = document.createElement("span");
-  pill.className = "pill";
-  pill.textContent = `${getLabel(types, entry.type)} / ${entry.area}`;
-  const date = document.createElement("span");
-  date.className = "card-date";
-  date.textContent = formatDate(entry.updatedAt);
-  meta.append(pill, date);
-
-  const title = document.createElement("h3");
-  title.className = "card-title";
-  title.textContent = entry.title;
-
-  const text = document.createElement("p");
-  text.className = "card-text";
-  text.textContent = entry.body;
-
-  const tags = document.createElement("div");
-  tags.className = "tag-row";
-  [entry.status, entry.importance, ...entry.tags].forEach((tag) => {
-    const node = document.createElement("span");
-    node.className = "tag";
-    node.textContent = tag;
-    tags.append(node);
-  });
-
-  body.append(meta, title);
-  if (entry.body) body.append(text);
-  body.append(tags);
-
-  const actions = document.createElement("div");
-  actions.className = "card-actions";
-  actions.append(
-    createCardAction(entry.id, "cycle", getNextStatusLabel(entry.status)),
-    createCardAction(entry.id, "pin", entry.pinned ? "Unpin" : "Pin"),
-    createCardAction(entry.id, "edit", "Edit"),
-    createCardAction(entry.id, "delete", "Delete")
-  );
-
-  card.append(body, actions);
-  return card;
-}
-
-function createCardAction(id, action, text) {
-  const button = document.createElement("button");
-  button.className = "card-action";
-  button.type = "button";
-  button.dataset.action = action;
-  button.dataset.id = id;
-  button.textContent = text;
-  return button;
-}
-
-function getNextStatusLabel(status) {
-  const index = statuses.findIndex(([value]) => value === status);
-  const next = statuses[(index + 1) % statuses.length];
-  return next ? next[1] : "Next";
-}
-
-function createContextPanel() {
-  const panel = document.createElement("aside");
-  panel.className = "panel context-panel";
-  panel.innerHTML = `
-    <div class="panel-head">
-      <h2 class="panel-title">Now</h2>
-      <span class="subtle-count">${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
-    </div>
-  `;
-  appendContextSection(panel, "Focus", focusEntries());
-  appendContextSection(panel, "Questions", entriesByType("question"));
-  appendContextSection(panel, "Decisions", entriesByType("decision"));
-  return panel;
-}
-
-function appendContextSection(panel, title, list) {
-  const heading = document.createElement("h3");
-  heading.className = "divider-title";
-  heading.textContent = title;
-  const wrapper = document.createElement("div");
-  wrapper.className = "context-list";
-
-  const items = list.slice(0, 4);
-  if (!items.length) {
-    const empty = document.createElement("div");
-    empty.className = "mini-item";
-    empty.innerHTML = `<p class="mini-title">Nothing here yet</p><span class="mini-meta">${title}</span>`;
-    wrapper.append(empty);
+  const list = el("div", "list");
+  if (!recent.length) {
+    list.append(el("p", "empty", "Nothing saved yet."));
   } else {
-    items.forEach((entry) => wrapper.append(createMiniItem(entry)));
+    recent.forEach((item) => list.append(item.entryType === "file" ? createFileRow(item, true) : createNoteRow(item)));
   }
-
-  panel.append(heading, wrapper);
+  section.append(list);
+  return section;
 }
 
-function createMiniItem(entry) {
-  const item = document.createElement("button");
-  item.className = "mini-item";
-  item.type = "button";
-  item.dataset.action = "jump";
-  item.dataset.id = entry.id;
-  const title = document.createElement("p");
-  title.className = "mini-title";
-  title.textContent = entry.title;
-  const meta = document.createElement("span");
-  meta.className = "mini-meta";
-  meta.textContent = `${entry.status} / ${entry.area}`;
-  item.append(title, meta);
-  return item;
+function createNoteRow(note) {
+  const row = el("article", "row note-row");
+  row.append(el("p", "row-main", note.text), el("p", "row-meta", formatDate(note.createdAt)));
+  return row;
 }
 
-function focusEntries() {
-  return sortEntries(entries).filter((entry) => entry.status === "doing" || entry.status === "next" || entry.pinned);
-}
-
-function entriesByType(type) {
-  return sortEntries(entries).filter((entry) => entry.type === type && entry.status !== "done");
-}
-
-function bindEvents() {
-  const form = root.querySelector("[data-role='capture-form']");
-  if (form) {
-    form.addEventListener("submit", handleSubmit);
-    form.addEventListener("input", () => rememberDraft(form));
-    form.addEventListener("change", () => rememberDraft(form));
-  }
-
-  root.querySelectorAll("[data-action]").forEach((node) => {
-    const action = node.dataset.action;
-    if (action === "search") node.addEventListener("input", handleSearch);
-    if (action === "filter") node.addEventListener("click", handleFilter);
-    if (action === "export") node.addEventListener("click", exportBoard);
-    if (action === "import") node.addEventListener("change", importBoard);
-    if (action === "reset-seed") node.addEventListener("click", resetStarterBoard);
-    if (action === "image") node.addEventListener("change", handleImageInput);
-    if (action === "clear-form") node.addEventListener("click", clearForm);
-    if (action === "cancel-edit") node.addEventListener("click", cancelEdit);
-    if (action === "cycle") node.addEventListener("click", cycleStatus);
-    if (action === "pin") node.addEventListener("click", togglePin);
-    if (action === "edit") node.addEventListener("click", editEntry);
-    if (action === "delete") node.addEventListener("click", deleteEntry);
-    if (action === "jump") node.addEventListener("click", jumpToEntry);
-  });
-}
-
-function handleSubmit(event) {
-  event.preventDefault();
-  const formData = new FormData(event.currentTarget);
-  const now = new Date().toISOString();
-  const previous = editingId ? entries.find((entry) => entry.id === editingId) : null;
-  const entry = normalizeEntry({
-    id: previous ? previous.id : createId(),
-    title: formData.get("title"),
-    body: formData.get("body"),
-    type: formData.get("type"),
-    area: formData.get("area"),
-    status: formData.get("status"),
-    importance: formData.get("importance"),
-    tags: parseTags(formData.get("tags")),
-    image: imageDraft?.src || previous?.image || "",
-    imageName: imageDraft?.name || previous?.imageName || "",
-    pinned: previous?.pinned || false,
-    createdAt: previous?.createdAt || now,
-    updatedAt: now,
-  });
-
-  if (previous) {
-    entries = entries.map((item) => (item.id === previous.id ? entry : item));
-    toast("Entry updated.");
+function createFiles() {
+  const section = el("section", "quiet-section files-section");
+  section.append(el("h3", "", "Files"));
+  const list = el("div", "list");
+  const files = [...state.files].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (!files.length) {
+    list.append(el("p", "empty", "No files yet."));
   } else {
-    entries = [entry, ...entries];
-    toast("Entry added.");
+    files.slice(0, 12).forEach((file) => list.append(createFileRow(file, false)));
   }
-
-  editingId = null;
-  imageDraft = null;
-  draftValues = createEmptyDraft();
-  saveEntries();
-  render();
+  section.append(list);
+  return section;
 }
 
-function handleSearch(event) {
-  query = event.currentTarget.value;
-  render();
-  const input = root.querySelector("[data-action='search']");
-  if (input) {
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
-  }
+function createFileRow(file, compact) {
+  const row = el("article", compact ? "row file-row compact" : "row file-row");
+  const main = el("button", "file-name");
+  main.type = "button";
+  main.dataset.action = "download";
+  main.dataset.id = file.id;
+  main.append(icon("file"), el("span", "", file.name));
+
+  const meta = el("p", "row-meta");
+  meta.textContent = `${formatSize(file.size)} ${file.source === "sync" ? "synced" : "browser"} ${formatDate(file.createdAt)}`;
+
+  const del = el("button", "delete-button");
+  del.type = "button";
+  del.title = "Delete file";
+  del.dataset.action = "delete";
+  del.dataset.id = file.id;
+  del.append(icon("trash"));
+
+  const body = el("div", "file-body");
+  body.append(main, meta);
+  row.append(body);
+  if (!compact) row.append(del);
+  return row;
 }
 
-function handleFilter(event) {
-  filter = event.currentTarget.dataset.value || "all";
-  render();
-}
-
-function cycleStatus(event) {
-  const id = event.currentTarget.dataset.id;
-  entries = entries.map((entry) => {
-    if (entry.id !== id) return entry;
-    const index = statuses.findIndex(([status]) => status === entry.status);
-    const next = statuses[(index + 1) % statuses.length][0];
-    return { ...entry, status: next, updatedAt: new Date().toISOString() };
+function bind() {
+  const form = root.querySelector("[data-role='capture']");
+  form?.addEventListener("submit", saveCapture);
+  form?.querySelector("textarea")?.addEventListener("input", (event) => {
+    noteDraft = event.currentTarget.value;
   });
-  saveEntries();
-  render();
-}
-
-function togglePin(event) {
-  const id = event.currentTarget.dataset.id;
-  entries = entries.map((entry) => (
-    entry.id === id ? { ...entry, pinned: !entry.pinned, updatedAt: new Date().toISOString() } : entry
-  ));
-  saveEntries();
-  render();
-}
-
-function editEntry(event) {
-  editingId = event.currentTarget.dataset.id;
-  const entry = entries.find((item) => item.id === editingId);
-  if (!entry) return;
-  draftValues = entryToDraft(entry);
-  imageDraft = entry.image ? { src: entry.image, name: entry.imageName || "Attached image" } : null;
-  render();
-  root.querySelector("#field-title")?.focus();
-}
-
-function deleteEntry(event) {
-  const id = event.currentTarget.dataset.id;
-  const entry = entries.find((item) => item.id === id);
-  if (!entry) return;
-  if (!window.confirm(`Delete "${entry.title}"?`)) return;
-  entries = entries.filter((item) => item.id !== id);
-  if (editingId === id) editingId = null;
-  saveEntries();
-  render();
-  toast("Entry deleted.");
-}
-
-function jumpToEntry(event) {
-  const id = event.currentTarget.dataset.id;
-  filter = "all";
-  query = "";
-  render();
-  const card = root.querySelector(`[data-id="${CSS.escape(id)}"]`);
-  if (card) {
-    card.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-}
-
-function clearForm() {
-  imageDraft = null;
-  editingId = null;
-  draftValues = createEmptyDraft();
-  render();
-}
-
-function cancelEdit() {
-  editingId = null;
-  imageDraft = null;
-  draftValues = createEmptyDraft();
-  render();
-}
-
-async function handleImageInput(event) {
-  const file = event.currentTarget.files?.[0];
-  if (!file) return;
-  rememberDraft(event.currentTarget.form);
-  try {
-    imageDraft = await resizeImage(file);
+  root.querySelector("[data-role='file-input']")?.addEventListener("change", (event) => {
+    pendingFiles = [...event.currentTarget.files];
     render();
-    toast("Image attached.");
-  } catch (error) {
-    console.error(error);
-    toast("That image could not be added.");
-  }
+  });
+  root.querySelectorAll("[data-action='download']").forEach((button) => {
+    button.addEventListener("click", () => downloadFile(button.dataset.id));
+  });
+  root.querySelectorAll("[data-action='delete']").forEach((button) => {
+    button.addEventListener("click", () => deleteFile(button.dataset.id));
+  });
 }
 
-function resizeImage(file) {
+async function saveCapture(event) {
+  event.preventDefault();
+  const text = noteDraft.trim();
+  const files = [...pendingFiles];
+  if (!text && !files.length) {
+    toast("Add one thing first.");
+    return;
+  }
+
+  const now = new Date().toISOString();
+  if (text) {
+    const note = { id: createId(), text, createdAt: now };
+    state.notes.unshift(note);
+    if (sync.status === "local") {
+      postJson(`${sync.base}/api/notes`, {
+        title: text.split(/\s+/).slice(0, 8).join(" ") || "forge note",
+        text,
+      }).then(refreshSyncFiles).catch(() => {});
+    }
+  }
+
+  for (const file of files) {
+    try {
+      if (sync.status === "local") {
+        const dataUrl = await readFileAsDataUrl(file);
+        const response = await postJson(`${sync.base}/api/files`, {
+          name: file.name,
+          mime: file.type || "application/octet-stream",
+          dataUrl,
+        });
+        upsertFile(normalizeSyncFile(response.file));
+      } else {
+        const id = createId();
+        const record = {
+          id,
+          name: file.name,
+          size: file.size,
+          mime: file.type || "application/octet-stream",
+          source: "browser",
+          createdAt: now,
+        };
+        await putBrowserFile({ ...record, blob: file });
+        upsertFile(record);
+      }
+    } catch (error) {
+      console.error(error);
+      toast(`Could not save ${file.name}.`);
+    }
+  }
+
+  noteDraft = "";
+  pendingFiles = [];
+  saveState();
+  render();
+  toast(sync.status === "local" ? "Saved and synced." : "Saved in browser.");
+}
+
+function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Could not read image"));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error("Could not load image"));
-      img.onload = () => {
-        const maxSide = 1400;
-        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
-        const width = Math.max(1, Math.round(img.width * scale));
-        const height = Math.max(1, Math.round(img.height * scale));
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const context = canvas.getContext("2d");
-        context.drawImage(img, 0, 0, width, height);
-        resolve({
-          name: file.name,
-          src: canvas.toDataURL("image/jpeg", 0.86),
-        });
-      };
-      img.src = reader.result;
-    };
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
 }
 
-function exportBoard() {
-  const payload = {
-    app: "Forge",
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    entries,
+async function postJson(url, payload) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const json = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(json.error || "Request failed");
+  return json;
+}
+
+function normalizeSyncFile(file) {
+  return {
+    id: file.id,
+    name: file.name,
+    size: file.size,
+    mime: file.mime,
+    createdAt: file.createdAt,
+    source: "sync",
+    kind: file.kind || "file",
   };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
+}
+
+function upsertFile(file) {
+  state.files = [file, ...state.files.filter((item) => item.id !== file.id)];
+}
+
+async function downloadFile(id) {
+  const file = state.files.find((item) => item.id === id);
+  if (!file) return;
+  if (file.source === "sync" && sync.status === "local") {
+    window.location.href = `${sync.base}/api/files/${encodeURIComponent(id)}/download`;
+    return;
+  }
+  const stored = await getBrowserFile(id);
+  if (!stored?.blob) {
+    toast("File is not available in this browser.");
+    return;
+  }
+  const url = URL.createObjectURL(stored.blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `forge-board-${new Date().toISOString().slice(0, 10)}.json`;
+  anchor.download = stored.name;
   document.body.append(anchor);
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
-  toast("Board exported.");
 }
 
-function importBoard(event) {
-  const file = event.currentTarget.files?.[0];
+async function deleteFile(id) {
+  const file = state.files.find((item) => item.id === id);
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const payload = JSON.parse(reader.result);
-      const imported = Array.isArray(payload) ? payload : payload.entries;
-      if (!Array.isArray(imported)) throw new Error("Missing entries");
-      const normalized = imported.map(normalizeEntry);
-      if (!window.confirm(`Replace this board with ${normalized.length} imported entries?`)) return;
-      entries = normalized;
-      editingId = null;
-      imageDraft = null;
-      draftValues = createEmptyDraft();
-      saveEntries();
-      render();
-      toast("Board imported.");
-    } catch (error) {
-      console.error(error);
-      toast("Import failed.");
+  if (!window.confirm(`Delete ${file.name}?`)) return;
+
+  const password = window.prompt("Delete key");
+  if (!password) return;
+
+  if (file.source === "sync") {
+    if (sync.status !== "local") {
+      toast("Start local sync before deleting synced files.");
+      return;
     }
-  };
-  reader.readAsText(file);
+    const response = await fetch(`${sync.base}/api/files/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    const json = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      toast(json.error || "Delete failed.");
+      return;
+    }
+  } else {
+    const allowed = await browserDeleteAllowed(password);
+    if (!allowed) {
+      toast("Wrong delete key.");
+      return;
+    }
+    await deleteBrowserBlob(id);
+  }
+
+  state.files = state.files.filter((item) => item.id !== id);
+  saveState();
+  render();
+  toast("Deleted.");
 }
 
-function resetStarterBoard() {
-  if (!window.confirm("Replace this board with the starter Forge board?")) return;
-  entries = seedEntries.map(normalizeEntry);
-  editingId = null;
-  imageDraft = null;
-  draftValues = createEmptyDraft();
-  saveEntries();
+async function browserDeleteAllowed(password) {
+  const existing = localStorage.getItem(ownerKey);
+  const hashed = await hashText(password);
+  if (!existing) {
+    localStorage.setItem(ownerKey, hashed);
+    return true;
+  }
+  return existing === hashed;
+}
+
+async function detectSync() {
+  const candidates = ["", "http://127.0.0.1:3010", "http://127.0.0.1:3000"];
+  for (const base of candidates) {
+    try {
+      const response = await fetch(`${base}/api/health`, { cache: "no-store" });
+      if (!response.ok) continue;
+      const json = await response.json();
+      if (json.app !== "Forge") continue;
+      sync = {
+        status: "local",
+        base,
+        root: json.storageRoot || "research folder",
+        deleteConfigured: Boolean(json.deleteConfigured),
+      };
+      await refreshSyncFiles();
+      render();
+      return;
+    } catch (error) {
+      // Keep checking quieter fallbacks.
+    }
+  }
+  sync = { status: "browser", base: "", root: "", deleteConfigured: false };
   render();
-  toast("Starter board restored.");
+}
+
+async function refreshSyncFiles() {
+  if (sync.status !== "local") return;
+  const response = await fetch(`${sync.base}/api/files`, { cache: "no-store" });
+  if (!response.ok) return;
+  const json = await response.json();
+  const synced = Array.isArray(json.files) ? json.files.map(normalizeSyncFile) : [];
+  const browserOnly = state.files.filter((file) => file.source !== "sync");
+  state.files = [...synced, ...browserOnly];
+  saveState();
 }
 
 function toast(message) {
   window.clearTimeout(toastTimer);
   document.querySelector(".toast")?.remove();
-  const node = document.createElement("div");
-  node.className = "toast";
-  node.textContent = message;
+  const node = el("div", "toast", message);
   document.body.append(node);
-  toastTimer = window.setTimeout(() => node.remove(), 2600);
+  toastTimer = window.setTimeout(() => node.remove(), 2400);
 }
 
-document.addEventListener("paste", async (event) => {
-  const item = [...(event.clipboardData?.items || [])].find((clipboardItem) => clipboardItem.type.startsWith("image/"));
-  if (!item) return;
-  const file = item.getAsFile();
-  if (!file) return;
-  imageDraft = await resizeImage(file);
-  const form = root.querySelector("[data-role='capture-form']");
-  rememberDraft(form);
+document.addEventListener("paste", (event) => {
+  const files = [...(event.clipboardData?.items || [])]
+    .filter((item) => item.kind === "file")
+    .map((item) => item.getAsFile())
+    .filter(Boolean);
+  if (!files.length) return;
+  pendingFiles = [...pendingFiles, ...files];
   render();
-  toast("Pasted image attached.");
+  toast("Attached.");
 });
 
 render();
+detectSync();
