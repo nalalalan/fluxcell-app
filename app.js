@@ -26,7 +26,6 @@ const seedNotes = [
 const references = [
   "/assets/sarrus-array-wall.jpg",
   "/assets/module-iso.jpg",
-  "/assets/local-control-sarrus.jpg",
 ];
 
 let state = loadState();
@@ -159,7 +158,7 @@ function render() {
 
 function createShell() {
   const shell = el("main", "app-shell");
-  shell.append(createTopbar(), createWorkspace(), createRecent(), createReference());
+  shell.append(createTopbar(), createWorkspace(), createLibrary());
   return shell;
 }
 
@@ -193,8 +192,8 @@ function createWorkspace() {
   const capture = el("section", "capture-panel");
   capture.append(createIntro(), createCaptureForm());
 
-  const thinking = el("aside", "thinking-panel");
-  thinking.append(createIdeas());
+  const thinking = el("aside", "next-panel");
+  thinking.append(createNextPanel());
 
   section.append(capture, thinking);
   return section;
@@ -211,29 +210,34 @@ function createIntro() {
 }
 
 function createCaptureForm() {
-  const form = el("form", "capture-form");
+  const form = el("form", "composer");
   form.dataset.role = "capture";
+
+  const dropzone = el("div", "dropzone");
+  dropzone.dataset.role = "dropzone";
 
   const textarea = el("textarea", "note-input");
   textarea.name = "note";
-  textarea.placeholder = "Note, measurement, CAD change, failure, or next test.";
+  textarea.placeholder = "Write the next note, measurement, CAD change, or failure.";
   textarea.value = noteDraft;
 
-  const actions = el("div", "capture-actions");
-  const fileLabel = el("label", "file-pick");
-  fileLabel.append(icon("upload"), el("span", "", pendingFiles.length ? `${pendingFiles.length} staged` : "Upload"));
+  const fileLabel = el("label", "file-inline");
+  fileLabel.append(icon("upload"), el("span", "", "Drop files here or click to attach"));
   const input = document.createElement("input");
   input.type = "file";
   input.multiple = true;
   input.dataset.role = "file-input";
   fileLabel.append(input);
 
+  dropzone.append(textarea, fileLabel);
+
+  const footer = el("div", "composer-footer");
   const save = el("button", "save-button");
   save.type = "submit";
-  save.append(icon("spark"), el("span", "", "Save"));
+  save.append(icon("spark"), el("span", "", pendingFiles.length ? `Save ${pendingFiles.length + (noteDraft.trim() ? 1 : 0)}` : "Save"));
 
-  actions.append(fileLabel, save);
-  form.append(textarea, actions, createPendingList());
+  footer.append(createPendingList(), save);
+  form.append(dropzone, footer);
   return form;
 }
 
@@ -245,63 +249,92 @@ function createPendingList() {
   return wrap;
 }
 
-function createIdeas() {
-  const panel = el("div", "ideas");
-  panel.append(el("p", "section-label", "signals"), el("h2", "", "Useful next steps"));
-  const list = el("ol", "idea-list");
-  generateIdeas().forEach((idea) => list.append(el("li", "", idea)));
-  panel.append(list);
+function createNextPanel() {
+  const panel = el("div", "next-card");
+  const suggestion = generateNextStep();
+  panel.append(el("p", "section-label", "generated"), el("h2", "", suggestion.title));
+  panel.append(el("p", "next-copy", suggestion.copy));
+  panel.append(el("p", "next-source", suggestion.source));
   return panel;
 }
 
-function generateIdeas() {
-  const text = state.notes.map((note) => note.text).join(" ").toLowerCase();
-  const ideas = [];
+function generateNextStep() {
+  const latestNotes = state.notes.slice(0, 3);
+  const latestFiles = state.files.slice(0, 5);
+  const text = [
+    ...latestNotes.map((note) => note.text),
+    ...latestFiles.map((file) => file.name),
+  ].join(" ").toLowerCase();
+  const source = `Generated from ${state.notes.length} ${state.notes.length === 1 ? "note" : "notes"} and ${state.files.length} ${state.files.length === 1 ? "file" : "files"}.`;
 
-  if (/gap|force|load|stiff|pull/.test(text)) {
-    ideas.push("Run a force-vs-gap table with the same fixture and one changed variable.");
+  if (latestFiles.some(isPaperFile)) {
+    return {
+      title: "Turn the latest paper into one concrete experiment.",
+      copy: "Pull out the actuator geometry, drive condition, measurement method, and one number worth reproducing. Save that as the next build note.",
+      source,
+    };
+  }
+  if (/force|gap|load|pull|stiff/.test(text)) {
+    return {
+      title: "Lock the force measurement before changing the actuator.",
+      copy: "Use the same fixture and record gap, pulse condition, hold state, and force. Change only one geometry variable.",
+      source,
+    };
   }
   if (/heat|coil|pulse|current|driver|energy/.test(text)) {
-    ideas.push("Record pulse width, current, temperature rise, and whether the latch actually holds.");
+    return {
+      title: "Separate magnetic switching from thermal limits.",
+      copy: "Run one short pulse test with current, pulse width, temperature rise, and latch result in the same note.",
+      source,
+    };
   }
-  if (/cad|print|fixture|mount|geometry|core/.test(text)) {
-    ideas.push("Print the smallest fixture that keeps magnet gap and cell alignment repeatable.");
+  if (/cad|print|fixture|mount|core|magnet/.test(text)) {
+    return {
+      title: "Print the smallest fixture that makes the gap repeatable.",
+      copy: "The next useful prototype should remove alignment doubt before testing a full Sarrus cell.",
+      source,
+    };
   }
   if (/latch|hold|release|polarity|switch/.test(text)) {
-    ideas.push("Make a latch state table: hold, release, reset, failure mode.");
+    return {
+      title: "Make the latch state table.",
+      copy: "Record hold, release, reset, and failure mode for one cell-sized actuator before scaling up.",
+      source,
+    };
   }
-  if (/sarrus|cell|module|array/.test(text)) {
-    ideas.push("Test one Sarrus cell before thinking about arrays.");
+  if (!state.files.length) {
+    return {
+      title: "Attach one piece of evidence to the next note.",
+      copy: "A photo, CAD export, paper PDF, or force plot will make the next step easier to choose.",
+      source,
+    };
   }
-
-  const fallback = [
-    "Measure force at three gaps before changing the geometry.",
-    "Keep one photo, one note, and one number for every actuator attempt.",
-    "Separate magnetic latch behavior from the Sarrus cell mechanics.",
-  ];
-
-  return [...ideas, ...fallback].filter((idea, index, all) => all.indexOf(idea) === index).slice(0, 4);
+  return {
+    title: "Test one Sarrus cell before thinking about arrays.",
+    copy: "Keep the next pass focused on a single cell, one actuator gap, and one measurable result.",
+    source,
+  };
 }
 
-function createRecent() {
-  const section = el("section", "recent");
+function createLibrary() {
+  const section = el("section", "library");
   const head = el("div", "section-head");
-  head.append(el("p", "section-label", "workspace"), el("h2", "", "Recent"));
+  head.append(el("h2", "", "Library"));
   section.append(head);
 
-  const items = recentItems();
+  const items = libraryItems();
   if (!items.length) {
     section.append(el("p", "empty", "Nothing saved yet."));
     return section;
   }
 
-  const grid = el("div", "recent-grid");
+  const grid = el("div", "library-grid");
   items.forEach((item, index) => grid.append(createItemCard(item, index)));
   section.append(grid);
   return section;
 }
 
-function recentItems() {
+function libraryItems() {
   const notes = state.notes.map((note) => ({
     ...note,
     type: "note",
@@ -313,29 +346,72 @@ function recentItems() {
     ...file,
     type: "file",
     title: file.name,
-    meta: `${formatSize(file.size)} ${file.source === "sync" ? "synced" : "browser"} ${formatDate(file.createdAt)}`,
+    kind: file.kind || classifyFile(file),
+    meta: fileMeta(file),
   }));
 
-  return [...notes, ...files]
+  const saved = [...notes, ...files]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 12);
+
+  const referenceItems = references.map((src, index) => ({
+    id: `reference-${index}`,
+    type: "reference",
+    title: ["Sarrus array", "Cell module"][index] || "Reference",
+    meta: "reference",
+    image: src,
+  }));
+
+  return [...saved, ...referenceItems];
+}
+
+function fileMeta(file) {
+  const kind = file.kind || classifyFile(file);
+  const label = kind === "paper" ? "paper" : file.source === "sync" ? "synced" : "browser";
+  return `${label} ${formatSize(file.size)} ${formatDate(file.createdAt)}`;
 }
 
 function createItemCard(item, index) {
   if (item.type === "note") return createNoteCard(item);
+  if (item.type === "reference") return createReferenceCard(item, index);
   return createFileCard(item, index);
 }
 
 function createNoteCard(note) {
   const card = el("article", "item-card note-card");
-  card.append(el("p", "item-text", note.text), el("p", "item-meta", note.meta));
+  const actions = createActions([{ action: "delete-note", id: note.id, title: "Delete note", iconName: "trash", danger: true }]);
+  card.append(actions, el("p", "item-text", note.text), el("p", "item-meta", note.meta));
+  return card;
+}
+
+function createReferenceCard(item, index) {
+  const card = el("article", "item-card reference-card");
+  const visual = el("div", "file-visual");
+  const img = document.createElement("img");
+  img.src = item.image;
+  img.alt = "";
+  img.loading = "eager";
+  img.decoding = "async";
+  visual.append(img);
+  const body = el("div", "item-body");
+  body.append(el("p", "item-title", item.title), el("p", "item-meta", item.meta));
+  card.append(visual, body);
   return card;
 }
 
 function createFileCard(file, index) {
-  const card = el("article", `item-card file-card${isImageFile(file) ? " image-card" : ""}`);
+  const kind = file.kind || classifyFile(file);
+  const card = el("article", `item-card file-card ${kind === "paper" ? "paper-card" : ""}${isImageFile(file) ? " image-card" : ""}`);
   const visual = el("div", "file-visual");
-  if (isImageFile(file) && (file.source !== "sync" || sync.status === "local")) {
+  if (kind === "paper") {
+    visual.classList.add("paper-visual");
+    const img = document.createElement("img");
+    img.src = "/assets/linkage-geometry.jpg";
+    img.alt = "";
+    img.loading = index < 4 ? "eager" : "lazy";
+    img.decoding = "async";
+    visual.append(img, el("span", "paper-badge", "PDF"), el("p", "paper-title", paperTitle(file.name)));
+  } else if (isImageFile(file) && (file.source !== "sync" || sync.status === "local")) {
     const img = document.createElement("img");
     img.alt = "";
     img.loading = index < 4 ? "eager" : "lazy";
@@ -354,43 +430,26 @@ function createFileCard(file, index) {
   const body = el("div", "item-body");
   body.append(el("p", "item-title", file.name), el("p", "item-meta", file.meta));
 
-  const actions = el("div", "item-actions");
-  const download = el("button", "icon-button");
-  download.type = "button";
-  download.title = "Download";
-  download.dataset.action = "download";
-  download.dataset.id = file.id;
-  download.append(icon("down"));
-
-  const del = el("button", "icon-button danger");
-  del.type = "button";
-  del.title = "Delete";
-  del.dataset.action = "delete";
-  del.dataset.id = file.id;
-  del.append(icon("trash"));
-
-  actions.append(download, del);
+  const actions = createActions([
+    { action: "download", id: file.id, title: "Download", iconName: "down" },
+    { action: "delete", id: file.id, title: "Delete", iconName: "trash", danger: true },
+  ]);
   card.append(visual, body, actions);
   return card;
 }
 
-function createReference() {
-  const section = el("section", "reference");
-  const head = el("div", "section-head");
-  head.append(el("p", "section-label", "reference"), el("h2", "", "Sarrus mechanism"));
-  const images = el("div", "reference-grid");
-  references.forEach((src) => {
-    const figure = el("figure", "");
-    const img = document.createElement("img");
-    img.src = src;
-    img.alt = "";
-    img.loading = "lazy";
-    img.decoding = "async";
-    figure.append(img);
-    images.append(figure);
+function createActions(items) {
+  const actions = el("div", "item-actions");
+  items.forEach((item) => {
+    const button = el("button", `icon-button${item.danger ? " danger" : ""}`);
+    button.type = "button";
+    button.title = item.title;
+    button.dataset.action = item.action;
+    button.dataset.id = item.id;
+    button.append(icon(item.iconName));
+    actions.append(button);
   });
-  section.append(head, images);
-  return section;
+  return actions;
 }
 
 function fileExtension(name) {
@@ -402,21 +461,49 @@ function isImageFile(file) {
   return /^image\//.test(file.mime || "") || /\.(png|jpe?g|gif|webp|svg)$/i.test(file.name || "");
 }
 
+function isPaperFile(file) {
+  return (file.kind || "").toLowerCase() === "paper"
+    || /pdf/i.test(file.mime || "")
+    || /\.pdf$/i.test(file.name || "");
+}
+
+function classifyFile(file) {
+  return isPaperFile(file) ? "paper" : "file";
+}
+
+function paperTitle(name) {
+  return String(name || "Paper")
+    .replace(/\.[^.]+$/, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 90) || "Paper";
+}
+
 function bind() {
   const form = root.querySelector("[data-role='capture']");
+  const dropzone = root.querySelector("[data-role='dropzone']");
   form?.addEventListener("submit", saveCapture);
   form?.querySelector("textarea")?.addEventListener("input", (event) => {
     noteDraft = event.currentTarget.value;
   });
   root.querySelector("[data-role='file-input']")?.addEventListener("change", (event) => {
-    pendingFiles = [...event.currentTarget.files];
-    render();
+    stageFiles([...event.currentTarget.files]);
   });
+  dropzone?.addEventListener("dragenter", handleDrag);
+  dropzone?.addEventListener("dragover", handleDrag);
+  dropzone?.addEventListener("dragleave", (event) => {
+    if (!dropzone.contains(event.relatedTarget)) dropzone.classList.remove("drag-active");
+  });
+  dropzone?.addEventListener("drop", handleDrop);
   root.querySelectorAll("[data-action='download']").forEach((button) => {
     button.addEventListener("click", () => downloadFile(button.dataset.id));
   });
   root.querySelectorAll("[data-action='delete']").forEach((button) => {
     button.addEventListener("click", () => deleteFile(button.dataset.id));
+  });
+  root.querySelectorAll("[data-action='delete-note']").forEach((button) => {
+    button.addEventListener("click", () => deleteNote(button.dataset.id));
   });
 
   let resizeTimer = 0;
@@ -424,6 +511,24 @@ function bind() {
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(render, 140);
   };
+}
+
+function stageFiles(files) {
+  if (!files.length) return;
+  pendingFiles = [...pendingFiles, ...files];
+  render();
+  toast(`${files.length} ${files.length === 1 ? "file" : "files"} attached.`);
+}
+
+function handleDrag(event) {
+  event.preventDefault();
+  event.currentTarget.classList.add("drag-active");
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+  event.currentTarget.classList.remove("drag-active");
+  stageFiles([...event.dataTransfer.files]);
 }
 
 async function hydrateBrowserPreviews() {
@@ -465,12 +570,14 @@ async function saveCapture(event) {
 
   for (const file of files) {
     try {
+      const kind = classifyFile(file);
       if (sync.status === "local") {
         const dataUrl = await readFileAsDataUrl(file);
         const response = await postJson(`${sync.base}/api/files`, {
           name: file.name,
           mime: file.type || "application/octet-stream",
           dataUrl,
+          kind,
         });
         upsertFile(normalizeSyncFile(response.file));
       } else {
@@ -481,6 +588,7 @@ async function saveCapture(event) {
           size: file.size,
           mime: file.type || "application/octet-stream",
           source: "browser",
+          kind,
           createdAt: now,
         };
         await putBrowserFile({ ...record, blob: file });
@@ -527,7 +635,7 @@ function normalizeSyncFile(file) {
     mime: file.mime,
     createdAt: file.createdAt,
     source: "sync",
-    kind: file.kind || "file",
+    kind: file.kind || classifyFile(file),
   };
 }
 
@@ -593,6 +701,16 @@ async function deleteFile(id) {
   saveState();
   render();
   toast("Deleted.");
+}
+
+function deleteNote(id) {
+  const note = state.notes.find((item) => item.id === id);
+  if (!note) return;
+  if (!window.confirm("Delete this note?")) return;
+  state.notes = state.notes.filter((item) => item.id !== id);
+  saveState();
+  render();
+  toast("Note deleted.");
 }
 
 async function browserDeleteAllowed(password) {
@@ -669,9 +787,7 @@ document.addEventListener("paste", (event) => {
     .map((item) => item.getAsFile())
     .filter(Boolean);
   if (!files.length) return;
-  pendingFiles = [...pendingFiles, ...files];
-  render();
-  toast("Attached.");
+  stageFiles(files);
 });
 
 render();
