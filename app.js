@@ -12,7 +12,7 @@ const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 const focus = {
   domain: "fluxcell.aolabs.io",
   title: "3D printed electropermanent magnet actuation for Sarrus cells.",
-  current: "Replace pneumatic actuation with a compact EPM latch/driver.",
+  current: "Build a compact EPM latch/driver that can move one Sarrus cell.",
 };
 
 const seedNotes = [
@@ -216,7 +216,7 @@ function createCaptureForm() {
 
   const textarea = el("textarea", "note-input");
   textarea.name = "note";
-  textarea.placeholder = "Note, test result, CAD change, force number, failure.";
+  textarea.placeholder = "Note, measurement, CAD change, failure, or next test.";
   textarea.value = noteDraft;
 
   const actions = el("div", "capture-actions");
@@ -247,7 +247,7 @@ function createPendingList() {
 
 function createIdeas() {
   const panel = el("div", "ideas");
-  panel.append(el("p", "section-label", "from notes"), el("h2", "", "Next useful tests"));
+  panel.append(el("p", "section-label", "signals"), el("h2", "", "Useful next steps"));
   const list = el("ol", "idea-list");
   generateIdeas().forEach((idea) => list.append(el("li", "", idea)));
   panel.append(list);
@@ -377,7 +377,7 @@ function createFileCard(file, index) {
 function createReference() {
   const section = el("section", "reference");
   const head = el("div", "section-head");
-  head.append(el("p", "section-label", "reference"), el("h2", "", "Sarrus cell context"));
+  head.append(el("p", "section-label", "reference"), el("h2", "", "Sarrus mechanism"));
   const images = el("div", "reference-grid");
   references.forEach((src) => {
     const figure = el("figure", "");
