@@ -11,115 +11,22 @@ const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
   domain: "fluxcell.aolabs.io",
-  title: "3D printed electropermanent magnet actuation",
-  now: "Replace pneumatic actuation with strong printed EPMs.",
-  next: "Design and test a magnet latch/driver that can move one Sarrus cell.",
+  title: "3D printed electropermanent magnet actuation for Sarrus cells.",
+  current: "Replace pneumatic actuation with a compact EPM latch/driver.",
 };
 
 const seedNotes = [
   {
     id: "seed-flux",
-    text: "Main direction: electropermanent magnet actuation for Sarrus-linkage-based cells. Every capture here should help answer force, gap, pulse, latch geometry, heat, or cell integration.",
+    text: "Electropermanent magnet actuation for Sarrus-linkage cells. Track force, gap, pulse energy, latch geometry, heat, and how the actuator fits inside the cell.",
     createdAt: new Date("2026-05-02T12:00:00").toISOString(),
   },
 ];
 
-const researchTiles = [
-  {
-    type: "mission",
-    shape: "hero",
-    kicker: "focus lock",
-    title: "One app for the EPM cell push.",
-    text: "Files, sketches, test shots, force plots, notes, CAD, and dead ends all land here.",
-  },
-  {
-    type: "image",
-    shape: "wide",
-    image: "/assets/sarrus-array-wall.jpg",
-    kicker: "target organism",
-    title: "Sarrus cells, but no air lines as the main actuator.",
-  },
-  {
-    type: "image",
-    shape: "portrait",
-    image: "/assets/module-iso.jpg",
-    kicker: "cell body",
-    title: "Printed module geometry waiting for local field-driven motion.",
-  },
-  {
-    type: "field",
-    shape: "tall",
-    kicker: "actuation stack",
-    title: "Pulse -> latch -> hold -> release",
-    text: "EPMs should spend energy only when switching magnetic state.",
-  },
-  {
-    type: "image",
-    shape: "cinema",
-    image: "/assets/local-control-sarrus.jpg",
-    kicker: "system sketch",
-    title: "Sensor, driver, EPM, Sarrus cell: one local control cartridge.",
-  },
-  {
-    type: "checklist",
-    shape: "square",
-    kicker: "next coupons",
-    title: "Build the magnetic truth table",
-    items: ["force vs gap", "coil pulse energy", "core geometry", "printed fixture", "cell displacement"],
-  },
-  {
-    type: "image",
-    shape: "portrait",
-    image: "/assets/module-parts.jpg",
-    kicker: "parts spread",
-    title: "Make the actuator fit the cell, not the other way around.",
-  },
-  {
-    type: "metric",
-    shape: "wide",
-    kicker: "north star",
-    title: "Strong hold, low heat, short pulse",
-    stats: [
-      ["force", "gap limited"],
-      ["power", "switch only"],
-      ["motion", "cell-scale"],
-    ],
-  },
-  {
-    type: "image",
-    shape: "portrait",
-    image: "/assets/valve-tube.jpg",
-    kicker: "legacy path",
-    title: "Pneumatic control stays as context, not the center.",
-  },
-  {
-    type: "image",
-    shape: "wide",
-    image: "/assets/squish-120.jpg",
-    kicker: "mechanical output",
-    title: "Keep the Sarrus transformation. Change the actuation source.",
-  },
-  {
-    type: "image",
-    shape: "cinema",
-    image: "/assets/linkage-geometry.jpg",
-    kicker: "geometry evidence",
-    title: "Pressure-era data becomes the benchmark to beat.",
-  },
-  {
-    type: "image",
-    shape: "cinema",
-    image: "/assets/module-biasing.jpg",
-    kicker: "array behavior",
-    title: "Magnetic actuation has to work through module coupling.",
-  },
-  {
-    type: "image",
-    shape: "square",
-    image: "/assets/force-stiffness.jpg",
-    kicker: "measurement habit",
-    title: "Every exciting prototype needs force numbers attached.",
-  },
+const references = [
+  "/assets/sarrus-array-wall.jpg",
+  "/assets/module-iso.jpg",
+  "/assets/local-control-sarrus.jpg",
 ];
 
 let state = loadState();
@@ -252,29 +159,64 @@ function render() {
 
 function createShell() {
   const shell = el("main", "app-shell");
-  shell.append(createDock(), createWall());
+  shell.append(createTopbar(), createWorkspace(), createRecent(), createReference());
   return shell;
 }
 
-function createDock() {
-  const dock = el("section", "dock");
-  const brand = el("div", "brand");
-  brand.append(el("p", "domain", focus.domain), el("h1", "", appName), el("p", "tagline", focus.title));
+function createTopbar() {
+  const topbar = el("header", "topbar");
+  const brand = el("a", "brand", appName);
+  brand.href = "/";
 
   const status = el("div", "status-strip");
   status.append(createStatusPill(syncLabel(), `sync sync-${sync.status}`));
   status.append(createStatusPill(`${state.files.length} files`, "stat"));
   status.append(createStatusPill(`${state.notes.length} notes`, "stat"));
 
-  const header = el("div", "dock-header");
-  header.append(brand, status);
+  topbar.append(brand, status);
+  return topbar;
+}
 
+function createStatusPill(text, className) {
+  return el("span", className, text);
+}
+
+function syncLabel() {
+  if (sync.status === "local") return "local sync";
+  if (sync.status === "browser") return "browser vault";
+  return "checking";
+}
+
+function createWorkspace() {
+  const section = el("section", "workspace");
+
+  const capture = el("section", "capture-panel");
+  capture.append(createIntro(), createCaptureForm());
+
+  const thinking = el("aside", "thinking-panel");
+  thinking.append(createIdeas());
+
+  section.append(capture, thinking);
+  return section;
+}
+
+function createIntro() {
+  const wrap = el("div", "intro");
+  wrap.append(el("p", "domain", focus.domain), el("h1", "", appName), el("p", "tagline", focus.title));
+
+  const current = el("p", "current-line");
+  current.append(el("span", "", "focus"), document.createTextNode(focus.current));
+  wrap.append(current);
+  return wrap;
+}
+
+function createCaptureForm() {
   const form = el("form", "capture-form");
   form.dataset.role = "capture";
 
   const textarea = el("textarea", "note-input");
   textarea.name = "note";
-  textarea.placeholder = "Capture the next EPM cell thought, test result, CAD change, or failure.";
+  textarea.placeholder = "Note, test result, CAD change, force number, failure.";
   textarea.value = noteDraft;
 
   const actions = el("div", "capture-actions");
@@ -291,25 +233,8 @@ function createDock() {
   save.append(icon("spark"), el("span", "", "Save"));
 
   actions.append(fileLabel, save);
-  form.append(textarea, actions);
-
-  const line = el("p", "focus-line");
-  line.append(el("span", "", "Now"), document.createTextNode(focus.now));
-  const next = el("p", "focus-line muted");
-  next.append(el("span", "", "Next"), document.createTextNode(focus.next));
-
-  dock.append(header, form, createPendingList(), line, next);
-  return dock;
-}
-
-function createStatusPill(text, className) {
-  return el("span", className, text);
-}
-
-function syncLabel() {
-  if (sync.status === "local") return "local sync";
-  if (sync.status === "browser") return "browser vault";
-  return "checking";
+  form.append(textarea, actions, createPendingList());
+  return form;
 }
 
 function createPendingList() {
@@ -320,123 +245,116 @@ function createPendingList() {
   return wrap;
 }
 
-function createWall() {
-  const wall = el("section", "wall");
-  wall.setAttribute("aria-label", "FluxCell research wall");
-  layoutWall(wall, wallItems());
-  return wall;
+function createIdeas() {
+  const panel = el("div", "ideas");
+  panel.append(el("p", "section-label", "from notes"), el("h2", "", "Next useful tests"));
+  const list = el("ol", "idea-list");
+  generateIdeas().forEach((idea) => list.append(el("li", "", idea)));
+  panel.append(list);
+  return panel;
 }
 
-function wallItems() {
+function generateIdeas() {
+  const text = state.notes.map((note) => note.text).join(" ").toLowerCase();
+  const ideas = [];
+
+  if (/gap|force|load|stiff|pull/.test(text)) {
+    ideas.push("Run a force-vs-gap table with the same fixture and one changed variable.");
+  }
+  if (/heat|coil|pulse|current|driver|energy/.test(text)) {
+    ideas.push("Record pulse width, current, temperature rise, and whether the latch actually holds.");
+  }
+  if (/cad|print|fixture|mount|geometry|core/.test(text)) {
+    ideas.push("Print the smallest fixture that keeps magnet gap and cell alignment repeatable.");
+  }
+  if (/latch|hold|release|polarity|switch/.test(text)) {
+    ideas.push("Make a latch state table: hold, release, reset, failure mode.");
+  }
+  if (/sarrus|cell|module|array/.test(text)) {
+    ideas.push("Test one Sarrus cell before thinking about arrays.");
+  }
+
+  const fallback = [
+    "Measure force at three gaps before changing the geometry.",
+    "Keep one photo, one note, and one number for every actuator attempt.",
+    "Separate magnetic latch behavior from the Sarrus cell mechanics.",
+  ];
+
+  return [...ideas, ...fallback].filter((idea, index, all) => all.indexOf(idea) === index).slice(0, 4);
+}
+
+function createRecent() {
+  const section = el("section", "recent");
+  const head = el("div", "section-head");
+  head.append(el("p", "section-label", "workspace"), el("h2", "", "Recent"));
+  section.append(head);
+
+  const items = recentItems();
+  if (!items.length) {
+    section.append(el("p", "empty", "Nothing saved yet."));
+    return section;
+  }
+
+  const grid = el("div", "recent-grid");
+  items.forEach((item, index) => grid.append(createItemCard(item, index)));
+  section.append(grid);
+  return section;
+}
+
+function recentItems() {
   const notes = state.notes.map((note) => ({
     ...note,
     type: "note",
-    shape: note.text.length > 180 ? "wide" : "square",
-    createdAt: note.createdAt,
+    title: note.text,
+    meta: formatDate(note.createdAt),
   }));
 
   const files = state.files.map((file) => ({
     ...file,
     type: "file",
-    shape: isImageFile(file) ? "portrait" : "square",
-    createdAt: file.createdAt,
+    title: file.name,
+    meta: `${formatSize(file.size)} ${file.source === "sync" ? "synced" : "browser"} ${formatDate(file.createdAt)}`,
   }));
 
-  const recent = [...notes, ...files]
+  return [...notes, ...files]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 18);
-
-  return [...recent, ...researchTiles];
+    .slice(0, 12);
 }
 
-function layoutWall(wall, items) {
-  const count = columnCount();
-  const columns = Array.from({ length: count }, () => el("div", "masonry-column"));
-  const heights = Array.from({ length: count }, () => 0);
+function createItemCard(item, index) {
+  if (item.type === "note") return createNoteCard(item);
+  return createFileCard(item, index);
+}
 
-  items.forEach((item, index) => {
-    let target = 0;
-    for (let i = 1; i < heights.length; i += 1) {
-      if (heights[i] < heights[target]) target = i;
+function createNoteCard(note) {
+  const card = el("article", "item-card note-card");
+  card.append(el("p", "item-text", note.text), el("p", "item-meta", note.meta));
+  return card;
+}
+
+function createFileCard(file, index) {
+  const card = el("article", `item-card file-card${isImageFile(file) ? " image-card" : ""}`);
+  const visual = el("div", "file-visual");
+  if (isImageFile(file) && (file.source !== "sync" || sync.status === "local")) {
+    const img = document.createElement("img");
+    img.alt = "";
+    img.loading = index < 4 ? "eager" : "lazy";
+    img.decoding = "async";
+    if (file.source === "sync" && sync.status === "local") {
+      img.src = `${sync.base}/api/files/${encodeURIComponent(file.id)}/download`;
+    } else if (file.source !== "sync") {
+      img.dataset.previewId = file.id;
     }
-    columns[target].append(createTile(item, index));
-    heights[target] += shapeScore(item);
-  });
+    visual.append(img);
+  } else {
+    const fileIcon = el("div", "file-icon", fileExtension(file.name));
+    visual.append(fileIcon);
+  }
 
-  wall.style.setProperty("--columns", count);
-  wall.replaceChildren(...columns);
-}
+  const body = el("div", "item-body");
+  body.append(el("p", "item-title", file.name), el("p", "item-meta", file.meta));
 
-function columnCount() {
-  const width = window.innerWidth || document.documentElement.clientWidth || 1200;
-  if (width <= 560) return 1;
-  if (width <= 720) return 2;
-  if (width <= 1100) return 3;
-  return Math.max(4, Math.min(5, Math.floor(width / 340)));
-}
-
-function shapeScore(item) {
-  return {
-    cinema: 0.68,
-    hero: 1.5,
-    portrait: 1.38,
-    square: 1,
-    tall: 1.72,
-    wide: 0.74,
-  }[item.shape || "square"] || 1;
-}
-
-function createTile(item, index) {
-  if (item.type === "file") return createFileTile(item, index);
-  if (item.type === "note") return createNoteTile(item);
-  if (item.type === "checklist") return createChecklistTile(item);
-  if (item.type === "metric") return createMetricTile(item);
-  return createResearchTile(item, index);
-}
-
-function createResearchTile(item, index) {
-  const tile = el("article", `tile tile-${item.type || "image"} tile--${item.shape || "square"}`);
-  appendVisual(tile, item, index);
-  tile.append(createTileCopy(item.kicker, item.title, item.text));
-  return tile;
-}
-
-function createChecklistTile(item) {
-  const tile = el("article", `tile tile-checklist tile--${item.shape || "square"}`);
-  tile.append(createFieldVisual(), createTileCopy(item.kicker, item.title));
-  const list = el("div", "mini-list");
-  item.items.forEach((entry) => list.append(el("span", "", entry)));
-  tile.append(list);
-  return tile;
-}
-
-function createMetricTile(item) {
-  const tile = el("article", `tile tile-metric tile--${item.shape || "wide"}`);
-  tile.append(createTileCopy(item.kicker, item.title));
-  const stats = el("div", "metric-grid");
-  item.stats.forEach(([label, value]) => {
-    const stat = el("div", "metric");
-    stat.append(el("span", "", label), el("strong", "", value));
-    stats.append(stat);
-  });
-  tile.append(stats);
-  return tile;
-}
-
-function createNoteTile(note) {
-  const tile = el("article", `tile tile-note tile--${note.shape || "square"}`);
-  tile.append(createTileCopy("lab note", note.text, formatDate(note.createdAt)));
-  return tile;
-}
-
-function createFileTile(file, index) {
-  const tile = el("article", `tile tile-file tile--${file.shape || "square"}`);
-  appendFileVisual(tile, file, index);
-
-  const copy = createTileCopy(file.kind === "note" ? "synced note" : fileLabel(file), file.name, `${formatSize(file.size)} ${file.source === "sync" ? "synced" : "browser"} ${formatDate(file.createdAt)}`);
-  tile.append(copy);
-
-  const actions = el("div", "tile-actions");
+  const actions = el("div", "item-actions");
   const download = el("button", "icon-button");
   download.type = "button";
   download.title = "Download";
@@ -452,69 +370,32 @@ function createFileTile(file, index) {
   del.append(icon("trash"));
 
   actions.append(download, del);
-  tile.append(actions);
-  return tile;
+  card.append(visual, body, actions);
+  return card;
 }
 
-function appendVisual(tile, item, index) {
-  if (item.image) {
+function createReference() {
+  const section = el("section", "reference");
+  const head = el("div", "section-head");
+  head.append(el("p", "section-label", "reference"), el("h2", "", "Sarrus cell context"));
+  const images = el("div", "reference-grid");
+  references.forEach((src) => {
+    const figure = el("figure", "");
     const img = document.createElement("img");
-    img.src = item.image;
+    img.src = src;
     img.alt = "";
-    img.loading = index < 8 ? "eager" : "lazy";
+    img.loading = "lazy";
     img.decoding = "async";
-    tile.append(img);
-    return;
-  }
-  tile.append(createFieldVisual());
-}
-
-function appendFileVisual(tile, file, index) {
-  if (isImageFile(file) && (file.source !== "sync" || sync.status === "local")) {
-    const img = document.createElement("img");
-    img.alt = "";
-    img.loading = index < 8 ? "eager" : "lazy";
-    img.decoding = "async";
-    if (file.source === "sync" && sync.status === "local") {
-      img.src = `${sync.base}/api/files/${encodeURIComponent(file.id)}/download`;
-    } else if (file.source !== "sync") {
-      img.dataset.previewId = file.id;
-    }
-    tile.append(img);
-    return;
-  }
-
-  const visual = createFieldVisual(fileExtension(file.name));
-  tile.append(visual);
-}
-
-function createFieldVisual(label) {
-  const visual = el("div", "field-visual");
-  const rings = el("div", "field-rings");
-  for (let i = 0; i < 5; i += 1) rings.append(el("span"));
-  const core = el("div", "mag-core", label || "");
-  visual.append(rings, core);
-  return visual;
-}
-
-function createTileCopy(kicker, title, text) {
-  const copy = el("div", "tile-copy");
-  if (kicker) copy.append(el("p", "kicker", kicker));
-  if (title) copy.append(el("h2", "", title));
-  if (text) copy.append(el("p", "tile-text", text));
-  return copy;
+    figure.append(img);
+    images.append(figure);
+  });
+  section.append(head, images);
+  return section;
 }
 
 function fileExtension(name) {
   const ext = String(name || "").split(".").pop();
   return ext && ext !== name ? ext.slice(0, 5).toUpperCase() : "FILE";
-}
-
-function fileLabel(file) {
-  if (isImageFile(file)) return "image evidence";
-  if (/stl|3mf|obj|gcode|step|stp/i.test(file.name || "")) return "print file";
-  if (/pdf|doc|ppt|xls/i.test(file.name || "")) return "document";
-  return "file";
 }
 
 function isImageFile(file) {
