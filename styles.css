@@ -369,8 +369,7 @@ h1 {
   font-weight: 720;
 }
 
-.file-card,
-.reference-card {
+.file-card {
   display: grid;
   grid-template-rows: 190px auto;
 }

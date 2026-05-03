@@ -23,11 +23,6 @@ const seedNotes = [
   },
 ];
 
-const references = [
-  "/assets/sarrus-array-wall.jpg",
-  "/assets/module-iso.jpg",
-];
-
 let state = loadState();
 let sync = { status: "checking", base: "", root: "", deleteConfigured: false };
 let noteDraft = "";
@@ -356,15 +351,7 @@ function libraryItems() {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 12);
 
-  const referenceItems = references.map((src, index) => ({
-    id: `reference-${index}`,
-    type: "reference",
-    title: ["Sarrus array", "Cell module"][index] || "Reference",
-    meta: "reference",
-    image: src,
-  }));
-
-  return [...saved, ...referenceItems];
+  return saved;
 }
 
 function fileMeta(file) {
@@ -375,7 +362,6 @@ function fileMeta(file) {
 
 function createItemCard(item, index) {
   if (item.type === "note") return createNoteCard(item);
-  if (item.type === "reference") return createReferenceCard(item, index);
   return createFileCard(item, index);
 }
 
@@ -383,21 +369,6 @@ function createNoteCard(note) {
   const card = el("article", "item-card note-card");
   const actions = createActions([{ action: "delete-note", id: note.id, title: "Delete note", iconName: "trash", danger: true }]);
   card.append(actions, el("p", "item-text", note.text), el("p", "item-meta", note.meta));
-  return card;
-}
-
-function createReferenceCard(item, index) {
-  const card = el("article", "item-card reference-card");
-  const visual = el("div", "file-visual");
-  const img = document.createElement("img");
-  img.src = item.image;
-  img.alt = "";
-  img.loading = "eager";
-  img.decoding = "async";
-  visual.append(img);
-  const body = el("div", "item-body");
-  body.append(el("p", "item-title", item.title), el("p", "item-meta", item.meta));
-  card.append(visual, body);
   return card;
 }
 
