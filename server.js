@@ -134,7 +134,7 @@ async function saveTrackedFile({ name, mime, buffer, kind = "file" }) {
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
   const date = now.slice(0, 10);
-  const folder = kind === "note" ? "Notes" : "Uploads";
+  const folder = kind === "note" ? "Notes" : kind === "paper" ? "Papers" : "Uploads";
   const originalName = safeName(name);
   const storedName = `${now.replace(/[:.]/g, "-")}-${originalName}`;
   const folderPath = path.join(storageRoot, folder, date);
@@ -199,7 +199,7 @@ async function handleApi(req, res, requestUrl) {
       name: payload.name,
       mime: payload.mime || decoded.mime,
       buffer: decoded.buffer,
-      kind: "file",
+      kind: payload.kind === "paper" ? "paper" : "file",
     });
     sendJson(res, 201, { file: entry });
     return;
