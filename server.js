@@ -4,6 +4,7 @@ const fsp = require("node:fs/promises");
 const path = require("node:path");
 const os = require("node:os");
 const crypto = require("node:crypto");
+const { execFile } = require("node:child_process");
 
 const port = Number(process.env.PORT || 3000);
 const publicDir = path.join(__dirname, "public");
@@ -20,6 +21,7 @@ const focusedIndexPath = path.join(storageRoot, ".fluxcell-files.json");
 const indexPath = fs.existsSync(legacyIndexPath) && !fs.existsSync(focusedIndexPath)
   ? legacyIndexPath
   : focusedIndexPath;
+const paperPreviewRoot = path.join(storageRoot, ".fluxcell-paper-previews");
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -125,6 +127,227 @@ async function readJsonBody(req, limitBytes) {
   });
 }
 
+function isPdfEntry(entry) {
+  return (entry.kind || "").toLowerCase() === "paper"
+    || /pdf/i.test(entry.mime || "")
+    || /\.pdf$/i.test(entry.name || "")
+    || /\.pdf$/i.test(entry.relativePath || "");
+}
+
+function runTool(command, args, options = {}) {
+  return new Promise((resolve) => {
+    execFile(command, args, {
+      timeout: options.timeout || 12000,
+      maxBuffer: options.maxBuffer || 4 * 1024 * 1024,
+      windowsHide: true,
+    }, (error, stdout, stderr) => {
+      resolve({
+        ok: !error,
+        error,
+        stdout: String(stdout || ""),
+        stderr: String(stderr || ""),
+      });
+    });
+  });
+}
+
+function parsePdfInfo(text) {
+  return String(text || "").split(/\r?\n/).reduce((info, line) => {
+    const match = line.match(/^([^:]+):\s*(.*)$/);
+    if (!match) return info;
+    info[match[1].trim().toLowerCase()] = match[2].trim();
+    return info;
+  }, {});
+}
+
+function cleanPaperTitle(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .replace(/\b(The MIT Faculty has made|Please share how this access benefits you|Downloaded from).*$/i, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,:;.])/g, "$1")
+    .trim()
+    .replace(/[. ]+$/, "");
+}
+
+function plausiblePaperTitle(value, filename = "") {
+  const title = cleanPaperTitle(value);
+  if (title.length < 12 || title.length > 220) return false;
+  if (/\.(pdf|dvi|docx?|pptx?|tex)$/i.test(title)) return false;
+  if (/[\\/:*?"<>|]/.test(title)) return false;
+  if (/\b(The MIT Faculty has made|Please share how this access benefits you|Downloaded from)\b/i.test(title)) return false;
+  if (/^(untitled|microsoft word|download|article|full text|supplement)/i.test(title)) return false;
+  const basename = cleanPaperTitle(path.basename(filename || "", path.extname(filename || "")));
+  if (basename && title.toLowerCase() === basename.toLowerCase()) return false;
+  const words = title.match(/[A-Za-z][A-Za-z-]+/g) || [];
+  return words.length >= 3;
+}
+
+function isPaperTitleStopLine(line) {
+  return /^(abstract|introduction|keywords?|references?|citation:|as published:|publisher:|persistent url:|version:|terms of use|the mit faculty|check for updates|open access)$/i.test(line)
+    || /^doi\b|^https?:\/\//i.test(line);
+}
+
+function isPaperTitleNoiseLine(line) {
+  if (!line) return true;
+  if (/^(communications engineering|nature portfolio|mit open access articles|article|research article|open access|www\.|doi\b)/i.test(line)) return true;
+  if (/^(received|accepted|published|vol\.|no\.|page|pages)\b/i.test(line)) return true;
+  if (/^\d+\s*$/.test(line)) return true;
+  if ((line.match(/[A-Za-z]/g) || []).length < 8) return true;
+  return false;
+}
+
+function isLikelyAuthorLine(line) {
+  return /,/.test(line) && /(?:\b[A-Z][a-z]+\.?\s+){2,}/.test(line);
+}
+
+function titleFromPdfText(text, filename) {
+  const lines = String(text || "")
+    .split(/\r?\n/)
+    .map(cleanPaperTitle)
+    .filter(Boolean);
+
+  for (let index = 0; index < Math.min(lines.length, 80); index += 1) {
+    const line = lines[index];
+    if (isPaperTitleNoiseLine(line) || isPaperTitleStopLine(line)) continue;
+    const words = line.match(/[A-Za-z][A-Za-z-]+/g) || [];
+    if (words.length < 4) continue;
+
+    const titleLines = [line];
+    for (let nextIndex = index + 1; nextIndex < Math.min(lines.length, index + 5); nextIndex += 1) {
+      const nextLine = lines[nextIndex];
+      if (isPaperTitleStopLine(nextLine) || isPaperTitleNoiseLine(nextLine)) break;
+      if (isLikelyAuthorLine(nextLine)) break;
+      const nextWords = nextLine.match(/[A-Za-z][A-Za-z-]+/g) || [];
+      if (nextWords.length < 2) break;
+      titleLines.push(nextLine);
+      if (titleLines.join(" ").length > 150 || titleLines.length >= 3) break;
+    }
+
+    const title = cleanPaperTitle(titleLines.join(" "));
+    if (plausiblePaperTitle(title, filename)) return title;
+  }
+
+  return "";
+}
+
+async function analyzePdf(filePath, entry) {
+  const infoResult = await runTool("pdfinfo", [filePath], { timeout: 10000 });
+  const info = parsePdfInfo(infoResult.stdout);
+  let title = plausiblePaperTitle(info.title, entry.name) ? cleanPaperTitle(info.title) : "";
+
+  if (!title) {
+    const textResult = await runTool("pdftotext", ["-f", "1", "-l", "2", "-layout", filePath, "-"], {
+      timeout: 12000,
+      maxBuffer: 8 * 1024 * 1024,
+    });
+    title = titleFromPdfText(textResult.stdout, entry.name);
+  }
+
+  return {
+    title,
+    pages: Number.parseInt(info.pages || "4", 10) || 4,
+  };
+}
+
+async function cleanupPreviewTemps(prefixBase) {
+  const names = await fsp.readdir(paperPreviewRoot).catch(() => []);
+  await Promise.all(names
+    .filter((name) => name.startsWith(prefixBase))
+    .map((name) => fsp.rm(path.join(paperPreviewRoot, name), { force: true }).catch(() => {})));
+}
+
+async function createPdfPreview(entry, filePath, pageCount) {
+  await fsp.mkdir(paperPreviewRoot, { recursive: true });
+  const prefixBase = `${entry.id}-page`;
+  const prefix = path.join(paperPreviewRoot, prefixBase);
+  await cleanupPreviewTemps(prefixBase);
+
+  const lastPage = Math.min(Math.max(pageCount || 4, 1), 4);
+  await runTool("pdftoppm", ["-jpeg", "-r", "95", "-f", "1", "-l", String(lastPage), filePath, prefix], {
+    timeout: 20000,
+    maxBuffer: 2 * 1024 * 1024,
+  });
+
+  const rendered = (await fsp.readdir(paperPreviewRoot).catch(() => []))
+    .filter((name) => name.startsWith(prefixBase) && /\.(jpe?g)$/i.test(name))
+    .map((name) => path.join(paperPreviewRoot, name));
+  if (!rendered.length) return null;
+
+  const stats = await Promise.all(rendered.map(async (renderedPath) => ({
+    path: renderedPath,
+    size: (await fsp.stat(renderedPath)).size,
+  })));
+  stats.sort((a, b) => b.size - a.size);
+
+  const finalPath = path.join(paperPreviewRoot, `${entry.id}.jpg`);
+  await fsp.copyFile(stats[0].path, finalPath);
+  await cleanupPreviewTemps(prefixBase);
+
+  return {
+    previewRelativePath: path.relative(storageRoot, finalPath).split(path.sep).join("/"),
+    previewUpdatedAt: new Date().toISOString(),
+  };
+}
+
+async function enrichPdfEntry(entry) {
+  if (!isPdfEntry(entry)) return { entry, changed: false };
+  if (!entry.relativePath) return { entry: { ...entry, kind: "paper" }, changed: entry.kind !== "paper" };
+
+  const filePath = path.resolve(storageRoot, entry.relativePath);
+  if (!isInside(storageRoot, filePath)) return { entry, changed: false };
+  if (!fs.existsSync(filePath)) return { entry, changed: false };
+
+  const next = {
+    ...entry,
+    kind: "paper",
+    mime: entry.mime || "application/pdf",
+  };
+  let changed = entry.kind !== next.kind || entry.mime !== next.mime;
+  let analysis = null;
+
+  const currentTitle = cleanPaperTitle(next.paperTitle);
+  if (plausiblePaperTitle(currentTitle, next.name)) {
+    if (next.paperTitle !== currentTitle) {
+      next.paperTitle = currentTitle;
+      changed = true;
+    }
+  } else {
+    analysis = await analyzePdf(filePath, next);
+    if (analysis.title) {
+      next.paperTitle = analysis.title;
+      changed = true;
+    }
+  }
+
+  const previewPath = next.previewRelativePath
+    ? path.resolve(storageRoot, next.previewRelativePath)
+    : "";
+  const hasPreview = previewPath && isInside(storageRoot, previewPath) && fs.existsSync(previewPath);
+  if (!hasPreview) {
+    analysis = analysis || await analyzePdf(filePath, next);
+    const preview = await createPdfPreview(next, filePath, analysis.pages);
+    if (preview) {
+      Object.assign(next, preview);
+      changed = true;
+    }
+  }
+
+  return { entry: next, changed };
+}
+
+async function enrichPdfEntries(files) {
+  let changed = false;
+  const nextFiles = [];
+  for (const file of files) {
+    const result = await enrichPdfEntry(file);
+    nextFiles.push(result.entry);
+    changed = changed || result.changed;
+  }
+  if (changed) await writeIndex(nextFiles);
+  return nextFiles;
+}
+
 async function saveTrackedFile({ name, mime, buffer, kind = "file" }) {
   if (buffer.length > maxUploadBytes) {
     const maxMb = Math.round(maxUploadBytes / 1024 / 1024);
@@ -184,7 +407,7 @@ async function handleApi(req, res, requestUrl) {
   }
 
   if (requestUrl.pathname === "/api/files" && req.method === "GET") {
-    sendJson(res, 200, { files: await readIndex() });
+    sendJson(res, 200, { files: await enrichPdfEntries(await readIndex()) });
     return;
   }
 
@@ -195,12 +418,16 @@ async function handleApi(req, res, requestUrl) {
       sendJson(res, 400, { error: "Missing file data" });
       return;
     }
-    const entry = await saveTrackedFile({
+    const saved = await saveTrackedFile({
       name: payload.name,
       mime: payload.mime || decoded.mime,
       buffer: decoded.buffer,
-      kind: payload.kind === "paper" ? "paper" : "file",
+      kind: payload.kind === "paper" || /\.pdf$/i.test(payload.name || "") || /pdf/i.test(payload.mime || decoded.mime)
+        ? "paper"
+        : "file",
     });
+    const files = await enrichPdfEntries(await readIndex());
+    const entry = files.find((file) => file.id === saved.id) || saved;
     sendJson(res, 201, { file: entry });
     return;
   }
@@ -212,15 +439,35 @@ async function handleApi(req, res, requestUrl) {
       sendJson(res, 400, { error: "Missing note text" });
       return;
     }
-    const title = safeName(`${String(payload.title || "fluxcell-note").slice(0, 80)}.md`);
-    const body = `# ${title.replace(/\.md$/i, "")}\n\n${text}\n`;
-    const entry = await saveTrackedFile({
-      name: title,
-      mime: "text/markdown; charset=utf-8",
-      buffer: Buffer.from(body, "utf8"),
-      kind: "note",
+    sendJson(res, 201, {
+      note: {
+        id: crypto.randomUUID(),
+        text,
+        createdAt: new Date().toISOString(),
+      },
     });
-    sendJson(res, 201, { file: entry });
+    return;
+  }
+
+  const previewMatch = requestUrl.pathname.match(/^\/api\/files\/([^/]+)\/preview$/);
+  if (previewMatch && req.method === "GET") {
+    const files = await enrichPdfEntries(await readIndex());
+    const entry = files.find((file) => file.id === previewMatch[1]);
+    const previewRelativePath = entry?.previewRelativePath;
+    if (!entry || !previewRelativePath) {
+      sendJson(res, 404, { error: "Preview not found" });
+      return;
+    }
+    const previewPath = path.resolve(storageRoot, previewRelativePath);
+    if (!isInside(storageRoot, previewPath)) {
+      sendJson(res, 403, { error: "Invalid preview path" });
+      return;
+    }
+    res.writeHead(200, {
+      "Content-Type": "image/jpeg",
+      "Cache-Control": "no-store",
+    });
+    fs.createReadStream(previewPath).pipe(res);
     return;
   }
 

@@ -419,18 +419,22 @@ h1 {
 
 .paper-badge {
   top: 12px;
-  color: var(--amber);
-  font-size: 12px;
+  border: 1px solid rgba(255, 250, 240, .22);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, .46);
+  color: var(--ink);
+  font-size: 10px;
   font-weight: 900;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
 }
 
-.paper-title {
-  right: 14px;
-  bottom: 14px;
-  color: var(--ink);
-  font-size: 17px;
-  font-weight: 760;
-  line-height: 1.15;
+.paper-card .item-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .item-body {
