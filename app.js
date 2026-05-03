@@ -168,8 +168,9 @@ function createTopbar() {
   brand.href = "/";
 
   const status = el("div", "status-strip");
+  const fileCount = state.files.filter(isVisibleLibraryFile).length;
   status.append(createStatusPill(syncLabel(), `sync sync-${sync.status}`));
-  status.append(createStatusPill(`${state.files.length} files`, "stat"));
+  status.append(createStatusPill(`${fileCount} files`, "stat"));
   status.append(createStatusPill(`${state.notes.length} notes`, "stat"));
 
   topbar.append(brand, status);
@@ -260,12 +261,13 @@ function createNextPanel() {
 
 function generateNextStep() {
   const latestNotes = state.notes.slice(0, 3);
-  const latestFiles = state.files.slice(0, 5);
+  const latestFiles = state.files.filter(isVisibleLibraryFile).slice(0, 5);
   const text = [
     ...latestNotes.map((note) => note.text),
     ...latestFiles.map((file) => file.name),
   ].join(" ").toLowerCase();
-  const source = `Generated from ${state.notes.length} ${state.notes.length === 1 ? "note" : "notes"} and ${state.files.length} ${state.files.length === 1 ? "file" : "files"}.`;
+  const fileCount = state.files.filter(isVisibleLibraryFile).length;
+  const source = `Generated from ${state.notes.length} ${state.notes.length === 1 ? "note" : "notes"} and ${fileCount} ${fileCount === 1 ? "file" : "files"}.`;
 
   if (latestFiles.some(isPaperFile)) {
     return {
@@ -342,10 +344,10 @@ function libraryItems() {
     meta: formatDate(note.createdAt),
   }));
 
-  const files = state.files.map((file) => ({
+  const files = state.files.filter(isVisibleLibraryFile).map((file) => ({
     ...file,
     type: "file",
-    title: file.name,
+    title: isPaperFile(file) ? paperDisplayTitle(file) : file.name,
     kind: file.kind || classifyFile(file),
     meta: fileMeta(file),
   }));
@@ -406,11 +408,11 @@ function createFileCard(file, index) {
   if (kind === "paper") {
     visual.classList.add("paper-visual");
     const img = document.createElement("img");
-    img.src = "/assets/linkage-geometry.jpg";
+    img.src = paperPreviewSrc(file);
     img.alt = "";
     img.loading = index < 4 ? "eager" : "lazy";
     img.decoding = "async";
-    visual.append(img, el("span", "paper-badge", "PDF"), el("p", "paper-title", paperTitle(file.name)));
+    visual.append(img, el("span", "paper-badge", "paper"));
   } else if (isImageFile(file) && (file.source !== "sync" || sync.status === "local")) {
     const img = document.createElement("img");
     img.alt = "";
@@ -428,7 +430,7 @@ function createFileCard(file, index) {
   }
 
   const body = el("div", "item-body");
-  body.append(el("p", "item-title", file.name), el("p", "item-meta", file.meta));
+  body.append(el("p", "item-title", kind === "paper" ? paperDisplayTitle(file) : file.name), el("p", "item-meta", file.meta));
 
   const actions = createActions([
     { action: "download", id: file.id, title: "Download", iconName: "down" },
@@ -471,6 +473,10 @@ function classifyFile(file) {
   return isPaperFile(file) ? "paper" : "file";
 }
 
+function isVisibleLibraryFile(file) {
+  return (file.kind || "").toLowerCase() !== "note";
+}
+
 function paperTitle(name) {
   return String(name || "Paper")
     .replace(/\.[^.]+$/, "")
@@ -478,6 +484,21 @@ function paperTitle(name) {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 90) || "Paper";
+}
+
+function paperDisplayTitle(file) {
+  return String(file.paperTitle || file.detectedTitle || file.title || paperTitle(file.name))
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 160) || "Paper";
+}
+
+function paperPreviewSrc(file) {
+  if (file.source === "sync" && sync.status === "local" && file.hasPreview) {
+    const version = file.previewUpdatedAt ? `?v=${encodeURIComponent(file.previewUpdatedAt)}` : "";
+    return `${sync.base}/api/files/${encodeURIComponent(file.id)}/preview${version}`;
+  }
+  return "/assets/linkage-geometry.jpg";
 }
 
 function bind() {
@@ -560,12 +581,6 @@ async function saveCapture(event) {
   if (text) {
     const note = { id: createId(), text, createdAt: now };
     state.notes.unshift(note);
-    if (sync.status === "local") {
-      postJson(`${sync.base}/api/notes`, {
-        title: text.split(/\s+/).slice(0, 8).join(" ") || "fluxcell note",
-        text,
-      }).then(refreshSyncFiles).catch(() => {});
-    }
   }
 
   for (const file of files) {
@@ -636,6 +651,9 @@ function normalizeSyncFile(file) {
     createdAt: file.createdAt,
     source: "sync",
     kind: file.kind || classifyFile(file),
+    paperTitle: file.paperTitle || file.detectedTitle || "",
+    hasPreview: Boolean(file.previewRelativePath),
+    previewUpdatedAt: file.previewUpdatedAt || "",
   };
 }
 
@@ -767,8 +785,10 @@ async function refreshSyncFiles() {
   const response = await fetch(`${sync.base}/api/files`, { cache: "no-store" });
   if (!response.ok) return;
   const json = await response.json();
-  const synced = Array.isArray(json.files) ? json.files.map(normalizeSyncFile) : [];
-  const browserOnly = state.files.filter((file) => file.source !== "sync");
+  const synced = Array.isArray(json.files)
+    ? json.files.map(normalizeSyncFile).filter(isVisibleLibraryFile)
+    : [];
+  const browserOnly = state.files.filter((file) => file.source !== "sync" && isVisibleLibraryFile(file));
   state.files = [...synced, ...browserOnly];
   saveState();
 }
