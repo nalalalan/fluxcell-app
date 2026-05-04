@@ -29,8 +29,9 @@ const proudCellObjectSeedPackVersion = "2026-05-04-fluxcell-proud-cell-object";
 const integratedProofSeedPackVersion = "2026-05-04-fluxcell-integrated-proof-object";
 const sarrusActuationProofSeedPackVersion = "2026-05-04-fluxcell-sarrus-actuation-proof";
 const memoryFigureObjectSeedPackVersion = "2026-05-04-fluxcell-memory-figure-object";
-const seedPackVersion = "2026-05-04-fluxcell-cartridge-proof-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, seedPackVersion];
+const cartridgeProofWallSeedPackVersion = "2026-05-04-fluxcell-cartridge-proof-wall";
+const seedPackVersion = "2026-05-04-fluxcell-sarrus-first-experiment-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1182,51 +1183,93 @@ const seedNotes = [
   },
   {
     id: "seed-cartridge-proof-boundary",
-    pack: seedPackVersion,
+    pack: cartridgeProofWallSeedPackVersion,
     text: "Cartridge first: the EPM sits inside the Sarrus cell boundary.",
     createdAt: new Date("2026-05-05T10:10:00").toISOString(),
   },
   {
     id: "seed-cartridge-proof-controls",
-    pack: seedPackVersion,
+    pack: cartridgeProofWallSeedPackVersion,
     text: "Same cell, same gap, same pulse: active, dummy, empty.",
     createdAt: new Date("2026-05-05T10:09:00").toISOString(),
   },
   {
     id: "seed-cartridge-proof-switch",
-    pack: seedPackVersion,
+    pack: cartridgeProofWallSeedPackVersion,
     text: "Use the EPM as a state switch or stroke assist. Let the linkage amplify motion.",
     createdAt: new Date("2026-05-05T10:08:00").toISOString(),
   },
   {
     id: "seed-cartridge-proof-gates",
-    pack: seedPackVersion,
+    pack: cartridgeProofWallSeedPackVersion,
     text: "Monolithic path: body, yoke, conductor, hard magnet. One gate at a time.",
     createdAt: new Date("2026-05-05T10:07:00").toISOString(),
   },
   {
     id: "seed-cartridge-proof-figure",
-    pack: seedPackVersion,
+    pack: cartridgeProofWallSeedPackVersion,
     text: "One clean cutaway plus one work trace beats a wall of diagrams.",
     createdAt: new Date("2026-05-05T10:06:00").toISOString(),
   },
   {
     id: "seed-cartridge-proof-gap",
-    pack: seedPackVersion,
+    pack: cartridgeProofWallSeedPackVersion,
     text: "If the gap changes during motion, the force comparison is not clean.",
     createdAt: new Date("2026-05-05T10:05:00").toISOString(),
   },
   {
     id: "seed-cartridge-proof-photo",
-    pack: seedPackVersion,
+    pack: cartridgeProofWallSeedPackVersion,
     text: "Hidden wire path, visible keeper gap, clean width marks.",
     createdAt: new Date("2026-05-05T10:04:00").toISOString(),
   },
   {
     id: "seed-cartridge-proof-claim",
-    pack: seedPackVersion,
+    pack: cartridgeProofWallSeedPackVersion,
     text: "Integrated actuation means magnetic energy produces lateral work.",
     createdAt: new Date("2026-05-05T10:03:00").toISOString(),
+  },
+  {
+    id: "seed-first-experiment-loaded-width",
+    pack: seedPackVersion,
+    text: "First proud demo: one pulse changes lateral width under load.",
+    createdAt: new Date("2026-05-05T11:10:00").toISOString(),
+  },
+  {
+    id: "seed-first-experiment-mechanism",
+    pack: seedPackVersion,
+    text: "The actuator lives in the mechanism, not beside it.",
+    createdAt: new Date("2026-05-05T11:09:00").toISOString(),
+  },
+  {
+    id: "seed-first-experiment-frame",
+    pack: seedPackVersion,
+    text: "Show keeper gap and cell width in the same frame.",
+    createdAt: new Date("2026-05-05T11:08:00").toISOString(),
+  },
+  {
+    id: "seed-first-experiment-magnetization",
+    pack: seedPackVersion,
+    text: "Treat magnetization profile as geometry.",
+    createdAt: new Date("2026-05-05T11:07:00").toISOString(),
+  },
+  {
+    id: "seed-first-experiment-origami",
+    pack: seedPackVersion,
+    text: "Origami papers help the shape logic. Sarrus proof needs force.",
+    createdAt: new Date("2026-05-05T11:06:00").toISOString(),
+  },
+  {
+    id: "seed-first-experiment-ladder",
+    pack: seedPackVersion,
+    text: "Monolithic printing is a ladder, not a leap.",
+    createdAt: new Date("2026-05-05T11:05:00").toISOString(),
+  },
+  {
+    id: "seed-first-experiment-photo",
+    pack: seedPackVersion,
+    text: "Clean face, hidden wires, visible motion.",
+    createdAt: new Date("2026-05-05T11:04:00").toISOString(),
   },
 ];
 
