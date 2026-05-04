@@ -12,8 +12,9 @@ const baseSeedPackVersion = "2026-05-04-fluxcell";
 const integratedSeedPackVersion = "2026-05-04-fluxcell-integrated-epm";
 const monolithicSeedPackVersion = "2026-05-04-fluxcell-monolithic-cell";
 const actuationSeedPackVersion = "2026-05-04-fluxcell-actuation-architecture";
-const seedPackVersion = "2026-05-04-fluxcell-fabrication-plan";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, seedPackVersion];
+const fabricationSeedPackVersion = "2026-05-04-fluxcell-fabrication-plan";
+const seedPackVersion = "2026-05-04-fluxcell-printable-electromagnetics";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -235,63 +236,123 @@ const seedNotes = [
   },
   {
     id: "seed-fab-split",
-    pack: seedPackVersion,
+    pack: fabricationSeedPackVersion,
     text: "Fabrication split: modular insert for the first reliable build, monolithic package for the end result.",
     createdAt: new Date("2026-05-04T21:06:00").toISOString(),
   },
   {
     id: "seed-fab-dummy-print",
-    pack: seedPackVersion,
+    pack: fabricationSeedPackVersion,
     text: "First print: pocketed Sarrus cell with dummy magnet blocks; measure hinge strain and air-gap drift.",
     createdAt: new Date("2026-05-04T21:05:00").toISOString(),
   },
   {
     id: "seed-fab-gap-stop",
-    pack: seedPackVersion,
+    pack: fabricationSeedPackVersion,
     text: "Gap stops: printed hard stops set minimum air gap so magnetic pull does not collapse the linkage.",
     createdAt: new Date("2026-05-04T21:04:00").toISOString(),
   },
   {
     id: "seed-fab-flux-path",
-    pack: seedPackVersion,
+    pack: fabricationSeedPackVersion,
     text: "Flux path test: yoke, NdFeB, AlNiCo, and coil outside the cell before embedding anything.",
     createdAt: new Date("2026-05-04T21:03:00").toISOString(),
   },
   {
     id: "seed-fab-overprint-risk",
-    pack: seedPackVersion,
+    pack: fabricationSeedPackVersion,
     text: "Overprint risk: print heat and tolerances can demagnetize, shift, or short the magnetic cartridge.",
     createdAt: new Date("2026-05-04T21:02:00").toISOString(),
   },
   {
     id: "seed-fab-symmetry",
-    pack: seedPackVersion,
+    pack: fabricationSeedPackVersion,
     text: "Cell interface: push symmetric pivot pairs so the EPM adds lateral strain without twisting the cell.",
     createdAt: new Date("2026-05-04T21:01:00").toISOString(),
   },
   {
     id: "seed-fab-claim",
-    pack: seedPackVersion,
+    pack: fabricationSeedPackVersion,
     text: "Monolithic claim needs integrated body, integrated actuator, no pneumatic input, and repeatable lateral stroke.",
     createdAt: new Date("2026-05-04T21:00:00").toISOString(),
   },
   {
     id: "seed-fab-cycle",
-    pack: seedPackVersion,
+    pack: fabricationSeedPackVersion,
     text: "Do not chase arrays until one cell reaches 100 cycles with stable force and no hinge damage.",
     createdAt: new Date("2026-05-04T20:59:00").toISOString(),
   },
   {
     id: "seed-fab-cutaway",
-    pack: seedPackVersion,
+    pack: fabricationSeedPackVersion,
     text: "Figure target: cutaway showing magnetic circuit, linkage, and lateral expansion in the same cell.",
     createdAt: new Date("2026-05-04T20:58:00").toISOString(),
   },
   {
     id: "seed-fab-cad-next",
-    pack: seedPackVersion,
+    pack: fabricationSeedPackVersion,
     text: "CAD next: single-cell chassis with swappable EPM slot, hard gap datums, and width measurement tabs.",
     createdAt: new Date("2026-05-04T20:57:00").toISOString(),
+  },
+  {
+    id: "seed-printable-magnet-reality",
+    pack: seedPackVersion,
+    text: "Printed permanent magnets are likely weaker than inserted NdFeB. Use them last, not first.",
+    createdAt: new Date("2026-05-04T21:26:00").toISOString(),
+  },
+  {
+    id: "seed-printable-coil-choice",
+    pack: seedPackVersion,
+    text: "Coil choice: wound copper for force, printed conductor for form-factor research, liquid metal for compliant routing.",
+    createdAt: new Date("2026-05-04T21:25:00").toISOString(),
+  },
+  {
+    id: "seed-printable-soft-core",
+    pack: seedPackVersion,
+    text: "Soft magnetic printed core is a flux guide, not a substitute for a high-energy permanent magnet.",
+    createdAt: new Date("2026-05-04T21:24:00").toISOString(),
+  },
+  {
+    id: "seed-printable-coil-density",
+    pack: seedPackVersion,
+    text: "Coil density test: turns, resistance, pulse current, heat, and magnetic field at the working gap.",
+    createdAt: new Date("2026-05-04T21:23:00").toISOString(),
+  },
+  {
+    id: "seed-printable-assembly-path",
+    pack: seedPackVersion,
+    text: "Assembly path: pause print, place magnetic cartridge, overprint shell, then pulse-test before full cell cycling.",
+    createdAt: new Date("2026-05-04T21:22:00").toISOString(),
+  },
+  {
+    id: "seed-printable-material-screen",
+    pack: seedPackVersion,
+    text: "Material screen: PLA/PETG body, TPU hinges, iron-filled flux path, inserted steel keeper.",
+    createdAt: new Date("2026-05-04T21:21:00").toISOString(),
+  },
+  {
+    id: "seed-printable-thermal-budget",
+    pack: seedPackVersion,
+    text: "Thermal budget: pulse energy must stay below hinge softening and magnet demagnetization limits.",
+    createdAt: new Date("2026-05-04T21:20:00").toISOString(),
+  },
+  {
+    id: "seed-printable-evidence",
+    pack: seedPackVersion,
+    text: "Evidence tile to make: photo of one printed cell, overlay of flux path, displacement trace, and pulse trace.",
+    createdAt: new Date("2026-05-04T21:19:00").toISOString(),
+  },
+  {
+    id: "seed-printable-claim-language",
+    pack: seedPackVersion,
+    text: "Claim language: monolithically packaged first; monolithically printed only when actuator materials are printed too.",
+    createdAt: new Date("2026-05-04T21:18:00").toISOString(),
+  },
+  {
+    id: "seed-printable-next-paper",
+    pack: seedPackVersion,
+    text: "Paper angle: Sarrus-cell architecture enables compact EPM actuation to become structural, local, and printable.",
+    createdAt: new Date("2026-05-04T21:17:00").toISOString(),
   },
 ];
 
