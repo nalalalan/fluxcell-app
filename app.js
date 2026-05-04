@@ -26,8 +26,9 @@ const monolithicActuationRouteSeedPackVersion = "2026-05-04-fluxcell-monolithic-
 const northStarWallSeedPackVersion = "2026-05-04-fluxcell-north-star-wall";
 const galleryObjectSeedPackVersion = "2026-05-04-fluxcell-gallery-object";
 const proudCellObjectSeedPackVersion = "2026-05-04-fluxcell-proud-cell-object";
-const seedPackVersion = "2026-05-04-fluxcell-integrated-proof-object";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, seedPackVersion];
+const integratedProofSeedPackVersion = "2026-05-04-fluxcell-integrated-proof-object";
+const seedPackVersion = "2026-05-04-fluxcell-sarrus-actuation-proof";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1053,45 +1054,87 @@ const seedNotes = [
   },
   {
     id: "seed-integrated-proof-one-object",
-    pack: seedPackVersion,
+    pack: integratedProofSeedPackVersion,
     text: "One object: the cell, actuator, measurement marks, and wires all belong in the same clean frame.",
     createdAt: new Date("2026-05-05T07:10:00").toISOString(),
   },
   {
     id: "seed-integrated-proof-constant-boundary",
-    pack: seedPackVersion,
+    pack: integratedProofSeedPackVersion,
     text: "Keep the cell boundary constant while moving from inserted cartridge to printed yoke to printed coil.",
     createdAt: new Date("2026-05-05T07:09:00").toISOString(),
   },
   {
     id: "seed-integrated-proof-short-gap",
-    pack: seedPackVersion,
+    pack: integratedProofSeedPackVersion,
     text: "Design around a short magnetic stroke. Let the Sarrus linkage create the visible lateral motion.",
     createdAt: new Date("2026-05-05T07:08:00").toISOString(),
   },
   {
     id: "seed-integrated-proof-hold",
-    pack: seedPackVersion,
+    pack: integratedProofSeedPackVersion,
     text: "After the pulse, unplug the driver. Zero-power hold has to be visible and measured.",
     createdAt: new Date("2026-05-05T07:07:00").toISOString(),
   },
   {
     id: "seed-integrated-proof-sensing",
-    pack: seedPackVersion,
+    pack: integratedProofSeedPackVersion,
     text: "Add one embedded width marker or simple sensor before adding another actuation idea.",
     createdAt: new Date("2026-05-05T07:06:00").toISOString(),
   },
   {
     id: "seed-integrated-proof-print-pause",
-    pack: seedPackVersion,
+    pack: integratedProofSeedPackVersion,
     text: "Print-pause-print is acceptable for the first proof if the geometry already anticipates monolithic printing.",
     createdAt: new Date("2026-05-05T07:05:00").toISOString(),
   },
   {
     id: "seed-integrated-proof-reviewer",
-    pack: seedPackVersion,
+    pack: integratedProofSeedPackVersion,
     text: "Reviewer-proof claim: active EPM cell beats dummy-core cell in lateral work per pulse.",
     createdAt: new Date("2026-05-05T07:04:00").toISOString(),
+  },
+  {
+    id: "seed-sarrus-actuation-contribution",
+    pack: seedPackVersion,
+    text: "Actuation claim: the EPM changes lateral width under load; holding alone is not enough.",
+    createdAt: new Date("2026-05-05T08:10:00").toISOString(),
+  },
+  {
+    id: "seed-sarrus-actuation-gap-stop",
+    pack: seedPackVersion,
+    text: "The first cell needs hard stops that preserve a sub-millimeter keeper gap.",
+    createdAt: new Date("2026-05-05T08:09:00").toISOString(),
+  },
+  {
+    id: "seed-sarrus-actuation-work",
+    pack: seedPackVersion,
+    text: "Measure EPM contribution as active-core minus dummy-core force-displacement work.",
+    createdAt: new Date("2026-05-05T08:08:00").toISOString(),
+  },
+  {
+    id: "seed-sarrus-actuation-bistability",
+    pack: seedPackVersion,
+    text: "Use magnetic bistability only if it reduces pulse energy or improves holding.",
+    createdAt: new Date("2026-05-05T08:07:00").toISOString(),
+  },
+  {
+    id: "seed-sarrus-actuation-figure",
+    pack: seedPackVersion,
+    text: "Make the paper figure before the prototype: cutaway, pulse trace, width trace, dummy baseline.",
+    createdAt: new Date("2026-05-05T08:06:00").toISOString(),
+  },
+  {
+    id: "seed-sarrus-actuation-wire-route",
+    pack: seedPackVersion,
+    text: "Route wires through the lowest-strain path. If the wire path is ugly, the design is not done.",
+    createdAt: new Date("2026-05-05T08:05:00").toISOString(),
+  },
+  {
+    id: "seed-sarrus-actuation-monolithic",
+    pack: seedPackVersion,
+    text: "Monolithic is a sequence: printed geometry, printed yoke, printed conductor, printed hard magnet.",
+    createdAt: new Date("2026-05-05T08:04:00").toISOString(),
   },
 ];
 
