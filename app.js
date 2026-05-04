@@ -24,8 +24,9 @@ const mechanismCouplingSeedPackVersion = "2026-05-04-fluxcell-mechanism-coupling
 const prototypeProtocolSeedPackVersion = "2026-05-04-fluxcell-prototype-protocol";
 const monolithicActuationRouteSeedPackVersion = "2026-05-04-fluxcell-monolithic-actuation-route";
 const northStarWallSeedPackVersion = "2026-05-04-fluxcell-north-star-wall";
-const seedPackVersion = "2026-05-04-fluxcell-gallery-object";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, seedPackVersion];
+const galleryObjectSeedPackVersion = "2026-05-04-fluxcell-gallery-object";
+const seedPackVersion = "2026-05-04-fluxcell-proud-cell-object";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -955,51 +956,99 @@ const seedNotes = [
   },
   {
     id: "seed-gallery-object-physical",
-    pack: seedPackVersion,
+    pack: galleryObjectSeedPackVersion,
     text: "The next object should look finished, not like a bench workaround.",
     createdAt: new Date("2026-05-05T05:08:00").toISOString(),
   },
   {
     id: "seed-gallery-object-cutaway",
-    pack: seedPackVersion,
+    pack: galleryObjectSeedPackVersion,
     text: "Cutaway: coil, keeper, yoke, magnet, hinge, and lateral width markers in one view.",
     createdAt: new Date("2026-05-05T05:07:00").toISOString(),
   },
   {
     id: "seed-gallery-object-no-tubes",
-    pack: seedPackVersion,
+    pack: galleryObjectSeedPackVersion,
     text: "No pneumatic tube in the hero photo. The actuator lives inside the cell.",
     createdAt: new Date("2026-05-05T05:06:00").toISOString(),
   },
   {
     id: "seed-gallery-object-same-frame",
-    pack: seedPackVersion,
+    pack: galleryObjectSeedPackVersion,
     text: "Beauty and evidence in the same frame: object photo, width trace, pulse trace.",
     createdAt: new Date("2026-05-05T05:05:00").toISOString(),
   },
   {
     id: "seed-gallery-object-materials",
-    pack: seedPackVersion,
+    pack: galleryObjectSeedPackVersion,
     text: "Material direction: dark printed body, copper coil, pale keeper faces, clean ruler marks.",
     createdAt: new Date("2026-05-05T05:04:00").toISOString(),
   },
   {
     id: "seed-gallery-object-three-versions",
-    pack: seedPackVersion,
+    pack: galleryObjectSeedPackVersion,
     text: "Photograph three cells together: dummy, inserted EPM, printed-yoke EPM.",
     createdAt: new Date("2026-05-05T05:03:00").toISOString(),
   },
   {
     id: "seed-gallery-object-publishable",
-    pack: seedPackVersion,
+    pack: galleryObjectSeedPackVersion,
     text: "Publishable claim starts when EPM pulse changes lateral strain above dummy-core baseline.",
     createdAt: new Date("2026-05-05T05:02:00").toISOString(),
   },
   {
     id: "seed-gallery-object-next-cad",
-    pack: seedPackVersion,
+    pack: galleryObjectSeedPackVersion,
     text: "Next CAD: one beautiful cutaway cell with swappable cartridge, hidden wires, and hard gap stops.",
     createdAt: new Date("2026-05-05T05:01:00").toISOString(),
+  },
+  {
+    id: "seed-proud-cell-north-star",
+    pack: seedPackVersion,
+    text: "North star: one printed Sarrus cell where an EPM pulse creates useful lateral actuation.",
+    createdAt: new Date("2026-05-05T06:10:00").toISOString(),
+  },
+  {
+    id: "seed-proud-cell-gap-map",
+    pack: seedPackVersion,
+    text: "Make the gap map beautiful: open width, keeper distance, pulse, hold, release.",
+    createdAt: new Date("2026-05-05T06:09:00").toISOString(),
+  },
+  {
+    id: "seed-proud-cell-repulsion",
+    pack: seedPackVersion,
+    text: "Test repulsion too. Bistable EPM deformation may avoid the weakest attraction gap.",
+    createdAt: new Date("2026-05-05T06:08:00").toISOString(),
+  },
+  {
+    id: "seed-proud-cell-stack",
+    pack: seedPackVersion,
+    text: "Stack to prototype: printed body, wound coil, inserted magnets, steel keeper, then printed substitutes.",
+    createdAt: new Date("2026-05-05T06:07:00").toISOString(),
+  },
+  {
+    id: "seed-proud-cell-benchmark",
+    pack: seedPackVersion,
+    text: "Benchmark against the pneumatic cell by lateral work per stroke, not just displacement.",
+    createdAt: new Date("2026-05-05T06:06:00").toISOString(),
+  },
+  {
+    id: "seed-proud-cell-beauty-rule",
+    pack: seedPackVersion,
+    text: "If it cannot be photographed cleanly, the architecture is probably still too messy.",
+    createdAt: new Date("2026-05-05T06:05:00").toISOString(),
+  },
+  {
+    id: "seed-proud-cell-control",
+    pack: seedPackVersion,
+    text: "Control set: no core, dummy core, active EPM, reversed pulse.",
+    createdAt: new Date("2026-05-05T06:04:00").toISOString(),
+  },
+  {
+    id: "seed-proud-cell-next-print",
+    pack: seedPackVersion,
+    text: "Next print: one cutaway cell with hard gap stops and a removable EPM cartridge.",
+    createdAt: new Date("2026-05-05T06:03:00").toISOString(),
   },
 ];
 
