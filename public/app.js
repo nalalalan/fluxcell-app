@@ -34,8 +34,9 @@ const sarrusFirstExperimentWallSeedPackVersion = "2026-05-04-fluxcell-sarrus-fir
 const proudObjectWallSeedPackVersion = "2026-05-04-fluxcell-proud-object-wall";
 const dopamineObjectWallSeedPackVersion = "2026-05-04-fluxcell-dopamine-object-wall";
 const northStarJewelWallSeedPackVersion = "2026-05-04-fluxcell-north-star-jewel-wall";
-const seedPackVersion = "2026-05-04-fluxcell-mechanical-memory-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, seedPackVersion];
+const mechanicalMemoryWallSeedPackVersion = "2026-05-04-fluxcell-mechanical-memory-wall";
+const seedPackVersion = "2026-05-04-fluxcell-one-cell-proof-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1397,45 +1398,87 @@ const seedNotes = [
   },
   {
     id: "seed-memory-wall-two-state",
-    pack: seedPackVersion,
+    pack: mechanicalMemoryWallSeedPackVersion,
     text: "Two stable widths, one magnetic command.",
     createdAt: new Date("2026-05-05T15:10:00").toISOString(),
   },
   {
     id: "seed-memory-wall-snap",
-    pack: seedPackVersion,
+    pack: mechanicalMemoryWallSeedPackVersion,
     text: "Let mechanics snap. Let the EPM decide when.",
     createdAt: new Date("2026-05-05T15:09:00").toISOString(),
   },
   {
     id: "seed-memory-wall-state-map",
-    pack: seedPackVersion,
+    pack: mechanicalMemoryWallSeedPackVersion,
     text: "The cell needs a state map, not just a force plot.",
     createdAt: new Date("2026-05-05T15:08:00").toISOString(),
   },
   {
     id: "seed-memory-wall-logic",
-    pack: seedPackVersion,
+    pack: mechanicalMemoryWallSeedPackVersion,
     text: "Mechanical memory turns one cell into a material bit.",
     createdAt: new Date("2026-05-05T15:07:00").toISOString(),
   },
   {
     id: "seed-memory-wall-proof",
-    pack: seedPackVersion,
+    pack: mechanicalMemoryWallSeedPackVersion,
     text: "Show contracted, switched, expanded, held.",
     createdAt: new Date("2026-05-05T15:06:00").toISOString(),
   },
   {
     id: "seed-memory-wall-beauty",
-    pack: seedPackVersion,
+    pack: mechanicalMemoryWallSeedPackVersion,
     text: "Make the state change visible from across the room.",
     createdAt: new Date("2026-05-05T15:05:00").toISOString(),
   },
   {
     id: "seed-memory-wall-paper",
-    pack: seedPackVersion,
+    pack: mechanicalMemoryWallSeedPackVersion,
     text: "A beautiful demo is the shortest introduction.",
     createdAt: new Date("2026-05-05T15:04:00").toISOString(),
+  },
+  {
+    id: "seed-one-cell-proof-pulse",
+    pack: seedPackVersion,
+    text: "One cell. One pulse. One visible width change.",
+    createdAt: new Date("2026-05-05T16:10:00").toISOString(),
+  },
+  {
+    id: "seed-one-cell-proof-work",
+    pack: seedPackVersion,
+    text: "Lateral work is the proof.",
+    createdAt: new Date("2026-05-05T16:09:00").toISOString(),
+  },
+  {
+    id: "seed-one-cell-proof-gap",
+    pack: seedPackVersion,
+    text: "Make the keeper gap a design feature.",
+    createdAt: new Date("2026-05-05T16:08:00").toISOString(),
+  },
+  {
+    id: "seed-one-cell-proof-hold",
+    pack: seedPackVersion,
+    text: "A zero-power hold is already a new actuation language.",
+    createdAt: new Date("2026-05-05T16:07:00").toISOString(),
+  },
+  {
+    id: "seed-one-cell-proof-cutaway",
+    pack: seedPackVersion,
+    text: "The first monolithic proof can be a beautiful cutaway.",
+    createdAt: new Date("2026-05-05T16:06:00").toISOString(),
+  },
+  {
+    id: "seed-one-cell-proof-overprint",
+    pack: seedPackVersion,
+    text: "Pocket, insert, overprint, measure.",
+    createdAt: new Date("2026-05-05T16:05:00").toISOString(),
+  },
+  {
+    id: "seed-one-cell-proof-force-path",
+    pack: seedPackVersion,
+    text: "Every tile should answer where the force goes.",
+    createdAt: new Date("2026-05-05T16:04:00").toISOString(),
   },
 ];
 
