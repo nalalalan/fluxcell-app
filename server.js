@@ -556,10 +556,10 @@ async function handleApi(req, res, requestUrl) {
     return;
   }
 
-  const downloadMatch = requestUrl.pathname.match(/^\/api\/files\/([^/]+)\/download$/);
-  if (downloadMatch && req.method === "GET") {
+  const fileServeMatch = requestUrl.pathname.match(/^\/api\/files\/([^/]+)\/(download|view)$/);
+  if (fileServeMatch && req.method === "GET") {
     const files = await readIndex();
-    const entry = files.find((file) => file.id === downloadMatch[1]);
+    const entry = files.find((file) => file.id === fileServeMatch[1]);
     if (!entry) {
       sendJson(res, 404, { error: "File not found" });
       return;
@@ -569,9 +569,10 @@ async function handleApi(req, res, requestUrl) {
       sendJson(res, 403, { error: "Invalid file path" });
       return;
     }
+    const disposition = fileServeMatch[2] === "view" ? "inline" : "attachment";
     res.writeHead(200, {
       "Content-Type": entry.mime || mimeTypes[path.extname(entry.name).toLowerCase()] || "application/octet-stream",
-      "Content-Disposition": `attachment; filename="${entry.name.replace(/"/g, "")}"`,
+      "Content-Disposition": `${disposition}; filename="${entry.name.replace(/"/g, "")}"`,
     });
     fs.createReadStream(filePath).pipe(res);
     return;
