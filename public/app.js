@@ -10,8 +10,9 @@ const fileStore = "files";
 const seedPackKey = "fluxcell.seed-pack.v1";
 const baseSeedPackVersion = "2026-05-04-fluxcell";
 const integratedSeedPackVersion = "2026-05-04-fluxcell-integrated-epm";
-const seedPackVersion = "2026-05-04-fluxcell-monolithic-cell";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, seedPackVersion];
+const monolithicSeedPackVersion = "2026-05-04-fluxcell-monolithic-cell";
+const seedPackVersion = "2026-05-04-fluxcell-actuation-architecture";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -113,63 +114,123 @@ const seedNotes = [
   },
   {
     id: "seed-monolithic-direct-force",
-    pack: seedPackVersion,
+    pack: monolithicSeedPackVersion,
     text: "Do not just pull a wall. Route magnetic force through a link or rocker that amplifies lateral expansion.",
     createdAt: new Date("2026-05-04T20:28:00").toISOString(),
   },
   {
     id: "seed-monolithic-air-gap",
-    pack: seedPackVersion,
+    pack: monolithicSeedPackVersion,
     text: "CAD constraint: keep the working air gap short even while the cell expands laterally.",
     createdAt: new Date("2026-05-04T20:27:00").toISOString(),
   },
   {
     id: "seed-monolithic-zero-power-state",
-    pack: seedPackVersion,
+    pack: monolithicSeedPackVersion,
     text: "Choose the zero-power state now: expanded hold, contracted hold, or only a pulse-triggered transition.",
     createdAt: new Date("2026-05-04T20:26:00").toISOString(),
   },
   {
     id: "seed-monolithic-stage-plan",
-    pack: seedPackVersion,
+    pack: monolithicSeedPackVersion,
     text: "Prototype ladder: external EPM near cell, embedded EPM cartridge, then monolithic printed package.",
     createdAt: new Date("2026-05-04T20:25:00").toISOString(),
   },
   {
     id: "seed-monolithic-bistable",
-    pack: seedPackVersion,
+    pack: monolithicSeedPackVersion,
     text: "Best architecture may be bistable Sarrus mechanics plus EPM switching, not continuous magnetic pulling.",
     createdAt: new Date("2026-05-04T20:24:00").toISOString(),
   },
   {
     id: "seed-monolithic-coil-path",
-    pack: seedPackVersion,
+    pack: monolithicSeedPackVersion,
     text: "Print coil channels and keeper pockets as real geometry; winding and insertion can happen before full printing works.",
     createdAt: new Date("2026-05-04T20:23:00").toISOString(),
   },
   {
     id: "seed-monolithic-paper-link",
-    pack: seedPackVersion,
+    pack: monolithicSeedPackVersion,
     text: "Paper link: compliant EPMs inform the soft package; EPM jamming papers inform zero-power holding.",
     createdAt: new Date("2026-05-04T20:22:00").toISOString(),
   },
   {
     id: "seed-monolithic-test",
-    pack: seedPackVersion,
+    pack: monolithicSeedPackVersion,
     text: "Test: pulse the EPM while measuring lateral cell width, blocked force, current, and surface temperature.",
     createdAt: new Date("2026-05-04T20:21:00").toISOString(),
   },
   {
     id: "seed-monolithic-material-stack",
-    pack: seedPackVersion,
+    pack: monolithicSeedPackVersion,
     text: "Material stack: hard magnet, soft keeper, coil, printed hinge, printed body. Do not merge failures.",
     createdAt: new Date("2026-05-04T20:20:00").toISOString(),
   },
   {
     id: "seed-monolithic-module-contract",
-    pack: seedPackVersion,
+    pack: monolithicSeedPackVersion,
     text: "Module contract: same Sarrus cell footprint, added actuation, no pneumatic line, one pulse input.",
     createdAt: new Date("2026-05-04T20:19:00").toISOString(),
+  },
+  {
+    id: "seed-actuation-contribution",
+    pack: seedPackVersion,
+    text: "Actuation contribution: the EPM changes cell state, not just clamps after motion.",
+    createdAt: new Date("2026-05-04T20:46:00").toISOString(),
+  },
+  {
+    id: "seed-actuation-rocker",
+    pack: seedPackVersion,
+    text: "Mechanism sketch: EPM drives a short rocker that pushes opposite Sarrus pivots outward.",
+    createdAt: new Date("2026-05-04T20:45:00").toISOString(),
+  },
+  {
+    id: "seed-actuation-preload",
+    pack: seedPackVersion,
+    text: "Use stored elastic energy for stroke. Use the EPM to switch or hold the state.",
+    createdAt: new Date("2026-05-04T20:44:00").toISOString(),
+  },
+  {
+    id: "seed-actuation-cartridge",
+    pack: seedPackVersion,
+    text: "Design a cartridge-sized magnetic circuit that can be overprinted into the cell body.",
+    createdAt: new Date("2026-05-04T20:43:00").toISOString(),
+  },
+  {
+    id: "seed-actuation-wiring",
+    pack: seedPackVersion,
+    text: "Route wires along a low-strain path. Keep coils out of the hinge strain zone.",
+    createdAt: new Date("2026-05-04T20:42:00").toISOString(),
+  },
+  {
+    id: "seed-actuation-thermal",
+    pack: seedPackVersion,
+    text: "Thermal limit: EPM pulses cannot soften hinges or change the air gap.",
+    createdAt: new Date("2026-05-04T20:41:00").toISOString(),
+  },
+  {
+    id: "seed-actuation-data",
+    pack: seedPackVersion,
+    text: "Best first data: lateral displacement per pulse, blocked force at fixed width, and hold force at zero power.",
+    createdAt: new Date("2026-05-04T20:40:00").toISOString(),
+  },
+  {
+    id: "seed-actuation-failure",
+    pack: seedPackVersion,
+    text: "Failure mode: magnetic attraction closes the gap but produces no useful Sarrus expansion.",
+    createdAt: new Date("2026-05-04T20:39:00").toISOString(),
+  },
+  {
+    id: "seed-actuation-array",
+    pack: seedPackVersion,
+    text: "Array future: local state memory, shared power bus, no pneumatic manifold.",
+    createdAt: new Date("2026-05-04T20:38:00").toISOString(),
+  },
+  {
+    id: "seed-actuation-win",
+    pack: seedPackVersion,
+    text: "Win condition: one printed cell cycles expand, hold, release, reset with wires only.",
+    createdAt: new Date("2026-05-04T20:37:00").toISOString(),
   },
 ];
 
