@@ -30,8 +30,9 @@ const integratedProofSeedPackVersion = "2026-05-04-fluxcell-integrated-proof-obj
 const sarrusActuationProofSeedPackVersion = "2026-05-04-fluxcell-sarrus-actuation-proof";
 const memoryFigureObjectSeedPackVersion = "2026-05-04-fluxcell-memory-figure-object";
 const cartridgeProofWallSeedPackVersion = "2026-05-04-fluxcell-cartridge-proof-wall";
-const seedPackVersion = "2026-05-04-fluxcell-sarrus-first-experiment-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, seedPackVersion];
+const sarrusFirstExperimentWallSeedPackVersion = "2026-05-04-fluxcell-sarrus-first-experiment-wall";
+const seedPackVersion = "2026-05-04-fluxcell-proud-object-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1231,45 +1232,81 @@ const seedNotes = [
   },
   {
     id: "seed-first-experiment-loaded-width",
-    pack: seedPackVersion,
+    pack: sarrusFirstExperimentWallSeedPackVersion,
     text: "First proud demo: one pulse changes lateral width under load.",
     createdAt: new Date("2026-05-05T11:10:00").toISOString(),
   },
   {
     id: "seed-first-experiment-mechanism",
-    pack: seedPackVersion,
+    pack: sarrusFirstExperimentWallSeedPackVersion,
     text: "The actuator lives in the mechanism, not beside it.",
     createdAt: new Date("2026-05-05T11:09:00").toISOString(),
   },
   {
     id: "seed-first-experiment-frame",
-    pack: seedPackVersion,
+    pack: sarrusFirstExperimentWallSeedPackVersion,
     text: "Show keeper gap and cell width in the same frame.",
     createdAt: new Date("2026-05-05T11:08:00").toISOString(),
   },
   {
     id: "seed-first-experiment-magnetization",
-    pack: seedPackVersion,
+    pack: sarrusFirstExperimentWallSeedPackVersion,
     text: "Treat magnetization profile as geometry.",
     createdAt: new Date("2026-05-05T11:07:00").toISOString(),
   },
   {
     id: "seed-first-experiment-origami",
-    pack: seedPackVersion,
+    pack: sarrusFirstExperimentWallSeedPackVersion,
     text: "Origami papers help the shape logic. Sarrus proof needs force.",
     createdAt: new Date("2026-05-05T11:06:00").toISOString(),
   },
   {
     id: "seed-first-experiment-ladder",
-    pack: seedPackVersion,
+    pack: sarrusFirstExperimentWallSeedPackVersion,
     text: "Monolithic printing is a ladder, not a leap.",
     createdAt: new Date("2026-05-05T11:05:00").toISOString(),
   },
   {
     id: "seed-first-experiment-photo",
-    pack: seedPackVersion,
+    pack: sarrusFirstExperimentWallSeedPackVersion,
     text: "Clean face, hidden wires, visible motion.",
     createdAt: new Date("2026-05-05T11:04:00").toISOString(),
+  },
+  {
+    id: "seed-proud-object-one-cell",
+    pack: seedPackVersion,
+    text: "One beautiful cell is enough if the actuation is real.",
+    createdAt: new Date("2026-05-05T12:10:00").toISOString(),
+  },
+  {
+    id: "seed-proud-object-force-loop",
+    pack: seedPackVersion,
+    text: "Close the loop: pulse, flux, torque, width, work.",
+    createdAt: new Date("2026-05-05T12:09:00").toISOString(),
+  },
+  {
+    id: "seed-proud-object-datums",
+    pack: seedPackVersion,
+    text: "Design datums before design flourishes.",
+    createdAt: new Date("2026-05-05T12:08:00").toISOString(),
+  },
+  {
+    id: "seed-proud-object-variables",
+    pack: seedPackVersion,
+    text: "Gap, magnetization, stiffness. Change one at a time.",
+    createdAt: new Date("2026-05-05T12:07:00").toISOString(),
+  },
+  {
+    id: "seed-proud-object-failure",
+    pack: seedPackVersion,
+    text: "Make failure beautiful enough to read quickly.",
+    createdAt: new Date("2026-05-05T12:06:00").toISOString(),
+  },
+  {
+    id: "seed-proud-object-claim",
+    pack: seedPackVersion,
+    text: "The claim is lateral work from an integrated magnetic actuator.",
+    createdAt: new Date("2026-05-05T12:05:00").toISOString(),
   },
 ];
 
