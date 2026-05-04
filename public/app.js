@@ -19,8 +19,9 @@ const cellIntegrationSeedPackVersion = "2026-05-04-fluxcell-cell-integration";
 const forceBudgetSeedPackVersion = "2026-05-04-fluxcell-force-budget";
 const monolithicEndgameSeedPackVersion = "2026-05-04-fluxcell-monolithic-endgame";
 const printingRoadmapSeedPackVersion = "2026-05-04-fluxcell-printing-roadmap";
-const seedPackVersion = "2026-05-04-fluxcell-cell-epm-integration";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, seedPackVersion];
+const cellEpmIntegrationSeedPackVersion = "2026-05-04-fluxcell-cell-epm-integration";
+const seedPackVersion = "2026-05-04-fluxcell-mechanism-coupling";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -662,63 +663,123 @@ const seedNotes = [
   },
   {
     id: "seed-cell-epm-gap-first",
-    pack: seedPackVersion,
+    pack: cellEpmIntegrationSeedPackVersion,
     text: "Cell target: make lateral expansion close the magnetic gap instead of asking the magnet to pull across a long gap.",
     createdAt: new Date("2026-05-05T00:12:00").toISOString(),
   },
   {
     id: "seed-cell-epm-two-states",
-    pack: seedPackVersion,
+    pack: cellEpmIntegrationSeedPackVersion,
     text: "Define two states only: expanded/open gap and contracted/closed keeper. Everything else is noise for the first proof.",
     createdAt: new Date("2026-05-05T00:11:00").toISOString(),
   },
   {
     id: "seed-cell-epm-force-budget",
-    pack: seedPackVersion,
+    pack: cellEpmIntegrationSeedPackVersion,
     text: "Force budget starts at the Sarrus hinge. Required magnetic force equals hinge torque, friction, and load divided by mechanical advantage.",
     createdAt: new Date("2026-05-05T00:10:00").toISOString(),
   },
   {
     id: "seed-cell-epm-pulse-driver",
-    pack: seedPackVersion,
+    pack: cellEpmIntegrationSeedPackVersion,
     text: "Driver proof: bidirectional pulse, measured current, measured coil temperature, and visible hold after power is disconnected.",
     createdAt: new Date("2026-05-05T00:09:00").toISOString(),
   },
   {
     id: "seed-cell-epm-keeper-face",
-    pack: seedPackVersion,
+    pack: cellEpmIntegrationSeedPackVersion,
     text: "The keeper face is part of the mechanism. Put it on the moving Sarrus link, not as a separate bench fixture.",
     createdAt: new Date("2026-05-05T00:08:00").toISOString(),
   },
   {
     id: "seed-cell-epm-cutaway-test",
-    pack: seedPackVersion,
+    pack: cellEpmIntegrationSeedPackVersion,
     text: "Build one cutaway cell first so the flux path, coil, yoke, magnet pair, and linkage motion are all visible.",
     createdAt: new Date("2026-05-05T00:07:00").toISOString(),
   },
   {
     id: "seed-cell-epm-monolithic-later",
-    pack: seedPackVersion,
+    pack: cellEpmIntegrationSeedPackVersion,
     text: "Monolithic comes in stages: printed shell plus inserted core, then printed yoke, then printed coil, then printed hard magnet.",
     createdAt: new Date("2026-05-05T00:06:00").toISOString(),
   },
   {
     id: "seed-cell-epm-removable-core",
-    pack: seedPackVersion,
+    pack: cellEpmIntegrationSeedPackVersion,
     text: "Keep the first actuator core removable. If force is bad, swap the magnetic circuit without reprinting the Sarrus geometry.",
     createdAt: new Date("2026-05-05T00:05:00").toISOString(),
   },
   {
     id: "seed-cell-epm-no-pneumatics",
-    pack: seedPackVersion,
+    pack: cellEpmIntegrationSeedPackVersion,
     text: "Best demo frame: same laterally expanding cell, pneumatic line removed, EPM pulse causes the useful state change.",
     createdAt: new Date("2026-05-05T00:04:00").toISOString(),
   },
   {
     id: "seed-cell-epm-next-build",
-    pack: seedPackVersion,
+    pack: cellEpmIntegrationSeedPackVersion,
     text: "Next build: one cell, two keeper pads, one EPM cartridge, one lateral displacement trace, one zero-power hold photo.",
     createdAt: new Date("2026-05-05T00:03:00").toISOString(),
+  },
+  {
+    id: "seed-mech-coupling-sarrus-first",
+    pack: seedPackVersion,
+    text: "Treat the Sarrus linkage as the transmission. The magnet only needs to bias the path, not brute-force every millimeter.",
+    createdAt: new Date("2026-05-05T01:02:00").toISOString(),
+  },
+  {
+    id: "seed-mech-coupling-energy-landscape",
+    pack: seedPackVersion,
+    text: "Sketch elastic energy plus magnetic energy versus lateral displacement before changing CAD.",
+    createdAt: new Date("2026-05-05T01:01:00").toISOString(),
+  },
+  {
+    id: "seed-mech-coupling-snap-window",
+    pack: seedPackVersion,
+    text: "If the cell is bistable, size the EPM to cross the snap window, not to hold the entire load continuously.",
+    createdAt: new Date("2026-05-05T01:00:00").toISOString(),
+  },
+  {
+    id: "seed-mech-coupling-gap-map",
+    pack: seedPackVersion,
+    text: "Make a gap map from open to closed: keeper distance, overlap area, and lateral displacement at each frame.",
+    createdAt: new Date("2026-05-05T00:59:00").toISOString(),
+  },
+  {
+    id: "seed-mech-coupling-no-field-control",
+    pack: seedPackVersion,
+    text: "Control test: identical cell with nonmagnetic dummy core should show the mechanical baseline only.",
+    createdAt: new Date("2026-05-05T00:58:00").toISOString(),
+  },
+  {
+    id: "seed-mech-coupling-magnet-placement",
+    pack: seedPackVersion,
+    text: "Move magnets to tune the curve. Placement is a design variable, not just packaging.",
+    createdAt: new Date("2026-05-05T00:57:00").toISOString(),
+  },
+  {
+    id: "seed-mech-coupling-mechanical-advantage",
+    pack: seedPackVersion,
+    text: "Use the linkage where mechanical advantage is highest near closure; avoid asking the EPM to start from a weak far gap.",
+    createdAt: new Date("2026-05-05T00:56:00").toISOString(),
+  },
+  {
+    id: "seed-mech-coupling-latch-before-muscle",
+    pack: seedPackVersion,
+    text: "First show magnetic latching contributes to actuation; full magnetic muscle can come after the latch curve is real.",
+    createdAt: new Date("2026-05-05T00:55:00").toISOString(),
+  },
+  {
+    id: "seed-mech-coupling-print-insert-proof",
+    pack: seedPackVersion,
+    text: "Print-insert proof: pause print two keeper pads and one EPM pocket into the cell, then overprint the shell.",
+    createdAt: new Date("2026-05-05T00:54:00").toISOString(),
+  },
+  {
+    id: "seed-mech-coupling-one-figure",
+    pack: seedPackVersion,
+    text: "One figure should explain everything: Sarrus kinematics, EPM flux path, displacement trace, and zero-power state.",
+    createdAt: new Date("2026-05-05T00:53:00").toISOString(),
   },
 ];
 
