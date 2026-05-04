@@ -11,8 +11,8 @@ const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
   domain: "fluxcell.aolabs.io",
-  title: "3D printed electropermanent magnet actuation for Sarrus cells.",
-  current: "Build a compact EPM latch/driver that can move one Sarrus cell.",
+  title: "Printed electropermanent actuation for Sarrus cells.",
+  current: "Compact EPM latch/driver for one cell.",
 };
 
 const seedNotes = [
@@ -83,6 +83,7 @@ function iconPath(name) {
     file: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z M14 2v6h6",
     upload: "M12 21V9m0 0-5 5m5-5 5 5M5 3h14",
     spark: "M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Z",
+    open: "M7 17 17 7M10 7h7v7M5 5v14h14",
   }[name];
 }
 
@@ -214,11 +215,11 @@ function createCaptureForm() {
 
   const textarea = el("textarea", "note-input");
   textarea.name = "note";
-  textarea.placeholder = "Write the next note, measurement, CAD change, or failure.";
+  textarea.placeholder = "Note, measurement, CAD, failure.";
   textarea.value = noteDraft;
 
   const fileLabel = el("label", "file-inline");
-  fileLabel.append(icon("upload"), el("span", "", "Drop files here or click to attach"));
+  fileLabel.append(icon("upload"), el("span", "", "Drop or attach"));
   const input = document.createElement("input");
   input.type = "file";
   input.multiple = true;
@@ -230,7 +231,7 @@ function createCaptureForm() {
   const footer = el("div", "composer-footer");
   const save = el("button", "save-button");
   save.type = "submit";
-  save.append(icon("spark"), el("span", "", pendingFiles.length ? `Save ${pendingFiles.length + (noteDraft.trim() ? 1 : 0)}` : "Save"));
+  save.append(icon("spark"), el("span", "", pendingFiles.length ? `Add ${pendingFiles.length + (noteDraft.trim() ? 1 : 0)}` : "Add"));
 
   footer.append(createPendingList(), save);
   form.append(dropzone, footer);
@@ -247,70 +248,46 @@ function createPendingList() {
 
 function createNextPanel() {
   const panel = el("div", "next-card");
-  const suggestion = generateNextStep();
-  panel.append(el("p", "section-label", "generated"), el("h2", "", suggestion.title));
-  panel.append(el("p", "next-copy", suggestion.copy));
-  panel.append(el("p", "next-source", suggestion.source));
+  panel.append(el("p", "next-note", generateNextStep()));
   return panel;
 }
 
 function generateNextStep() {
-  const latestNotes = state.notes.slice(0, 3);
-  const latestFiles = state.files.filter(isVisibleLibraryFile).slice(0, 5);
+  const visibleFiles = state.files.filter(isVisibleLibraryFile);
+  const latestNotes = state.notes.slice(0, 2);
+  const latestFiles = visibleFiles.slice(0, 3);
+  const latestNoteText = String(latestNotes[0]?.text || "").toLowerCase();
   const text = [
     ...latestNotes.map((note) => note.text),
-    ...latestFiles.map((file) => file.name),
+    ...latestFiles.map((file) => `${file.paperTitle || ""} ${file.name}`),
   ].join(" ").toLowerCase();
-  const fileCount = state.files.filter(isVisibleLibraryFile).length;
-  const source = `Generated from ${state.notes.length} ${state.notes.length === 1 ? "note" : "notes"} and ${fileCount} ${fileCount === 1 ? "file" : "files"}.`;
+  const phase = (state.notes.length + visibleFiles.length) % 3;
 
+  if (/force|gap|load|pull|stiff/.test(latestNoteText)) {
+    return ["Run one force-gap sweep.", "Hold fixture constant; change one gap.", "Record force, gap, pulse, hold state."][phase];
+  }
+  if (/heat|coil|pulse|current|driver|energy/.test(latestNoteText)) {
+    return ["Log pulse width, current, heat.", "Separate switching from temperature.", "One pulse test before geometry changes."][phase];
+  }
+  if (/cad|print|fixture|mount|core|magnet/.test(latestNoteText)) {
+    return ["Make the gap repeatable.", "Print only the fixture needed for one test.", "Remove alignment doubt first."][phase];
+  }
+  if (/latch|hold|release|polarity|switch/.test(latestNoteText)) {
+    return ["Make the latch/release table.", "Test hold, release, reset.", "One cell-sized latch cycle."][phase];
+  }
   if (latestFiles.some(isPaperFile)) {
-    return {
-      title: "Turn the latest paper into one concrete experiment.",
-      copy: "Pull out the actuator geometry, drive condition, measurement method, and one number worth reproducing. Save that as the next build note.",
-      source,
-    };
+    return [
+      "Extract one build constraint from the newest paper.",
+      "Pull one geometry, one drive condition, one number.",
+      "Turn the newest paper into a single EPM test.",
+    ][phase];
   }
-  if (/force|gap|load|pull|stiff/.test(text)) {
-    return {
-      title: "Lock the force measurement before changing the actuator.",
-      copy: "Use the same fixture and record gap, pulse condition, hold state, and force. Change only one geometry variable.",
-      source,
-    };
-  }
-  if (/heat|coil|pulse|current|driver|energy/.test(text)) {
-    return {
-      title: "Separate magnetic switching from thermal limits.",
-      copy: "Run one short pulse test with current, pulse width, temperature rise, and latch result in the same note.",
-      source,
-    };
-  }
-  if (/cad|print|fixture|mount|core|magnet/.test(text)) {
-    return {
-      title: "Print the smallest fixture that makes the gap repeatable.",
-      copy: "The next useful prototype should remove alignment doubt before testing a full Sarrus cell.",
-      source,
-    };
-  }
-  if (/latch|hold|release|polarity|switch/.test(text)) {
-    return {
-      title: "Make the latch state table.",
-      copy: "Record hold, release, reset, and failure mode for one cell-sized actuator before scaling up.",
-      source,
-    };
-  }
-  if (!state.files.length) {
-    return {
-      title: "Attach one piece of evidence to the next note.",
-      copy: "A photo, CAD export, paper PDF, or force plot will make the next step easier to choose.",
-      source,
-    };
-  }
-  return {
-    title: "Test one Sarrus cell before thinking about arrays.",
-    copy: "Keep the next pass focused on a single cell, one actuator gap, and one measurable result.",
-    source,
-  };
+  if (/force|gap|load|pull|stiff/.test(text)) return ["Run one force-gap sweep.", "Hold fixture constant; change one gap.", "Record force, gap, pulse, hold state."][phase];
+  if (/heat|coil|pulse|current|driver|energy/.test(text)) return ["Log pulse width, current, heat.", "Separate switching from temperature.", "One pulse test before geometry changes."][phase];
+  if (/cad|print|fixture|mount|core|magnet/.test(text)) return ["Make the gap repeatable.", "Print only the fixture needed for one test.", "Remove alignment doubt first."][phase];
+  if (/latch|hold|release|polarity|switch/.test(text)) return ["Make the latch/release table.", "Test hold, release, reset.", "One cell-sized latch cycle."][phase];
+  if (!visibleFiles.length) return ["Save one piece of evidence.", "Add a photo, CAD, paper, or force plot.", "One input, one next test."][phase];
+  return ["One measurable EPM latch test.", "Keep the next test cell-sized.", "One variable, one result."][phase];
 }
 
 function createLibrary() {
@@ -375,6 +352,11 @@ function createNoteCard(note) {
 function createFileCard(file, index) {
   const kind = file.kind || classifyFile(file);
   const card = el("article", `item-card file-card ${kind === "paper" ? "paper-card" : ""}${isImageFile(file) ? " image-card" : ""}`);
+  if (kind === "paper") {
+    card.dataset.openFile = file.id;
+    card.tabIndex = 0;
+    card.title = "Open paper";
+  }
   const visual = el("div", "file-visual");
   if (kind === "paper") {
     visual.classList.add("paper-visual");
@@ -414,10 +396,15 @@ function createFileCard(file, index) {
   const body = el("div", "item-body");
   body.append(el("p", "item-title", kind === "paper" ? paperDisplayTitle(file) : file.name), el("p", "item-meta", file.meta));
 
-  const actions = createActions([
-    { action: "download", id: file.id, title: "Download", iconName: "down" },
-    { action: "delete", id: file.id, title: "Delete", iconName: "trash", danger: true },
-  ]);
+  const actions = createActions(kind === "paper"
+    ? [
+      { action: "open-file", id: file.id, title: "Open", iconName: "open" },
+      { action: "delete", id: file.id, title: "Delete", iconName: "trash", danger: true },
+    ]
+    : [
+      { action: "download", id: file.id, title: "Download", iconName: "down" },
+      { action: "delete", id: file.id, title: "Delete", iconName: "trash", danger: true },
+    ]);
   card.append(visual, body, actions);
   return card;
 }
@@ -487,8 +474,14 @@ function bind() {
   const form = root.querySelector("[data-role='capture']");
   const dropzone = root.querySelector("[data-role='dropzone']");
   form?.addEventListener("submit", saveCapture);
-  form?.querySelector("textarea")?.addEventListener("input", (event) => {
+  const noteInput = form?.querySelector("textarea");
+  noteInput?.addEventListener("input", (event) => {
     noteDraft = event.currentTarget.value;
+  });
+  noteInput?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+    event.preventDefault();
+    form.requestSubmit();
   });
   root.querySelector("[data-role='file-input']")?.addEventListener("change", (event) => {
     stageFiles([...event.currentTarget.files]);
@@ -502,11 +495,26 @@ function bind() {
   root.querySelectorAll("[data-action='download']").forEach((button) => {
     button.addEventListener("click", () => downloadFile(button.dataset.id));
   });
+  root.querySelectorAll("[data-action='open-file']").forEach((button) => {
+    button.addEventListener("click", () => openFile(button.dataset.id));
+  });
   root.querySelectorAll("[data-action='delete']").forEach((button) => {
     button.addEventListener("click", () => deleteFile(button.dataset.id));
   });
   root.querySelectorAll("[data-action='delete-note']").forEach((button) => {
     button.addEventListener("click", () => deleteNote(button.dataset.id));
+  });
+  root.querySelectorAll("[data-open-file]").forEach((card) => {
+    card.addEventListener("click", (event) => {
+      if (event.target.closest(".item-actions")) return;
+      openFile(card.dataset.openFile);
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      if (event.target.closest(".item-actions")) return;
+      event.preventDefault();
+      openFile(card.dataset.openFile);
+    });
   });
 
   let resizeTimer = 0;
@@ -656,6 +664,35 @@ function normalizeSyncFile(file) {
 
 function upsertFile(file) {
   state.files = [file, ...state.files.filter((item) => item.id !== file.id)];
+}
+
+async function openFile(id) {
+  const file = state.files.find((item) => item.id === id);
+  if (!file) return;
+  if (file.source === "sync") {
+    if (sync.status !== "local") {
+      toast("Start local sync to open this paper.");
+      return;
+    }
+    window.open(`${sync.base}/api/files/${encodeURIComponent(id)}/view`, "_blank", "noopener");
+    return;
+  }
+
+  const opened = window.open("about:blank", "_blank");
+  const stored = await getBrowserFile(id).catch(() => null);
+  if (!stored?.blob) {
+    opened?.close();
+    toast("Paper is not available in this browser.");
+    return;
+  }
+  const url = URL.createObjectURL(stored.blob);
+  if (opened) {
+    opened.opener = null;
+    opened.location.href = url;
+  } else {
+    window.location.href = url;
+  }
+  window.setTimeout(() => URL.revokeObjectURL(url), 5 * 60 * 1000);
 }
 
 async function downloadFile(id) {
