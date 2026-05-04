@@ -22,8 +22,9 @@ const printingRoadmapSeedPackVersion = "2026-05-04-fluxcell-printing-roadmap";
 const cellEpmIntegrationSeedPackVersion = "2026-05-04-fluxcell-cell-epm-integration";
 const mechanismCouplingSeedPackVersion = "2026-05-04-fluxcell-mechanism-coupling";
 const prototypeProtocolSeedPackVersion = "2026-05-04-fluxcell-prototype-protocol";
-const seedPackVersion = "2026-05-04-fluxcell-monolithic-actuation-route";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, seedPackVersion];
+const monolithicActuationRouteSeedPackVersion = "2026-05-04-fluxcell-monolithic-actuation-route";
+const seedPackVersion = "2026-05-04-fluxcell-north-star-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -845,63 +846,111 @@ const seedNotes = [
   },
   {
     id: "seed-mono-route-cell-boundary",
-    pack: seedPackVersion,
+    pack: monolithicActuationRouteSeedPackVersion,
     text: "Cell proof: EPM switching must change lateral width while the actuator stays inside the cell boundary.",
     createdAt: new Date("2026-05-05T03:12:00").toISOString(),
   },
   {
     id: "seed-mono-route-stroke-amplifier",
-    pack: seedPackVersion,
+    pack: monolithicActuationRouteSeedPackVersion,
     text: "Use a short magnetic stroke: close a 0.5-1 mm gap, then let the Sarrus links amplify lateral expansion.",
     createdAt: new Date("2026-05-05T03:11:00").toISOString(),
   },
   {
     id: "seed-mono-route-dummy-cad",
-    pack: seedPackVersion,
+    pack: monolithicActuationRouteSeedPackVersion,
     text: "Make two CADs: active EPM cartridge and same-mass dummy core in the identical cell.",
     createdAt: new Date("2026-05-05T03:10:00").toISOString(),
   },
   {
     id: "seed-mono-route-print-gate",
-    pack: seedPackVersion,
+    pack: monolithicActuationRouteSeedPackVersion,
     text: "Monolithic gate: actuator geometry is printed with the cell; magnetic materials can start as inserts.",
     createdAt: new Date("2026-05-05T03:09:00").toISOString(),
   },
   {
     id: "seed-mono-route-four-traces",
-    pack: seedPackVersion,
+    pack: monolithicActuationRouteSeedPackVersion,
     text: "Force contribution test: passive preload, pulse on, pulse off, reversed pulse.",
     createdAt: new Date("2026-05-05T03:08:00").toISOString(),
   },
   {
     id: "seed-mono-route-wire-axis",
-    pack: seedPackVersion,
+    pack: monolithicActuationRouteSeedPackVersion,
     text: "Wire exits belong on a neutral strain path. If the hinge bends the wire, redesign the route.",
     createdAt: new Date("2026-05-05T03:07:00").toISOString(),
   },
   {
     id: "seed-mono-route-lateral-work",
-    pack: seedPackVersion,
+    pack: monolithicActuationRouteSeedPackVersion,
     text: "Measure work: integrate lateral force-displacement per pulse, not just magnetic pull force.",
     createdAt: new Date("2026-05-05T03:06:00").toISOString(),
   },
   {
     id: "seed-mono-route-failure-wall",
-    pack: seedPackVersion,
+    pack: monolithicActuationRouteSeedPackVersion,
     text: "Failure wall: heat drift, gap collapse, demag, keeper misalignment, hinge creep.",
     createdAt: new Date("2026-05-05T03:05:00").toISOString(),
   },
   {
     id: "seed-mono-route-reviewer-figure",
-    pack: seedPackVersion,
+    pack: monolithicActuationRouteSeedPackVersion,
     text: "Reviewer figure: cutaway photo, flux path, gap trace, current pulse, width trace.",
     createdAt: new Date("2026-05-05T03:04:00").toISOString(),
   },
   {
     id: "seed-mono-route-next-build",
-    pack: seedPackVersion,
+    pack: monolithicActuationRouteSeedPackVersion,
     text: "Next physical build: swappable EPM cartridge inside one laterally expanding Sarrus cell.",
     createdAt: new Date("2026-05-05T03:03:00").toISOString(),
+  },
+  {
+    id: "seed-north-star-photograph",
+    pack: seedPackVersion,
+    text: "Make one object worth photographing: one Sarrus cell, visible coil, visible keeper, clean lateral width markers.",
+    createdAt: new Date("2026-05-05T04:10:00").toISOString(),
+  },
+  {
+    id: "seed-north-star-one-sentence",
+    pack: seedPackVersion,
+    text: "A printed Sarrus cell where the actuator is part of the architecture, not a tube attached to it.",
+    createdAt: new Date("2026-05-05T04:09:00").toISOString(),
+  },
+  {
+    id: "seed-north-star-pretty-proof",
+    pack: seedPackVersion,
+    text: "Pretty proof: dark cell, copper coil, pale keeper faces, one clean width trace beside the photo.",
+    createdAt: new Date("2026-05-05T04:08:00").toISOString(),
+  },
+  {
+    id: "seed-north-star-first-figure",
+    pack: seedPackVersion,
+    text: "First figure should feel obvious: pulse in, flux switches, links expand, zero-power hold.",
+    createdAt: new Date("2026-05-05T04:07:00").toISOString(),
+  },
+  {
+    id: "seed-north-star-monolithic-ladder",
+    pack: seedPackVersion,
+    text: "Monolithic ladder: beautiful inserted cartridge now, printed yoke next, printed coil after, printed hard magnet last.",
+    createdAt: new Date("2026-05-05T04:06:00").toISOString(),
+  },
+  {
+    id: "seed-north-star-cell-aesthetic",
+    pack: seedPackVersion,
+    text: "Design the prototype like a product: symmetric cell, hidden wire path, deliberate colors, no bench clutter in the frame.",
+    createdAt: new Date("2026-05-05T04:05:00").toISOString(),
+  },
+  {
+    id: "seed-north-star-real-test",
+    pack: seedPackVersion,
+    text: "Real test: same cell with EPM core, dummy core, and no core. The difference is the contribution.",
+    createdAt: new Date("2026-05-05T04:04:00").toISOString(),
+  },
+  {
+    id: "seed-north-star-tomorrow",
+    pack: seedPackVersion,
+    text: "Tomorrow build: freeze one cutaway CAD and print the cleanest cartridge pocket possible.",
+    createdAt: new Date("2026-05-05T04:03:00").toISOString(),
   },
 ];
 
