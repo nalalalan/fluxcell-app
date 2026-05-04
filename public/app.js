@@ -14,8 +14,9 @@ const monolithicSeedPackVersion = "2026-05-04-fluxcell-monolithic-cell";
 const actuationSeedPackVersion = "2026-05-04-fluxcell-actuation-architecture";
 const fabricationSeedPackVersion = "2026-05-04-fluxcell-fabrication-plan";
 const printableSeedPackVersion = "2026-05-04-fluxcell-printable-electromagnetics";
-const seedPackVersion = "2026-05-04-fluxcell-validation-model";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, seedPackVersion];
+const validationSeedPackVersion = "2026-05-04-fluxcell-validation-model";
+const seedPackVersion = "2026-05-04-fluxcell-cell-integration";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -357,63 +358,123 @@ const seedNotes = [
   },
   {
     id: "seed-model-force-chain",
-    pack: seedPackVersion,
+    pack: validationSeedPackVersion,
     text: "Model the chain: pulse current to flux, flux to pull force, pull force to link torque, torque to lateral strain.",
     createdAt: new Date("2026-05-04T21:46:00").toISOString(),
   },
   {
     id: "seed-model-pass-fail",
-    pack: seedPackVersion,
+    pack: validationSeedPackVersion,
     text: "Pass/fail: EPM-on produces measurable lateral expansion above passive elastic drift.",
     createdAt: new Date("2026-05-04T21:45:00").toISOString(),
   },
   {
     id: "seed-model-null-test",
-    pack: seedPackVersion,
+    pack: validationSeedPackVersion,
     text: "Null test: same printed cell, dummy magnet mass, same pulse wiring, no magnetic switching.",
     createdAt: new Date("2026-05-04T21:44:00").toISOString(),
   },
   {
     id: "seed-model-energy",
-    pack: seedPackVersion,
+    pack: validationSeedPackVersion,
     text: "Energy metric: lateral work per pulse and zero-power hold time, not just peak magnetic force.",
     createdAt: new Date("2026-05-04T21:43:00").toISOString(),
   },
   {
     id: "seed-model-map",
-    pack: seedPackVersion,
+    pack: validationSeedPackVersion,
     text: "Parameter map: air gap, keeper area, link angle, preload, pulse width, and coil temperature.",
     createdAt: new Date("2026-05-04T21:42:00").toISOString(),
   },
   {
     id: "seed-model-publishable",
-    pack: seedPackVersion,
+    pack: validationSeedPackVersion,
     text: "Publishable result: one monolithic cell shows addressable expansion with state memory and no fluid line.",
     createdAt: new Date("2026-05-04T21:41:00").toISOString(),
   },
   {
     id: "seed-model-comparison",
-    pack: seedPackVersion,
+    pack: validationSeedPackVersion,
     text: "Comparison set: pneumatic cell, passive cell, external EPM cell, embedded EPM cell.",
     createdAt: new Date("2026-05-04T21:40:00").toISOString(),
   },
   {
     id: "seed-model-friction",
-    pack: seedPackVersion,
+    pack: validationSeedPackVersion,
     text: "Watch friction: an EPM latch can look strong while the linkage is just binding.",
     createdAt: new Date("2026-05-04T21:39:00").toISOString(),
   },
   {
     id: "seed-model-reversal",
-    pack: seedPackVersion,
+    pack: validationSeedPackVersion,
     text: "Reversal matters: define whether the EPM actively expands, actively contracts, or only toggles a latch.",
     createdAt: new Date("2026-05-04T21:38:00").toISOString(),
   },
   {
     id: "seed-model-video",
-    pack: seedPackVersion,
+    pack: validationSeedPackVersion,
     text: "Video proof: side view with width ruler, synchronized current trace, and visible off-state hold.",
     createdAt: new Date("2026-05-04T21:37:00").toISOString(),
+  },
+  {
+    id: "seed-integrate-node-push",
+    pack: seedPackVersion,
+    text: "Actuate opposite Sarrus side nodes outward. Do not let the magnet just pull the cell diagonally.",
+    createdAt: new Date("2026-05-04T22:12:00").toISOString(),
+  },
+  {
+    id: "seed-integrate-structural-rib",
+    pack: seedPackVersion,
+    text: "Make the EPM package a structural rib: magnet, keeper, coil window, and load path in one printed feature.",
+    createdAt: new Date("2026-05-04T22:11:00").toISOString(),
+  },
+  {
+    id: "seed-integrate-gap-rocker",
+    pack: seedPackVersion,
+    text: "Keep the magnetic gap small. Use a rocker or wedge to turn short gap closure into wider lateral stroke.",
+    createdAt: new Date("2026-05-04T22:10:00").toISOString(),
+  },
+  {
+    id: "seed-integrate-preload",
+    pack: seedPackVersion,
+    text: "Use elastic preload so the EPM crosses a snap threshold instead of supplying the whole stroke continuously.",
+    createdAt: new Date("2026-05-04T22:09:00").toISOString(),
+  },
+  {
+    id: "seed-integrate-same-footprint",
+    pack: seedPackVersion,
+    text: "Success metric: same Sarrus cell footprint, added embedded actuation, measurable lateral expansion.",
+    createdAt: new Date("2026-05-04T22:08:00").toISOString(),
+  },
+  {
+    id: "seed-integrate-one-pulse",
+    pack: seedPackVersion,
+    text: "Electronics proof: one bipolar pulse toggles state; zero current holds expanded or contracted geometry.",
+    createdAt: new Date("2026-05-04T22:07:00").toISOString(),
+  },
+  {
+    id: "seed-integrate-datum-triad",
+    pack: seedPackVersion,
+    text: "CAD datum triad: pivot spacing, keeper overlap, and coil window. These three dimensions control the build.",
+    createdAt: new Date("2026-05-04T22:06:00").toISOString(),
+  },
+  {
+    id: "seed-integrate-embedded-not-external",
+    pack: seedPackVersion,
+    text: "Embedded means the actuator shares the cell body. External magnet near the cell is only a fixture test.",
+    createdAt: new Date("2026-05-04T22:05:00").toISOString(),
+  },
+  {
+    id: "seed-integrate-material-ladder",
+    pack: seedPackVersion,
+    text: "Material ladder: inserted magnets first, printed flux guide second, printed coil third, printed hard magnet last.",
+    createdAt: new Date("2026-05-04T22:04:00").toISOString(),
+  },
+  {
+    id: "seed-integrate-next-build",
+    pack: seedPackVersion,
+    text: "Next build: transparent-width markers, swappable EPM cassette, hard gap stops, and 100-cycle lateral trace.",
+    createdAt: new Date("2026-05-04T22:03:00").toISOString(),
   },
 ];
 
