@@ -380,10 +380,14 @@ h1 {
   background: #111;
 }
 
-.file-visual img {
+.file-visual img,
+.browser-paper-preview iframe {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.file-visual img {
   object-fit: cover;
 }
 
@@ -409,8 +413,35 @@ h1 {
   z-index: 1;
 }
 
-.paper-badge,
-.paper-title {
+.browser-paper-preview,
+.paper-preview-empty {
+  width: 100%;
+  height: 100%;
+}
+
+.browser-paper-preview {
+  overflow: hidden;
+  background: #f6f2e9;
+}
+
+.browser-paper-preview iframe {
+  border: 0;
+  background: #f6f2e9;
+  pointer-events: none;
+}
+
+.paper-preview-empty {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, rgba(255, 250, 240, .08), rgba(255, 250, 240, .025));
+  color: rgba(255, 250, 240, .54);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.paper-badge {
   position: absolute;
   z-index: 2;
   left: 14px;

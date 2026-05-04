@@ -22,6 +22,7 @@ const indexPath = fs.existsSync(legacyIndexPath) && !fs.existsSync(focusedIndexP
   ? legacyIndexPath
   : focusedIndexPath;
 const paperPreviewRoot = path.join(storageRoot, ".fluxcell-paper-previews");
+const paperPreviewVersion = 5;
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -257,14 +258,52 @@ async function cleanupPreviewTemps(prefixBase) {
     .map((name) => fsp.rm(path.join(paperPreviewRoot, name), { force: true }).catch(() => {})));
 }
 
-async function createPdfPreview(entry, filePath, pageCount) {
+function parsePdfImageList(text) {
+  return String(text || "").split(/\r?\n/)
+    .map((line) => line.trim().split(/\s+/))
+    .filter((parts) => /^\d+$/.test(parts[0] || "") && /^\d+$/.test(parts[1] || ""))
+    .map((parts) => ({
+      page: Number(parts[0]),
+      num: Number(parts[1]),
+      type: parts[2],
+      width: Number(parts[3]),
+      height: Number(parts[4]),
+      enc: parts[8] || "",
+      ratio: Number(String(parts[parts.length - 1] || "0").replace("%", "")) || 0,
+    }))
+    .filter((image) => image.type === "image"
+      && image.width >= 180
+      && image.height >= 120
+      && image.width * image.height >= 80000);
+}
+
+async function findNotablePdfImage(filePath) {
+  const result = await runTool("pdfimages", ["-list", filePath], {
+    timeout: 12000,
+    maxBuffer: 4 * 1024 * 1024,
+  });
+  const images = parsePdfImageList(result.stdout);
+  if (!images.length) return null;
+  const candidates = images.some((image) => image.page > 1)
+    ? images.filter((image) => image.page > 1)
+    : images;
+  const firstFigurePage = Math.min(...candidates.map((image) => image.page));
+  return candidates
+    .filter((image) => image.page === firstFigurePage)
+    .sort((a, b) => {
+      const ratioDelta = b.ratio - a.ratio;
+      if (Math.abs(ratioDelta) > 0.5) return ratioDelta;
+      return (b.width * b.height) - (a.width * a.height);
+    })[0];
+}
+
+async function extractDisplayablePdfImage(entry, filePath, image) {
   await fsp.mkdir(paperPreviewRoot, { recursive: true });
-  const prefixBase = `${entry.id}-page`;
+  const prefixBase = `${entry.id}-image`;
   const prefix = path.join(paperPreviewRoot, prefixBase);
   await cleanupPreviewTemps(prefixBase);
 
-  const lastPage = Math.min(Math.max(pageCount || 4, 1), 4);
-  await runTool("pdftoppm", ["-jpeg", "-r", "95", "-f", "1", "-l", String(lastPage), filePath, prefix], {
+  await runTool("pdfimages", ["-j", "-f", String(image.page), "-l", String(image.page), filePath, prefix], {
     timeout: 20000,
     maxBuffer: 2 * 1024 * 1024,
   });
@@ -287,7 +326,50 @@ async function createPdfPreview(entry, filePath, pageCount) {
   return {
     previewRelativePath: path.relative(storageRoot, finalPath).split(path.sep).join("/"),
     previewUpdatedAt: new Date().toISOString(),
+    previewVersion: paperPreviewVersion,
   };
+}
+
+async function renderPdfPagePreview(entry, filePath, page) {
+  await fsp.mkdir(paperPreviewRoot, { recursive: true });
+  const prefixBase = `${entry.id}-page`;
+  const prefix = path.join(paperPreviewRoot, prefixBase);
+  await cleanupPreviewTemps(prefixBase);
+
+  await runTool("pdftoppm", ["-jpeg", "-r", "115", "-f", String(page), "-l", String(page), "-singlefile", filePath, prefix], {
+    timeout: 20000,
+    maxBuffer: 2 * 1024 * 1024,
+  });
+
+  const rendered = (await fsp.readdir(paperPreviewRoot).catch(() => []))
+    .filter((name) => name.startsWith(prefixBase) && /\.(jpe?g)$/i.test(name))
+    .map((name) => path.join(paperPreviewRoot, name));
+  if (!rendered.length) return null;
+
+  const finalPath = path.join(paperPreviewRoot, `${entry.id}.jpg`);
+  await fsp.copyFile(rendered[0], finalPath);
+  await cleanupPreviewTemps(prefixBase);
+
+  return {
+    previewRelativePath: path.relative(storageRoot, finalPath).split(path.sep).join("/"),
+    previewUpdatedAt: new Date().toISOString(),
+    previewVersion: paperPreviewVersion,
+  };
+}
+
+async function createPdfPreview(entry, filePath, pageCount) {
+  const notableImage = await findNotablePdfImage(filePath);
+  if (notableImage) {
+    const extracted = await extractDisplayablePdfImage(entry, filePath, notableImage);
+    if (extracted) return extracted;
+    const rendered = await renderPdfPagePreview(entry, filePath, notableImage.page);
+    if (rendered) return rendered;
+  }
+
+  const fallbackPage = Math.min(Math.max(pageCount || 1, 1), 4);
+  const fallback = await renderPdfPagePreview(entry, filePath, fallbackPage);
+  if (fallback) return fallback;
+  return null;
 }
 
 async function enrichPdfEntry(entry) {
@@ -323,7 +405,10 @@ async function enrichPdfEntry(entry) {
   const previewPath = next.previewRelativePath
     ? path.resolve(storageRoot, next.previewRelativePath)
     : "";
-  const hasPreview = previewPath && isInside(storageRoot, previewPath) && fs.existsSync(previewPath);
+  const hasPreview = previewPath
+    && isInside(storageRoot, previewPath)
+    && fs.existsSync(previewPath)
+    && next.previewVersion === paperPreviewVersion;
   if (!hasPreview) {
     analysis = analysis || await analyzePdf(filePath, next);
     const preview = await createPdfPreview(next, filePath, analysis.pages);

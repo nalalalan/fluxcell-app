@@ -378,12 +378,23 @@ function createFileCard(file, index) {
   const visual = el("div", "file-visual");
   if (kind === "paper") {
     visual.classList.add("paper-visual");
-    const img = document.createElement("img");
-    img.src = paperPreviewSrc(file);
-    img.alt = "";
-    img.loading = index < 4 ? "eager" : "lazy";
-    img.decoding = "async";
-    visual.append(img, el("span", "paper-badge", "paper"));
+    const previewSrc = paperPreviewSrc(file);
+    if (previewSrc) {
+      const img = document.createElement("img");
+      img.src = previewSrc;
+      img.alt = "";
+      img.loading = index < 4 ? "eager" : "lazy";
+      img.decoding = "async";
+      visual.append(img);
+    } else if (file.source !== "sync") {
+      const browserPreview = el("div", "browser-paper-preview");
+      browserPreview.dataset.paperPreviewId = file.id;
+      browserPreview.append(el("div", "paper-preview-empty", "paper"));
+      visual.append(browserPreview);
+    } else {
+      visual.append(el("div", "paper-preview-empty", "preview offline"));
+    }
+    visual.append(el("span", "paper-badge", "paper"));
   } else if (isImageFile(file) && (file.source !== "sync" || sync.status === "local")) {
     const img = document.createElement("img");
     img.alt = "";
@@ -469,7 +480,7 @@ function paperPreviewSrc(file) {
     const version = file.previewUpdatedAt ? `?v=${encodeURIComponent(file.previewUpdatedAt)}` : "";
     return `${sync.base}/api/files/${encodeURIComponent(file.id)}/preview${version}`;
   }
-  return "/assets/linkage-geometry.jpg";
+  return "";
 }
 
 function bind() {
@@ -536,6 +547,21 @@ async function hydrateBrowserPreviews() {
     const url = URL.createObjectURL(stored.blob);
     previewUrls.set(id, url);
     img.src = url;
+  }));
+
+  const paperPreviews = [...root.querySelectorAll("[data-paper-preview-id]")];
+  await Promise.all(paperPreviews.map(async (node) => {
+    const id = node.dataset.paperPreviewId;
+    const key = `paper:${id}`;
+    const stored = await getBrowserFile(id).catch(() => null);
+    if (!stored?.blob) return;
+    const url = previewUrls.get(key) || URL.createObjectURL(stored.blob);
+    previewUrls.set(key, url);
+    const frame = document.createElement("iframe");
+    frame.src = `${url}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
+    frame.title = "";
+    frame.loading = "lazy";
+    node.replaceChildren(frame);
   }));
 }
 
