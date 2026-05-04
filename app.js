@@ -13,8 +13,9 @@ const integratedSeedPackVersion = "2026-05-04-fluxcell-integrated-epm";
 const monolithicSeedPackVersion = "2026-05-04-fluxcell-monolithic-cell";
 const actuationSeedPackVersion = "2026-05-04-fluxcell-actuation-architecture";
 const fabricationSeedPackVersion = "2026-05-04-fluxcell-fabrication-plan";
-const seedPackVersion = "2026-05-04-fluxcell-printable-electromagnetics";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, seedPackVersion];
+const printableSeedPackVersion = "2026-05-04-fluxcell-printable-electromagnetics";
+const seedPackVersion = "2026-05-04-fluxcell-validation-model";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -296,63 +297,123 @@ const seedNotes = [
   },
   {
     id: "seed-printable-magnet-reality",
-    pack: seedPackVersion,
+    pack: printableSeedPackVersion,
     text: "Printed permanent magnets are likely weaker than inserted NdFeB. Use them last, not first.",
     createdAt: new Date("2026-05-04T21:26:00").toISOString(),
   },
   {
     id: "seed-printable-coil-choice",
-    pack: seedPackVersion,
+    pack: printableSeedPackVersion,
     text: "Coil choice: wound copper for force, printed conductor for form-factor research, liquid metal for compliant routing.",
     createdAt: new Date("2026-05-04T21:25:00").toISOString(),
   },
   {
     id: "seed-printable-soft-core",
-    pack: seedPackVersion,
+    pack: printableSeedPackVersion,
     text: "Soft magnetic printed core is a flux guide, not a substitute for a high-energy permanent magnet.",
     createdAt: new Date("2026-05-04T21:24:00").toISOString(),
   },
   {
     id: "seed-printable-coil-density",
-    pack: seedPackVersion,
+    pack: printableSeedPackVersion,
     text: "Coil density test: turns, resistance, pulse current, heat, and magnetic field at the working gap.",
     createdAt: new Date("2026-05-04T21:23:00").toISOString(),
   },
   {
     id: "seed-printable-assembly-path",
-    pack: seedPackVersion,
+    pack: printableSeedPackVersion,
     text: "Assembly path: pause print, place magnetic cartridge, overprint shell, then pulse-test before full cell cycling.",
     createdAt: new Date("2026-05-04T21:22:00").toISOString(),
   },
   {
     id: "seed-printable-material-screen",
-    pack: seedPackVersion,
+    pack: printableSeedPackVersion,
     text: "Material screen: PLA/PETG body, TPU hinges, iron-filled flux path, inserted steel keeper.",
     createdAt: new Date("2026-05-04T21:21:00").toISOString(),
   },
   {
     id: "seed-printable-thermal-budget",
-    pack: seedPackVersion,
+    pack: printableSeedPackVersion,
     text: "Thermal budget: pulse energy must stay below hinge softening and magnet demagnetization limits.",
     createdAt: new Date("2026-05-04T21:20:00").toISOString(),
   },
   {
     id: "seed-printable-evidence",
-    pack: seedPackVersion,
+    pack: printableSeedPackVersion,
     text: "Evidence tile to make: photo of one printed cell, overlay of flux path, displacement trace, and pulse trace.",
     createdAt: new Date("2026-05-04T21:19:00").toISOString(),
   },
   {
     id: "seed-printable-claim-language",
-    pack: seedPackVersion,
+    pack: printableSeedPackVersion,
     text: "Claim language: monolithically packaged first; monolithically printed only when actuator materials are printed too.",
     createdAt: new Date("2026-05-04T21:18:00").toISOString(),
   },
   {
     id: "seed-printable-next-paper",
-    pack: seedPackVersion,
+    pack: printableSeedPackVersion,
     text: "Paper angle: Sarrus-cell architecture enables compact EPM actuation to become structural, local, and printable.",
     createdAt: new Date("2026-05-04T21:17:00").toISOString(),
+  },
+  {
+    id: "seed-model-force-chain",
+    pack: seedPackVersion,
+    text: "Model the chain: pulse current to flux, flux to pull force, pull force to link torque, torque to lateral strain.",
+    createdAt: new Date("2026-05-04T21:46:00").toISOString(),
+  },
+  {
+    id: "seed-model-pass-fail",
+    pack: seedPackVersion,
+    text: "Pass/fail: EPM-on produces measurable lateral expansion above passive elastic drift.",
+    createdAt: new Date("2026-05-04T21:45:00").toISOString(),
+  },
+  {
+    id: "seed-model-null-test",
+    pack: seedPackVersion,
+    text: "Null test: same printed cell, dummy magnet mass, same pulse wiring, no magnetic switching.",
+    createdAt: new Date("2026-05-04T21:44:00").toISOString(),
+  },
+  {
+    id: "seed-model-energy",
+    pack: seedPackVersion,
+    text: "Energy metric: lateral work per pulse and zero-power hold time, not just peak magnetic force.",
+    createdAt: new Date("2026-05-04T21:43:00").toISOString(),
+  },
+  {
+    id: "seed-model-map",
+    pack: seedPackVersion,
+    text: "Parameter map: air gap, keeper area, link angle, preload, pulse width, and coil temperature.",
+    createdAt: new Date("2026-05-04T21:42:00").toISOString(),
+  },
+  {
+    id: "seed-model-publishable",
+    pack: seedPackVersion,
+    text: "Publishable result: one monolithic cell shows addressable expansion with state memory and no fluid line.",
+    createdAt: new Date("2026-05-04T21:41:00").toISOString(),
+  },
+  {
+    id: "seed-model-comparison",
+    pack: seedPackVersion,
+    text: "Comparison set: pneumatic cell, passive cell, external EPM cell, embedded EPM cell.",
+    createdAt: new Date("2026-05-04T21:40:00").toISOString(),
+  },
+  {
+    id: "seed-model-friction",
+    pack: seedPackVersion,
+    text: "Watch friction: an EPM latch can look strong while the linkage is just binding.",
+    createdAt: new Date("2026-05-04T21:39:00").toISOString(),
+  },
+  {
+    id: "seed-model-reversal",
+    pack: seedPackVersion,
+    text: "Reversal matters: define whether the EPM actively expands, actively contracts, or only toggles a latch.",
+    createdAt: new Date("2026-05-04T21:38:00").toISOString(),
+  },
+  {
+    id: "seed-model-video",
+    pack: seedPackVersion,
+    text: "Video proof: side view with width ruler, synchronized current trace, and visible off-state hold.",
+    createdAt: new Date("2026-05-04T21:37:00").toISOString(),
   },
 ];
 
