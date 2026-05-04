@@ -15,8 +15,9 @@ const actuationSeedPackVersion = "2026-05-04-fluxcell-actuation-architecture";
 const fabricationSeedPackVersion = "2026-05-04-fluxcell-fabrication-plan";
 const printableSeedPackVersion = "2026-05-04-fluxcell-printable-electromagnetics";
 const validationSeedPackVersion = "2026-05-04-fluxcell-validation-model";
-const seedPackVersion = "2026-05-04-fluxcell-cell-integration";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, seedPackVersion];
+const cellIntegrationSeedPackVersion = "2026-05-04-fluxcell-cell-integration";
+const seedPackVersion = "2026-05-04-fluxcell-force-budget";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -418,63 +419,123 @@ const seedNotes = [
   },
   {
     id: "seed-integrate-node-push",
-    pack: seedPackVersion,
+    pack: cellIntegrationSeedPackVersion,
     text: "Actuate opposite Sarrus side nodes outward. Do not let the magnet just pull the cell diagonally.",
     createdAt: new Date("2026-05-04T22:12:00").toISOString(),
   },
   {
     id: "seed-integrate-structural-rib",
-    pack: seedPackVersion,
+    pack: cellIntegrationSeedPackVersion,
     text: "Make the EPM package a structural rib: magnet, keeper, coil window, and load path in one printed feature.",
     createdAt: new Date("2026-05-04T22:11:00").toISOString(),
   },
   {
     id: "seed-integrate-gap-rocker",
-    pack: seedPackVersion,
+    pack: cellIntegrationSeedPackVersion,
     text: "Keep the magnetic gap small. Use a rocker or wedge to turn short gap closure into wider lateral stroke.",
     createdAt: new Date("2026-05-04T22:10:00").toISOString(),
   },
   {
     id: "seed-integrate-preload",
-    pack: seedPackVersion,
+    pack: cellIntegrationSeedPackVersion,
     text: "Use elastic preload so the EPM crosses a snap threshold instead of supplying the whole stroke continuously.",
     createdAt: new Date("2026-05-04T22:09:00").toISOString(),
   },
   {
     id: "seed-integrate-same-footprint",
-    pack: seedPackVersion,
+    pack: cellIntegrationSeedPackVersion,
     text: "Success metric: same Sarrus cell footprint, added embedded actuation, measurable lateral expansion.",
     createdAt: new Date("2026-05-04T22:08:00").toISOString(),
   },
   {
     id: "seed-integrate-one-pulse",
-    pack: seedPackVersion,
+    pack: cellIntegrationSeedPackVersion,
     text: "Electronics proof: one bipolar pulse toggles state; zero current holds expanded or contracted geometry.",
     createdAt: new Date("2026-05-04T22:07:00").toISOString(),
   },
   {
     id: "seed-integrate-datum-triad",
-    pack: seedPackVersion,
+    pack: cellIntegrationSeedPackVersion,
     text: "CAD datum triad: pivot spacing, keeper overlap, and coil window. These three dimensions control the build.",
     createdAt: new Date("2026-05-04T22:06:00").toISOString(),
   },
   {
     id: "seed-integrate-embedded-not-external",
-    pack: seedPackVersion,
+    pack: cellIntegrationSeedPackVersion,
     text: "Embedded means the actuator shares the cell body. External magnet near the cell is only a fixture test.",
     createdAt: new Date("2026-05-04T22:05:00").toISOString(),
   },
   {
     id: "seed-integrate-material-ladder",
-    pack: seedPackVersion,
+    pack: cellIntegrationSeedPackVersion,
     text: "Material ladder: inserted magnets first, printed flux guide second, printed coil third, printed hard magnet last.",
     createdAt: new Date("2026-05-04T22:04:00").toISOString(),
   },
   {
     id: "seed-integrate-next-build",
-    pack: seedPackVersion,
+    pack: cellIntegrationSeedPackVersion,
     text: "Next build: transparent-width markers, swappable EPM cassette, hard gap stops, and 100-cycle lateral trace.",
     createdAt: new Date("2026-05-04T22:03:00").toISOString(),
+  },
+  {
+    id: "seed-force-budget-first",
+    pack: seedPackVersion,
+    text: "Force budget first: required lateral cell force, linkage mechanical advantage, magnetic pull, and losses.",
+    createdAt: new Date("2026-05-04T22:32:00").toISOString(),
+  },
+  {
+    id: "seed-force-gap-table",
+    pack: seedPackVersion,
+    text: "Make one table: gap, overlap area, pulse energy, pull force, lateral width change, hold state.",
+    createdAt: new Date("2026-05-04T22:31:00").toISOString(),
+  },
+  {
+    id: "seed-force-minimum-demo",
+    pack: seedPackVersion,
+    text: "Minimum demo: one printed Sarrus cell widens under embedded EPM switching, then holds with zero current.",
+    createdAt: new Date("2026-05-04T22:30:00").toISOString(),
+  },
+  {
+    id: "seed-force-short-stroke",
+    pack: seedPackVersion,
+    text: "Design around short magnetic stroke. Convert sub-millimeter gap closure into millimeter-scale width change.",
+    createdAt: new Date("2026-05-04T22:29:00").toISOString(),
+  },
+  {
+    id: "seed-force-bistable-cell",
+    pack: seedPackVersion,
+    text: "If direct pull is weak, make the Sarrus cell bistable and let the EPM trigger the snap.",
+    createdAt: new Date("2026-05-04T22:28:00").toISOString(),
+  },
+  {
+    id: "seed-force-heat-limit",
+    pack: seedPackVersion,
+    text: "Pulse limit is thermal: coil heat, polymer softening, magnet demag, and hinge creep.",
+    createdAt: new Date("2026-05-04T22:27:00").toISOString(),
+  },
+  {
+    id: "seed-force-driver",
+    pack: seedPackVersion,
+    text: "Driver target: bipolar H-bridge pulse, current sense, temperature log, and no steady-state coil power.",
+    createdAt: new Date("2026-05-04T22:26:00").toISOString(),
+  },
+  {
+    id: "seed-force-fixture",
+    pack: seedPackVersion,
+    text: "Fixture target: fixed cell base, dial width marker, load cell against lateral expansion, top-view camera.",
+    createdAt: new Date("2026-05-04T22:25:00").toISOString(),
+  },
+  {
+    id: "seed-force-cad-export",
+    pack: seedPackVersion,
+    text: "CAD export should expose magnet pockets, keeper faces, coil path, pivots, and lateral measurement tabs.",
+    createdAt: new Date("2026-05-04T22:24:00").toISOString(),
+  },
+  {
+    id: "seed-force-paper-claim",
+    pack: seedPackVersion,
+    text: "Paper claim: a printed linkage cell can make EPM switching act as local structural actuation.",
+    createdAt: new Date("2026-05-04T22:23:00").toISOString(),
   },
 ];
 
