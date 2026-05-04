@@ -38,8 +38,9 @@ const mechanicalMemoryWallSeedPackVersion = "2026-05-04-fluxcell-mechanical-memo
 const oneCellProofWallSeedPackVersion = "2026-05-04-fluxcell-one-cell-proof-wall";
 const printableMaterialsWallSeedPackVersion = "2026-05-04-fluxcell-printable-materials-wall";
 const benchProofWallSeedPackVersion = "2026-05-04-fluxcell-bench-proof-wall";
-const seedPackVersion = "2026-05-04-fluxcell-monolithic-integration-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, seedPackVersion];
+const monolithicIntegrationWallSeedPackVersion = "2026-05-04-fluxcell-monolithic-integration-wall";
+const seedPackVersion = "2026-05-04-fluxcell-actuator-candidates-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1557,39 +1558,75 @@ const seedNotes = [
   },
   {
     id: "seed-monolithic-integration-stack",
-    pack: seedPackVersion,
+    pack: monolithicIntegrationWallSeedPackVersion,
     text: "Design the cross-section first.",
     createdAt: new Date("2026-05-04T23:36:00").toISOString(),
   },
   {
     id: "seed-monolithic-integration-coil",
-    pack: seedPackVersion,
+    pack: monolithicIntegrationWallSeedPackVersion,
     text: "Give the coil a real window.",
     createdAt: new Date("2026-05-04T23:35:00").toISOString(),
   },
   {
     id: "seed-monolithic-integration-gap",
-    pack: seedPackVersion,
+    pack: monolithicIntegrationWallSeedPackVersion,
     text: "A printed datum is a force multiplier.",
     createdAt: new Date("2026-05-04T23:34:00").toISOString(),
   },
   {
     id: "seed-monolithic-integration-wires",
-    pack: seedPackVersion,
+    pack: monolithicIntegrationWallSeedPackVersion,
     text: "Keep wires out of hinge strain.",
     createdAt: new Date("2026-05-04T23:33:00").toISOString(),
   },
   {
     id: "seed-monolithic-integration-evidence",
-    pack: seedPackVersion,
+    pack: monolithicIntegrationWallSeedPackVersion,
     text: "One photo beside one trace.",
     createdAt: new Date("2026-05-04T23:32:00").toISOString(),
   },
   {
     id: "seed-monolithic-integration-proud",
-    pack: seedPackVersion,
+    pack: monolithicIntegrationWallSeedPackVersion,
     text: "Make the object look inevitable.",
     createdAt: new Date("2026-05-04T23:31:00").toISOString(),
+  },
+  {
+    id: "seed-actuator-candidate-rocker",
+    pack: seedPackVersion,
+    text: "Pick one architecture before polishing CAD.",
+    createdAt: new Date("2026-05-04T23:52:00").toISOString(),
+  },
+  {
+    id: "seed-actuator-candidate-trigger",
+    pack: seedPackVersion,
+    text: "Use the EPM as a trigger, not a motor.",
+    createdAt: new Date("2026-05-04T23:51:00").toISOString(),
+  },
+  {
+    id: "seed-actuator-candidate-pair",
+    pack: seedPackVersion,
+    text: "Symmetric pull prevents twist.",
+    createdAt: new Date("2026-05-04T23:50:00").toISOString(),
+  },
+  {
+    id: "seed-actuator-candidate-reset",
+    pack: seedPackVersion,
+    text: "Reset is part of the actuator.",
+    createdAt: new Date("2026-05-04T23:49:00").toISOString(),
+  },
+  {
+    id: "seed-actuator-candidate-cartridge",
+    pack: seedPackVersion,
+    text: "The first cartridge should be gorgeous and honest.",
+    createdAt: new Date("2026-05-04T23:48:00").toISOString(),
+  },
+  {
+    id: "seed-actuator-candidate-proof",
+    pack: seedPackVersion,
+    text: "One object, one trace, one claim.",
+    createdAt: new Date("2026-05-04T23:47:00").toISOString(),
   },
 ];
 
