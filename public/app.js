@@ -36,8 +36,9 @@ const dopamineObjectWallSeedPackVersion = "2026-05-04-fluxcell-dopamine-object-w
 const northStarJewelWallSeedPackVersion = "2026-05-04-fluxcell-north-star-jewel-wall";
 const mechanicalMemoryWallSeedPackVersion = "2026-05-04-fluxcell-mechanical-memory-wall";
 const oneCellProofWallSeedPackVersion = "2026-05-04-fluxcell-one-cell-proof-wall";
-const seedPackVersion = "2026-05-04-fluxcell-printable-materials-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, seedPackVersion];
+const printableMaterialsWallSeedPackVersion = "2026-05-04-fluxcell-printable-materials-wall";
+const seedPackVersion = "2026-05-04-fluxcell-bench-proof-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1483,45 +1484,75 @@ const seedNotes = [
   },
   {
     id: "seed-printable-materials-coupon",
-    pack: seedPackVersion,
+    pack: printableMaterialsWallSeedPackVersion,
     text: "A printed magnet is a coupon test before it is an actuator.",
     createdAt: new Date("2026-05-05T17:10:00").toISOString(),
   },
   {
     id: "seed-printable-materials-yoke",
-    pack: seedPackVersion,
+    pack: printableMaterialsWallSeedPackVersion,
     text: "Print the yoke path as carefully as the mechanism.",
     createdAt: new Date("2026-05-05T17:09:00").toISOString(),
   },
   {
     id: "seed-printable-materials-matrix",
-    pack: seedPackVersion,
+    pack: printableMaterialsWallSeedPackVersion,
     text: "Hard magnet, soft yoke, conductor, insulator.",
     createdAt: new Date("2026-05-05T17:08:00").toISOString(),
   },
   {
     id: "seed-printable-materials-substitute",
-    pack: seedPackVersion,
+    pack: printableMaterialsWallSeedPackVersion,
     text: "The monolithic claim becomes real one printable substitute at a time.",
     createdAt: new Date("2026-05-05T17:07:00").toISOString(),
   },
   {
     id: "seed-printable-materials-heat",
-    pack: seedPackVersion,
+    pack: printableMaterialsWallSeedPackVersion,
     text: "Measure permeability and heat like geometry.",
     createdAt: new Date("2026-05-05T17:06:00").toISOString(),
   },
   {
     id: "seed-printable-materials-beauty",
-    pack: seedPackVersion,
+    pack: printableMaterialsWallSeedPackVersion,
     text: "Beautiful cell, brutal coupon tests.",
     createdAt: new Date("2026-05-05T17:05:00").toISOString(),
   },
   {
     id: "seed-printable-materials-insert",
-    pack: seedPackVersion,
+    pack: printableMaterialsWallSeedPackVersion,
     text: "The first proud object can still have one inserted core.",
     createdAt: new Date("2026-05-05T17:04:00").toISOString(),
+  },
+  {
+    id: "seed-bench-proof-trace",
+    pack: seedPackVersion,
+    text: "One trace: pulse, width, force.",
+    createdAt: new Date("2026-05-04T23:20:00").toISOString(),
+  },
+  {
+    id: "seed-bench-proof-control",
+    pack: seedPackVersion,
+    text: "Active, dummy, empty. Same cell.",
+    createdAt: new Date("2026-05-04T23:19:00").toISOString(),
+  },
+  {
+    id: "seed-bench-proof-gap",
+    pack: seedPackVersion,
+    text: "Gap shims before new geometry.",
+    createdAt: new Date("2026-05-04T23:18:00").toISOString(),
+  },
+  {
+    id: "seed-bench-proof-load",
+    pack: seedPackVersion,
+    text: "Move one cell under load.",
+    createdAt: new Date("2026-05-04T23:17:00").toISOString(),
+  },
+  {
+    id: "seed-bench-proof-claim",
+    pack: seedPackVersion,
+    text: "Make the first proof impossible to dismiss.",
+    createdAt: new Date("2026-05-04T23:16:00").toISOString(),
   },
 ];
 
