@@ -27,8 +27,9 @@ const northStarWallSeedPackVersion = "2026-05-04-fluxcell-north-star-wall";
 const galleryObjectSeedPackVersion = "2026-05-04-fluxcell-gallery-object";
 const proudCellObjectSeedPackVersion = "2026-05-04-fluxcell-proud-cell-object";
 const integratedProofSeedPackVersion = "2026-05-04-fluxcell-integrated-proof-object";
-const seedPackVersion = "2026-05-04-fluxcell-sarrus-actuation-proof";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, seedPackVersion];
+const sarrusActuationProofSeedPackVersion = "2026-05-04-fluxcell-sarrus-actuation-proof";
+const seedPackVersion = "2026-05-04-fluxcell-memory-figure-object";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1096,45 +1097,87 @@ const seedNotes = [
   },
   {
     id: "seed-sarrus-actuation-contribution",
-    pack: seedPackVersion,
+    pack: sarrusActuationProofSeedPackVersion,
     text: "Actuation claim: the EPM changes lateral width under load; holding alone is not enough.",
     createdAt: new Date("2026-05-05T08:10:00").toISOString(),
   },
   {
     id: "seed-sarrus-actuation-gap-stop",
-    pack: seedPackVersion,
+    pack: sarrusActuationProofSeedPackVersion,
     text: "The first cell needs hard stops that preserve a sub-millimeter keeper gap.",
     createdAt: new Date("2026-05-05T08:09:00").toISOString(),
   },
   {
     id: "seed-sarrus-actuation-work",
-    pack: seedPackVersion,
+    pack: sarrusActuationProofSeedPackVersion,
     text: "Measure EPM contribution as active-core minus dummy-core force-displacement work.",
     createdAt: new Date("2026-05-05T08:08:00").toISOString(),
   },
   {
     id: "seed-sarrus-actuation-bistability",
-    pack: seedPackVersion,
+    pack: sarrusActuationProofSeedPackVersion,
     text: "Use magnetic bistability only if it reduces pulse energy or improves holding.",
     createdAt: new Date("2026-05-05T08:07:00").toISOString(),
   },
   {
     id: "seed-sarrus-actuation-figure",
-    pack: seedPackVersion,
+    pack: sarrusActuationProofSeedPackVersion,
     text: "Make the paper figure before the prototype: cutaway, pulse trace, width trace, dummy baseline.",
     createdAt: new Date("2026-05-05T08:06:00").toISOString(),
   },
   {
     id: "seed-sarrus-actuation-wire-route",
-    pack: seedPackVersion,
+    pack: sarrusActuationProofSeedPackVersion,
     text: "Route wires through the lowest-strain path. If the wire path is ugly, the design is not done.",
     createdAt: new Date("2026-05-05T08:05:00").toISOString(),
   },
   {
     id: "seed-sarrus-actuation-monolithic",
-    pack: seedPackVersion,
+    pack: sarrusActuationProofSeedPackVersion,
     text: "Monolithic is a sequence: printed geometry, printed yoke, printed conductor, printed hard magnet.",
     createdAt: new Date("2026-05-05T08:04:00").toISOString(),
+  },
+  {
+    id: "seed-memory-figure-pulse",
+    pack: seedPackVersion,
+    text: "Make the EPM pulse cross a mechanical barrier; do not ask it to supply the whole stroke.",
+    createdAt: new Date("2026-05-05T09:10:00").toISOString(),
+  },
+  {
+    id: "seed-memory-figure-work",
+    pack: seedPackVersion,
+    text: "Show lateral work per pulse for active EPM, dummy core, and no core.",
+    createdAt: new Date("2026-05-05T09:09:00").toISOString(),
+  },
+  {
+    id: "seed-memory-figure-gap",
+    pack: seedPackVersion,
+    text: "Gap stops are part of the actuator. If the keeper gap drifts, the claim drifts.",
+    createdAt: new Date("2026-05-05T09:08:00").toISOString(),
+  },
+  {
+    id: "seed-memory-figure-layout",
+    pack: seedPackVersion,
+    text: "One first figure: cutaway, pulse trace, width trace, force-work trace, dummy baseline.",
+    createdAt: new Date("2026-05-05T09:07:00").toISOString(),
+  },
+  {
+    id: "seed-memory-figure-memory",
+    pack: seedPackVersion,
+    text: "Use bistability only when it gives lower energy, cleaner holding, or a clearer state change.",
+    createdAt: new Date("2026-05-05T09:06:00").toISOString(),
+  },
+  {
+    id: "seed-memory-figure-object",
+    pack: seedPackVersion,
+    text: "Make the clean object the fixture: integrated marks, routed wires, removable actuator core.",
+    createdAt: new Date("2026-05-05T09:05:00").toISOString(),
+  },
+  {
+    id: "seed-memory-figure-monolithic",
+    pack: seedPackVersion,
+    text: "Monolithic route stays credible when every inserted part has a planned printed substitute.",
+    createdAt: new Date("2026-05-05T09:04:00").toISOString(),
   },
 ];
 
