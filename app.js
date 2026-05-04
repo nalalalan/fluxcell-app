@@ -11,8 +11,9 @@ const seedPackKey = "fluxcell.seed-pack.v1";
 const baseSeedPackVersion = "2026-05-04-fluxcell";
 const integratedSeedPackVersion = "2026-05-04-fluxcell-integrated-epm";
 const monolithicSeedPackVersion = "2026-05-04-fluxcell-monolithic-cell";
-const seedPackVersion = "2026-05-04-fluxcell-actuation-architecture";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, seedPackVersion];
+const actuationSeedPackVersion = "2026-05-04-fluxcell-actuation-architecture";
+const seedPackVersion = "2026-05-04-fluxcell-fabrication-plan";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -174,63 +175,123 @@ const seedNotes = [
   },
   {
     id: "seed-actuation-contribution",
-    pack: seedPackVersion,
+    pack: actuationSeedPackVersion,
     text: "Actuation contribution: the EPM changes cell state, not just clamps after motion.",
     createdAt: new Date("2026-05-04T20:46:00").toISOString(),
   },
   {
     id: "seed-actuation-rocker",
-    pack: seedPackVersion,
+    pack: actuationSeedPackVersion,
     text: "Mechanism sketch: EPM drives a short rocker that pushes opposite Sarrus pivots outward.",
     createdAt: new Date("2026-05-04T20:45:00").toISOString(),
   },
   {
     id: "seed-actuation-preload",
-    pack: seedPackVersion,
+    pack: actuationSeedPackVersion,
     text: "Use stored elastic energy for stroke. Use the EPM to switch or hold the state.",
     createdAt: new Date("2026-05-04T20:44:00").toISOString(),
   },
   {
     id: "seed-actuation-cartridge",
-    pack: seedPackVersion,
+    pack: actuationSeedPackVersion,
     text: "Design a cartridge-sized magnetic circuit that can be overprinted into the cell body.",
     createdAt: new Date("2026-05-04T20:43:00").toISOString(),
   },
   {
     id: "seed-actuation-wiring",
-    pack: seedPackVersion,
+    pack: actuationSeedPackVersion,
     text: "Route wires along a low-strain path. Keep coils out of the hinge strain zone.",
     createdAt: new Date("2026-05-04T20:42:00").toISOString(),
   },
   {
     id: "seed-actuation-thermal",
-    pack: seedPackVersion,
+    pack: actuationSeedPackVersion,
     text: "Thermal limit: EPM pulses cannot soften hinges or change the air gap.",
     createdAt: new Date("2026-05-04T20:41:00").toISOString(),
   },
   {
     id: "seed-actuation-data",
-    pack: seedPackVersion,
+    pack: actuationSeedPackVersion,
     text: "Best first data: lateral displacement per pulse, blocked force at fixed width, and hold force at zero power.",
     createdAt: new Date("2026-05-04T20:40:00").toISOString(),
   },
   {
     id: "seed-actuation-failure",
-    pack: seedPackVersion,
+    pack: actuationSeedPackVersion,
     text: "Failure mode: magnetic attraction closes the gap but produces no useful Sarrus expansion.",
     createdAt: new Date("2026-05-04T20:39:00").toISOString(),
   },
   {
     id: "seed-actuation-array",
-    pack: seedPackVersion,
+    pack: actuationSeedPackVersion,
     text: "Array future: local state memory, shared power bus, no pneumatic manifold.",
     createdAt: new Date("2026-05-04T20:38:00").toISOString(),
   },
   {
     id: "seed-actuation-win",
-    pack: seedPackVersion,
+    pack: actuationSeedPackVersion,
     text: "Win condition: one printed cell cycles expand, hold, release, reset with wires only.",
     createdAt: new Date("2026-05-04T20:37:00").toISOString(),
+  },
+  {
+    id: "seed-fab-split",
+    pack: seedPackVersion,
+    text: "Fabrication split: modular insert for the first reliable build, monolithic package for the end result.",
+    createdAt: new Date("2026-05-04T21:06:00").toISOString(),
+  },
+  {
+    id: "seed-fab-dummy-print",
+    pack: seedPackVersion,
+    text: "First print: pocketed Sarrus cell with dummy magnet blocks; measure hinge strain and air-gap drift.",
+    createdAt: new Date("2026-05-04T21:05:00").toISOString(),
+  },
+  {
+    id: "seed-fab-gap-stop",
+    pack: seedPackVersion,
+    text: "Gap stops: printed hard stops set minimum air gap so magnetic pull does not collapse the linkage.",
+    createdAt: new Date("2026-05-04T21:04:00").toISOString(),
+  },
+  {
+    id: "seed-fab-flux-path",
+    pack: seedPackVersion,
+    text: "Flux path test: yoke, NdFeB, AlNiCo, and coil outside the cell before embedding anything.",
+    createdAt: new Date("2026-05-04T21:03:00").toISOString(),
+  },
+  {
+    id: "seed-fab-overprint-risk",
+    pack: seedPackVersion,
+    text: "Overprint risk: print heat and tolerances can demagnetize, shift, or short the magnetic cartridge.",
+    createdAt: new Date("2026-05-04T21:02:00").toISOString(),
+  },
+  {
+    id: "seed-fab-symmetry",
+    pack: seedPackVersion,
+    text: "Cell interface: push symmetric pivot pairs so the EPM adds lateral strain without twisting the cell.",
+    createdAt: new Date("2026-05-04T21:01:00").toISOString(),
+  },
+  {
+    id: "seed-fab-claim",
+    pack: seedPackVersion,
+    text: "Monolithic claim needs integrated body, integrated actuator, no pneumatic input, and repeatable lateral stroke.",
+    createdAt: new Date("2026-05-04T21:00:00").toISOString(),
+  },
+  {
+    id: "seed-fab-cycle",
+    pack: seedPackVersion,
+    text: "Do not chase arrays until one cell reaches 100 cycles with stable force and no hinge damage.",
+    createdAt: new Date("2026-05-04T20:59:00").toISOString(),
+  },
+  {
+    id: "seed-fab-cutaway",
+    pack: seedPackVersion,
+    text: "Figure target: cutaway showing magnetic circuit, linkage, and lateral expansion in the same cell.",
+    createdAt: new Date("2026-05-04T20:58:00").toISOString(),
+  },
+  {
+    id: "seed-fab-cad-next",
+    pack: seedPackVersion,
+    text: "CAD next: single-cell chassis with swappable EPM slot, hard gap datums, and width measurement tabs.",
+    createdAt: new Date("2026-05-04T20:57:00").toISOString(),
   },
 ];
 
