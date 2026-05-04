@@ -21,8 +21,9 @@ const monolithicEndgameSeedPackVersion = "2026-05-04-fluxcell-monolithic-endgame
 const printingRoadmapSeedPackVersion = "2026-05-04-fluxcell-printing-roadmap";
 const cellEpmIntegrationSeedPackVersion = "2026-05-04-fluxcell-cell-epm-integration";
 const mechanismCouplingSeedPackVersion = "2026-05-04-fluxcell-mechanism-coupling";
-const seedPackVersion = "2026-05-04-fluxcell-prototype-protocol";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, seedPackVersion];
+const prototypeProtocolSeedPackVersion = "2026-05-04-fluxcell-prototype-protocol";
+const seedPackVersion = "2026-05-04-fluxcell-monolithic-actuation-route";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -784,63 +785,123 @@ const seedNotes = [
   },
   {
     id: "seed-protocol-open-close",
-    pack: seedPackVersion,
+    pack: prototypeProtocolSeedPackVersion,
     text: "Protocol: record open gap, closed gap, keeper overlap, and lateral displacement in the same frame.",
     createdAt: new Date("2026-05-05T02:12:00").toISOString(),
   },
   {
     id: "seed-protocol-dummy-core",
-    pack: seedPackVersion,
+    pack: prototypeProtocolSeedPackVersion,
     text: "Dummy-core control: replace the EPM with the same-mass nonmagnetic insert and repeat the actuation trace.",
     createdAt: new Date("2026-05-05T02:11:00").toISOString(),
   },
   {
     id: "seed-protocol-pulse-log",
-    pack: seedPackVersion,
+    pack: prototypeProtocolSeedPackVersion,
     text: "Pulse log: voltage, current, pulse width, polarity, coil temperature, and hold state for every trial.",
     createdAt: new Date("2026-05-05T02:10:00").toISOString(),
   },
   {
     id: "seed-protocol-thermal-limit",
-    pack: seedPackVersion,
+    pack: prototypeProtocolSeedPackVersion,
     text: "Thermal limit: strongest pulse that does not soften the printed cell or drift the gap.",
     createdAt: new Date("2026-05-05T02:09:00").toISOString(),
   },
   {
     id: "seed-protocol-zero-power-hold",
-    pack: seedPackVersion,
+    pack: prototypeProtocolSeedPackVersion,
     text: "Zero-power hold proof: show the cell holding after the driver is unplugged, not just after the pulse ends.",
     createdAt: new Date("2026-05-05T02:08:00").toISOString(),
   },
   {
     id: "seed-protocol-gap-shim",
-    pack: seedPackVersion,
+    pack: prototypeProtocolSeedPackVersion,
     text: "Gap shims first: test 0.25, 0.5, 1, and 2 mm keeper gaps before changing magnet material.",
     createdAt: new Date("2026-05-05T02:07:00").toISOString(),
   },
   {
     id: "seed-protocol-force-trace",
-    pack: seedPackVersion,
+    pack: prototypeProtocolSeedPackVersion,
     text: "Force trace: measure lateral force and displacement together so the EPM contribution is not just visual.",
     createdAt: new Date("2026-05-05T02:06:00").toISOString(),
   },
   {
     id: "seed-protocol-magnet-polish",
-    pack: seedPackVersion,
+    pack: prototypeProtocolSeedPackVersion,
     text: "Keeper surface prep matters: flatness and contact area may beat a stronger magnet at this scale.",
     createdAt: new Date("2026-05-05T02:05:00").toISOString(),
   },
   {
     id: "seed-protocol-print-ladder",
-    pack: seedPackVersion,
+    pack: prototypeProtocolSeedPackVersion,
     text: "Print ladder: assembled cartridge, pause-print insert, printed yoke, printed coil, printed hard magnet.",
     createdAt: new Date("2026-05-05T02:04:00").toISOString(),
   },
   {
     id: "seed-protocol-submit-figure",
-    pack: seedPackVersion,
+    pack: prototypeProtocolSeedPackVersion,
     text: "Submission figure: photos, pulse trace, displacement plot, and control trace.",
     createdAt: new Date("2026-05-05T02:03:00").toISOString(),
+  },
+  {
+    id: "seed-mono-route-cell-boundary",
+    pack: seedPackVersion,
+    text: "Cell proof: EPM switching must change lateral width while the actuator stays inside the cell boundary.",
+    createdAt: new Date("2026-05-05T03:12:00").toISOString(),
+  },
+  {
+    id: "seed-mono-route-stroke-amplifier",
+    pack: seedPackVersion,
+    text: "Use a short magnetic stroke: close a 0.5-1 mm gap, then let the Sarrus links amplify lateral expansion.",
+    createdAt: new Date("2026-05-05T03:11:00").toISOString(),
+  },
+  {
+    id: "seed-mono-route-dummy-cad",
+    pack: seedPackVersion,
+    text: "Make two CADs: active EPM cartridge and same-mass dummy core in the identical cell.",
+    createdAt: new Date("2026-05-05T03:10:00").toISOString(),
+  },
+  {
+    id: "seed-mono-route-print-gate",
+    pack: seedPackVersion,
+    text: "Monolithic gate: actuator geometry is printed with the cell; magnetic materials can start as inserts.",
+    createdAt: new Date("2026-05-05T03:09:00").toISOString(),
+  },
+  {
+    id: "seed-mono-route-four-traces",
+    pack: seedPackVersion,
+    text: "Force contribution test: passive preload, pulse on, pulse off, reversed pulse.",
+    createdAt: new Date("2026-05-05T03:08:00").toISOString(),
+  },
+  {
+    id: "seed-mono-route-wire-axis",
+    pack: seedPackVersion,
+    text: "Wire exits belong on a neutral strain path. If the hinge bends the wire, redesign the route.",
+    createdAt: new Date("2026-05-05T03:07:00").toISOString(),
+  },
+  {
+    id: "seed-mono-route-lateral-work",
+    pack: seedPackVersion,
+    text: "Measure work: integrate lateral force-displacement per pulse, not just magnetic pull force.",
+    createdAt: new Date("2026-05-05T03:06:00").toISOString(),
+  },
+  {
+    id: "seed-mono-route-failure-wall",
+    pack: seedPackVersion,
+    text: "Failure wall: heat drift, gap collapse, demag, keeper misalignment, hinge creep.",
+    createdAt: new Date("2026-05-05T03:05:00").toISOString(),
+  },
+  {
+    id: "seed-mono-route-reviewer-figure",
+    pack: seedPackVersion,
+    text: "Reviewer figure: cutaway photo, flux path, gap trace, current pulse, width trace.",
+    createdAt: new Date("2026-05-05T03:04:00").toISOString(),
+  },
+  {
+    id: "seed-mono-route-next-build",
+    pack: seedPackVersion,
+    text: "Next physical build: swappable EPM cartridge inside one laterally expanding Sarrus cell.",
+    createdAt: new Date("2026-05-05T03:03:00").toISOString(),
   },
 ];
 
