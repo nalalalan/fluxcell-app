@@ -8,7 +8,8 @@ const legacyOwnerKey = "forge.owner.delete.hash.v1";
 const dbName = "forge-file-vault";
 const fileStore = "files";
 const seedPackKey = "fluxcell.seed-pack.v1";
-const seedPackVersion = "2026-05-04-fluxcell";
+const baseSeedPackVersion = "2026-05-04-fluxcell";
+const seedPackVersion = "2026-05-04-fluxcell-integrated-epm";
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -20,33 +21,93 @@ const focus = {
 const seedNotes = [
   {
     id: "seed-flux",
+    pack: baseSeedPackVersion,
     text: "One-cell proof: an EPM latch moves one Sarrus cell before array work.",
     createdAt: new Date("2026-05-04T04:00:00").toISOString(),
   },
   {
     id: "seed-force-gap",
+    pack: baseSeedPackVersion,
     text: "Force-gap sweep: same fixture, same pulse, 0.5-5 mm gap, hold and release result.",
     createdAt: new Date("2026-05-04T03:55:00").toISOString(),
   },
   {
     id: "seed-driver-log",
+    pack: baseSeedPackVersion,
     text: "Driver log: voltage, current, pulse width, polarity, temperature rise.",
     createdAt: new Date("2026-05-04T03:50:00").toISOString(),
   },
   {
     id: "seed-geometry-lock",
+    pack: baseSeedPackVersion,
     text: "Geometry lock: keeper area, air gap, alignment pins, and core material stay explicit.",
     createdAt: new Date("2026-05-04T03:45:00").toISOString(),
   },
   {
     id: "seed-print-role",
+    pack: baseSeedPackVersion,
     text: "Printed part role: fixture, coil form, flux path, or magnet. Test one at a time.",
     createdAt: new Date("2026-05-04T03:40:00").toISOString(),
   },
   {
     id: "seed-benchmark",
+    pack: baseSeedPackVersion,
     text: "Benchmark: compare EPM force to the pneumatic curve at the same cell displacement.",
     createdAt: new Date("2026-05-04T03:35:00").toISOString(),
+  },
+  {
+    id: "seed-integrated-target",
+    pack: seedPackVersion,
+    text: "End target: a laterally expanding Sarrus cell with EPM actuation inside the printed architecture.",
+    createdAt: new Date("2026-05-04T20:10:00").toISOString(),
+  },
+  {
+    id: "seed-integrated-role",
+    pack: seedPackVersion,
+    text: "EPM role: latch, bias switch, or stroke assist. Sarrus geometry supplies the lateral expansion.",
+    createdAt: new Date("2026-05-04T20:09:00").toISOString(),
+  },
+  {
+    id: "seed-integrated-demo",
+    pack: seedPackVersion,
+    text: "First demo: one cell expands laterally, holds without continuous power, then resets cleanly.",
+    createdAt: new Date("2026-05-04T20:08:00").toISOString(),
+  },
+  {
+    id: "seed-integrated-loop",
+    pack: seedPackVersion,
+    text: "Mechanical loop: magnetic force changes one internal link state; linkage converts it to lateral strain.",
+    createdAt: new Date("2026-05-04T20:07:00").toISOString(),
+  },
+  {
+    id: "seed-integrated-print-path",
+    pack: seedPackVersion,
+    text: "Print path: inserted magnets and coils first; printed magnetic composite only after the force closes.",
+    createdAt: new Date("2026-05-04T20:06:00").toISOString(),
+  },
+  {
+    id: "seed-integrated-package",
+    pack: seedPackVersion,
+    text: "Packaging rule: no external actuator tower. Coil, keeper, flux return, and link interface stay cell-sized.",
+    createdAt: new Date("2026-05-04T20:05:00").toISOString(),
+  },
+  {
+    id: "seed-integrated-metrics",
+    pack: seedPackVersion,
+    text: "Measure lateral strain, blocked force, hold force, pulse energy, heat, and reset reliability.",
+    createdAt: new Date("2026-05-04T20:04:00").toISOString(),
+  },
+  {
+    id: "seed-integrated-risk",
+    pack: seedPackVersion,
+    text: "Risk: printed magnetic material is weak. Keep the design compatible with inserted NdFeB and steel.",
+    createdAt: new Date("2026-05-04T20:03:00").toISOString(),
+  },
+  {
+    id: "seed-integrated-figure",
+    pack: seedPackVersion,
+    text: "Figure idea: one cell cross-section showing coil, keeper, flux path, hinge line, and expansion direction.",
+    createdAt: new Date("2026-05-04T20:02:00").toISOString(),
   },
 ];
 
@@ -58,23 +119,30 @@ let toastTimer = 0;
 const previewUrls = new Map();
 
 function loadState() {
-  const applySeeds = localStorage.getItem(seedPackKey) !== seedPackVersion;
+  const seeds = pendingSeedNotes();
   for (const key of [stateKey, legacyStateKey]) {
     try {
       const parsed = JSON.parse(localStorage.getItem(key) || "null");
       if (parsed && Array.isArray(parsed.notes) && Array.isArray(parsed.files)) {
-        return finalizeLoadedState({ notes: parsed.notes, files: parsed.files }, applySeeds);
+        return finalizeLoadedState({ notes: parsed.notes, files: parsed.files }, seeds);
       }
     } catch (error) {
       console.warn(error);
     }
   }
-  return finalizeLoadedState({ notes: [], files: [] }, applySeeds);
+  return finalizeLoadedState({ notes: [], files: [] }, seeds);
 }
 
-function finalizeLoadedState(next, applySeeds) {
-  if (!applySeeds) return next;
-  const seeded = { ...next, notes: mergeSeedNotes(next.notes) };
+function pendingSeedNotes() {
+  const currentPack = localStorage.getItem(seedPackKey);
+  if (currentPack === seedPackVersion) return [];
+  if (currentPack === baseSeedPackVersion) return seedNotes.filter((note) => note.pack === seedPackVersion);
+  return seedNotes;
+}
+
+function finalizeLoadedState(next, seeds) {
+  if (!seeds.length) return next;
+  const seeded = { ...next, notes: mergeSeedNotes(next.notes, seeds) };
   try {
     localStorage.setItem(seedPackKey, seedPackVersion);
     localStorage.setItem(stateKey, JSON.stringify(seeded));
@@ -84,11 +152,11 @@ function finalizeLoadedState(next, applySeeds) {
   return seeded;
 }
 
-function mergeSeedNotes(notes) {
-  const seedById = new Map(seedNotes.map((note) => [note.id, note]));
+function mergeSeedNotes(notes, seeds) {
+  const seedById = new Map(seeds.map((note) => [note.id, note]));
   const updated = notes.map((note) => seedById.get(note.id) || note);
   const existing = new Set(updated.map((note) => note.id));
-  const missing = seedNotes.filter((note) => !existing.has(note.id));
+  const missing = seeds.filter((note) => !existing.has(note.id));
   return [...missing, ...updated];
 }
 
