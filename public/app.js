@@ -32,8 +32,9 @@ const memoryFigureObjectSeedPackVersion = "2026-05-04-fluxcell-memory-figure-obj
 const cartridgeProofWallSeedPackVersion = "2026-05-04-fluxcell-cartridge-proof-wall";
 const sarrusFirstExperimentWallSeedPackVersion = "2026-05-04-fluxcell-sarrus-first-experiment-wall";
 const proudObjectWallSeedPackVersion = "2026-05-04-fluxcell-proud-object-wall";
-const seedPackVersion = "2026-05-04-fluxcell-dopamine-object-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, seedPackVersion];
+const dopamineObjectWallSeedPackVersion = "2026-05-04-fluxcell-dopamine-object-wall";
+const seedPackVersion = "2026-05-04-fluxcell-north-star-jewel-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1311,45 +1312,87 @@ const seedNotes = [
   },
   {
     id: "seed-dopamine-object-argument",
-    pack: seedPackVersion,
+    pack: dopamineObjectWallSeedPackVersion,
     text: "The object is the argument.",
     createdAt: new Date("2026-05-05T13:10:00").toISOString(),
   },
   {
     id: "seed-dopamine-object-no-tubes",
-    pack: seedPackVersion,
+    pack: dopamineObjectWallSeedPackVersion,
     text: "No tubes. No tower. Wires only.",
     createdAt: new Date("2026-05-05T13:09:00").toISOString(),
   },
   {
     id: "seed-dopamine-object-alive",
-    pack: seedPackVersion,
+    pack: dopamineObjectWallSeedPackVersion,
     text: "Make the cell feel alive, then make the numbers undeniable.",
     createdAt: new Date("2026-05-05T13:08:00").toISOString(),
   },
   {
     id: "seed-dopamine-object-frame",
-    pack: seedPackVersion,
+    pack: dopamineObjectWallSeedPackVersion,
     text: "One frame: object, pulse, width, force.",
     createdAt: new Date("2026-05-05T13:07:00").toISOString(),
   },
   {
     id: "seed-dopamine-object-baseline",
-    pack: seedPackVersion,
+    pack: dopamineObjectWallSeedPackVersion,
     text: "Active, dummy, empty. Same cell. Same beauty.",
     createdAt: new Date("2026-05-05T13:06:00").toISOString(),
   },
   {
     id: "seed-dopamine-object-ladder",
-    pack: seedPackVersion,
+    pack: dopamineObjectWallSeedPackVersion,
     text: "Monolithic is earned: pocket, yoke, conductor, magnet.",
     createdAt: new Date("2026-05-05T13:05:00").toISOString(),
   },
   {
     id: "seed-dopamine-object-tomorrow",
-    pack: seedPackVersion,
+    pack: dopamineObjectWallSeedPackVersion,
     text: "Tomorrow: print one cell worth photographing.",
     createdAt: new Date("2026-05-05T13:04:00").toISOString(),
+  },
+  {
+    id: "seed-jewel-north-star",
+    pack: seedPackVersion,
+    text: "Build the cell that makes pneumatic tubing feel old.",
+    createdAt: new Date("2026-05-05T14:10:00").toISOString(),
+  },
+  {
+    id: "seed-jewel-hidden-actuator",
+    pack: seedPackVersion,
+    text: "The actuator disappears into the architecture.",
+    createdAt: new Date("2026-05-05T14:09:00").toISOString(),
+  },
+  {
+    id: "seed-jewel-first-pulse",
+    pack: seedPackVersion,
+    text: "First pulse: move, hold, breathe.",
+    createdAt: new Date("2026-05-05T14:08:00").toISOString(),
+  },
+  {
+    id: "seed-jewel-touch-sense",
+    pack: seedPackVersion,
+    text: "Later, the cell knows its own state.",
+    createdAt: new Date("2026-05-05T14:07:00").toISOString(),
+  },
+  {
+    id: "seed-jewel-print-ritual",
+    pack: seedPackVersion,
+    text: "Insert now. Overprint next. Print everything last.",
+    createdAt: new Date("2026-05-05T14:06:00").toISOString(),
+  },
+  {
+    id: "seed-jewel-cover",
+    pack: seedPackVersion,
+    text: "Make the cover image before the cover letter.",
+    createdAt: new Date("2026-05-05T14:05:00").toISOString(),
+  },
+  {
+    id: "seed-jewel-protect",
+    pack: seedPackVersion,
+    text: "Make the prototype feel precious enough to protect.",
+    createdAt: new Date("2026-05-05T14:04:00").toISOString(),
   },
 ];
 
