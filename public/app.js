@@ -17,8 +17,9 @@ const printableSeedPackVersion = "2026-05-04-fluxcell-printable-electromagnetics
 const validationSeedPackVersion = "2026-05-04-fluxcell-validation-model";
 const cellIntegrationSeedPackVersion = "2026-05-04-fluxcell-cell-integration";
 const forceBudgetSeedPackVersion = "2026-05-04-fluxcell-force-budget";
-const seedPackVersion = "2026-05-04-fluxcell-monolithic-endgame";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, seedPackVersion];
+const monolithicEndgameSeedPackVersion = "2026-05-04-fluxcell-monolithic-endgame";
+const seedPackVersion = "2026-05-04-fluxcell-printing-roadmap";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -540,63 +541,123 @@ const seedNotes = [
   },
   {
     id: "seed-endgame-printed-domain",
-    pack: seedPackVersion,
+    pack: monolithicEndgameSeedPackVersion,
     text: "Endgame material stack: printed hard-magnetic domains provide bias; EPM pulse changes the useful flux path.",
     createdAt: new Date("2026-05-04T22:52:00").toISOString(),
   },
   {
     id: "seed-endgame-two-claims",
-    pack: seedPackVersion,
+    pack: monolithicEndgameSeedPackVersion,
     text: "Separate two claims: monolithically packaged actuator now, monolithically printed magnetic actuator later.",
     createdAt: new Date("2026-05-04T22:51:00").toISOString(),
   },
   {
     id: "seed-endgame-printed-yoke",
-    pack: seedPackVersion,
+    pack: monolithicEndgameSeedPackVersion,
     text: "Try a printed soft-magnetic yoke before a printed permanent magnet. The yoke is the easier printable win.",
     createdAt: new Date("2026-05-04T22:50:00").toISOString(),
   },
   {
     id: "seed-endgame-bistable-sarrus",
-    pack: seedPackVersion,
+    pack: monolithicEndgameSeedPackVersion,
     text: "A bistable Sarrus cell makes the EPM a switch, not a muscle. That may be the cleanest route.",
     createdAt: new Date("2026-05-04T22:49:00").toISOString(),
   },
   {
     id: "seed-endgame-domain-map",
-    pack: seedPackVersion,
+    pack: monolithicEndgameSeedPackVersion,
     text: "Map magnetic domains onto mechanical domains: hinge zone, rigid rib, keeper face, flux return.",
     createdAt: new Date("2026-05-04T22:48:00").toISOString(),
   },
   {
     id: "seed-endgame-printability-test",
-    pack: seedPackVersion,
+    pack: monolithicEndgameSeedPackVersion,
     text: "Printability test: same cell geometry with inert filler, soft magnetic filler, then magnetic + coil.",
     createdAt: new Date("2026-05-04T22:47:00").toISOString(),
   },
   {
     id: "seed-endgame-no-hidden-actuator",
-    pack: seedPackVersion,
+    pack: monolithicEndgameSeedPackVersion,
     text: "Do not hide a big actuator outside the frame. The actuation evidence has to live inside the cell boundary.",
     createdAt: new Date("2026-05-04T22:46:00").toISOString(),
   },
   {
     id: "seed-endgame-reviewer-proof",
-    pack: seedPackVersion,
+    pack: monolithicEndgameSeedPackVersion,
     text: "Reviewer-proof test: remove the EPM cartridge and the same cell should lose the switched lateral response.",
     createdAt: new Date("2026-05-04T22:45:00").toISOString(),
   },
   {
     id: "seed-endgame-cross-section",
-    pack: seedPackVersion,
+    pack: monolithicEndgameSeedPackVersion,
     text: "Best figure: one cutaway showing Sarrus linkage, magnetic circuit, coil, and lateral expansion arrow.",
     createdAt: new Date("2026-05-04T22:44:00").toISOString(),
   },
   {
     id: "seed-endgame-next-cad",
-    pack: seedPackVersion,
+    pack: monolithicEndgameSeedPackVersion,
     text: "Next CAD: one-piece cell shell with replaceable actuator core, then freeze geometry for force testing.",
     createdAt: new Date("2026-05-04T22:43:00").toISOString(),
+  },
+  {
+    id: "seed-printroad-five-materials",
+    pack: seedPackVersion,
+    text: "Printing roadmap: dielectric body, conductive coil, soft-magnetic yoke, hard magnet, compliant hinge.",
+    createdAt: new Date("2026-05-04T23:12:00").toISOString(),
+  },
+  {
+    id: "seed-printroad-coupon-first",
+    pack: seedPackVersion,
+    text: "Do not start with the whole cell. Print coupons for coil resistance, yoke permeability, and hinge fatigue.",
+    createdAt: new Date("2026-05-04T23:11:00").toISOString(),
+  },
+  {
+    id: "seed-printroad-soft-yoke-coupon",
+    pack: seedPackVersion,
+    text: "Soft-yoke coupon: same coil and magnet, printed yoke versus steel yoke, force at fixed gap.",
+    createdAt: new Date("2026-05-04T23:10:00").toISOString(),
+  },
+  {
+    id: "seed-printroad-conductor-choice",
+    pack: seedPackVersion,
+    text: "Conductor choice is a phase gate: wound copper for proof, printed ink for monolithic form, liquid metal for flex.",
+    createdAt: new Date("2026-05-04T23:09:00").toISOString(),
+  },
+  {
+    id: "seed-printroad-magnetization-step",
+    pack: seedPackVersion,
+    text: "Printed hard magnets still need magnetization. Treat magnetization as a manufacturing step, not a detail.",
+    createdAt: new Date("2026-05-04T23:08:00").toISOString(),
+  },
+  {
+    id: "seed-printroad-pause-print",
+    pack: seedPackVersion,
+    text: "Near-term monolithic package: pause print, insert magnet/coil/keeper, overprint the Sarrus shell.",
+    createdAt: new Date("2026-05-04T23:07:00").toISOString(),
+  },
+  {
+    id: "seed-printroad-one-axis",
+    pack: seedPackVersion,
+    text: "Only solve one axis first: lateral expansion. Ignore twisting, crawling, and arrays until one cell closes.",
+    createdAt: new Date("2026-05-04T23:06:00").toISOString(),
+  },
+  {
+    id: "seed-printroad-slicer-constraints",
+    pack: seedPackVersion,
+    text: "Slicer constraints matter: no trapped unsupported coil channels, no yoke overhangs, no magnet pocket drift.",
+    createdAt: new Date("2026-05-04T23:05:00").toISOString(),
+  },
+  {
+    id: "seed-printroad-material-swap",
+    pack: seedPackVersion,
+    text: "Every test cell should allow material swap: PLA/PETG body, TPU hinge, steel/printed yoke, wound/printed coil.",
+    createdAt: new Date("2026-05-04T23:04:00").toISOString(),
+  },
+  {
+    id: "seed-printroad-final-proof",
+    pack: seedPackVersion,
+    text: "Final proof: printed cell, integrated EPM stack, zero-power hold, lateral trace, and no pneumatic port.",
+    createdAt: new Date("2026-05-04T23:03:00").toISOString(),
   },
 ];
 
