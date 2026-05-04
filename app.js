@@ -18,8 +18,9 @@ const validationSeedPackVersion = "2026-05-04-fluxcell-validation-model";
 const cellIntegrationSeedPackVersion = "2026-05-04-fluxcell-cell-integration";
 const forceBudgetSeedPackVersion = "2026-05-04-fluxcell-force-budget";
 const monolithicEndgameSeedPackVersion = "2026-05-04-fluxcell-monolithic-endgame";
-const seedPackVersion = "2026-05-04-fluxcell-printing-roadmap";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, seedPackVersion];
+const printingRoadmapSeedPackVersion = "2026-05-04-fluxcell-printing-roadmap";
+const seedPackVersion = "2026-05-04-fluxcell-cell-epm-integration";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -601,63 +602,123 @@ const seedNotes = [
   },
   {
     id: "seed-printroad-five-materials",
-    pack: seedPackVersion,
+    pack: printingRoadmapSeedPackVersion,
     text: "Printing roadmap: dielectric body, conductive coil, soft-magnetic yoke, hard magnet, compliant hinge.",
     createdAt: new Date("2026-05-04T23:12:00").toISOString(),
   },
   {
     id: "seed-printroad-coupon-first",
-    pack: seedPackVersion,
+    pack: printingRoadmapSeedPackVersion,
     text: "Do not start with the whole cell. Print coupons for coil resistance, yoke permeability, and hinge fatigue.",
     createdAt: new Date("2026-05-04T23:11:00").toISOString(),
   },
   {
     id: "seed-printroad-soft-yoke-coupon",
-    pack: seedPackVersion,
+    pack: printingRoadmapSeedPackVersion,
     text: "Soft-yoke coupon: same coil and magnet, printed yoke versus steel yoke, force at fixed gap.",
     createdAt: new Date("2026-05-04T23:10:00").toISOString(),
   },
   {
     id: "seed-printroad-conductor-choice",
-    pack: seedPackVersion,
+    pack: printingRoadmapSeedPackVersion,
     text: "Conductor choice is a phase gate: wound copper for proof, printed ink for monolithic form, liquid metal for flex.",
     createdAt: new Date("2026-05-04T23:09:00").toISOString(),
   },
   {
     id: "seed-printroad-magnetization-step",
-    pack: seedPackVersion,
+    pack: printingRoadmapSeedPackVersion,
     text: "Printed hard magnets still need magnetization. Treat magnetization as a manufacturing step, not a detail.",
     createdAt: new Date("2026-05-04T23:08:00").toISOString(),
   },
   {
     id: "seed-printroad-pause-print",
-    pack: seedPackVersion,
+    pack: printingRoadmapSeedPackVersion,
     text: "Near-term monolithic package: pause print, insert magnet/coil/keeper, overprint the Sarrus shell.",
     createdAt: new Date("2026-05-04T23:07:00").toISOString(),
   },
   {
     id: "seed-printroad-one-axis",
-    pack: seedPackVersion,
+    pack: printingRoadmapSeedPackVersion,
     text: "Only solve one axis first: lateral expansion. Ignore twisting, crawling, and arrays until one cell closes.",
     createdAt: new Date("2026-05-04T23:06:00").toISOString(),
   },
   {
     id: "seed-printroad-slicer-constraints",
-    pack: seedPackVersion,
+    pack: printingRoadmapSeedPackVersion,
     text: "Slicer constraints matter: no trapped unsupported coil channels, no yoke overhangs, no magnet pocket drift.",
     createdAt: new Date("2026-05-04T23:05:00").toISOString(),
   },
   {
     id: "seed-printroad-material-swap",
-    pack: seedPackVersion,
+    pack: printingRoadmapSeedPackVersion,
     text: "Every test cell should allow material swap: PLA/PETG body, TPU hinge, steel/printed yoke, wound/printed coil.",
     createdAt: new Date("2026-05-04T23:04:00").toISOString(),
   },
   {
     id: "seed-printroad-final-proof",
-    pack: seedPackVersion,
+    pack: printingRoadmapSeedPackVersion,
     text: "Final proof: printed cell, integrated EPM stack, zero-power hold, lateral trace, and no pneumatic port.",
     createdAt: new Date("2026-05-04T23:03:00").toISOString(),
+  },
+  {
+    id: "seed-cell-epm-gap-first",
+    pack: seedPackVersion,
+    text: "Cell target: make lateral expansion close the magnetic gap instead of asking the magnet to pull across a long gap.",
+    createdAt: new Date("2026-05-05T00:12:00").toISOString(),
+  },
+  {
+    id: "seed-cell-epm-two-states",
+    pack: seedPackVersion,
+    text: "Define two states only: expanded/open gap and contracted/closed keeper. Everything else is noise for the first proof.",
+    createdAt: new Date("2026-05-05T00:11:00").toISOString(),
+  },
+  {
+    id: "seed-cell-epm-force-budget",
+    pack: seedPackVersion,
+    text: "Force budget starts at the Sarrus hinge. Required magnetic force equals hinge torque, friction, and load divided by mechanical advantage.",
+    createdAt: new Date("2026-05-05T00:10:00").toISOString(),
+  },
+  {
+    id: "seed-cell-epm-pulse-driver",
+    pack: seedPackVersion,
+    text: "Driver proof: bidirectional pulse, measured current, measured coil temperature, and visible hold after power is disconnected.",
+    createdAt: new Date("2026-05-05T00:09:00").toISOString(),
+  },
+  {
+    id: "seed-cell-epm-keeper-face",
+    pack: seedPackVersion,
+    text: "The keeper face is part of the mechanism. Put it on the moving Sarrus link, not as a separate bench fixture.",
+    createdAt: new Date("2026-05-05T00:08:00").toISOString(),
+  },
+  {
+    id: "seed-cell-epm-cutaway-test",
+    pack: seedPackVersion,
+    text: "Build one cutaway cell first so the flux path, coil, yoke, magnet pair, and linkage motion are all visible.",
+    createdAt: new Date("2026-05-05T00:07:00").toISOString(),
+  },
+  {
+    id: "seed-cell-epm-monolithic-later",
+    pack: seedPackVersion,
+    text: "Monolithic comes in stages: printed shell plus inserted core, then printed yoke, then printed coil, then printed hard magnet.",
+    createdAt: new Date("2026-05-05T00:06:00").toISOString(),
+  },
+  {
+    id: "seed-cell-epm-removable-core",
+    pack: seedPackVersion,
+    text: "Keep the first actuator core removable. If force is bad, swap the magnetic circuit without reprinting the Sarrus geometry.",
+    createdAt: new Date("2026-05-05T00:05:00").toISOString(),
+  },
+  {
+    id: "seed-cell-epm-no-pneumatics",
+    pack: seedPackVersion,
+    text: "Best demo frame: same laterally expanding cell, pneumatic line removed, EPM pulse causes the useful state change.",
+    createdAt: new Date("2026-05-05T00:04:00").toISOString(),
+  },
+  {
+    id: "seed-cell-epm-next-build",
+    pack: seedPackVersion,
+    text: "Next build: one cell, two keeper pads, one EPM cartridge, one lateral displacement trace, one zero-power hold photo.",
+    createdAt: new Date("2026-05-05T00:03:00").toISOString(),
   },
 ];
 
