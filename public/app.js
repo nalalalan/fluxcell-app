@@ -37,8 +37,9 @@ const northStarJewelWallSeedPackVersion = "2026-05-04-fluxcell-north-star-jewel-
 const mechanicalMemoryWallSeedPackVersion = "2026-05-04-fluxcell-mechanical-memory-wall";
 const oneCellProofWallSeedPackVersion = "2026-05-04-fluxcell-one-cell-proof-wall";
 const printableMaterialsWallSeedPackVersion = "2026-05-04-fluxcell-printable-materials-wall";
-const seedPackVersion = "2026-05-04-fluxcell-bench-proof-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, seedPackVersion];
+const benchProofWallSeedPackVersion = "2026-05-04-fluxcell-bench-proof-wall";
+const seedPackVersion = "2026-05-04-fluxcell-monolithic-integration-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1526,33 +1527,69 @@ const seedNotes = [
   },
   {
     id: "seed-bench-proof-trace",
-    pack: seedPackVersion,
+    pack: benchProofWallSeedPackVersion,
     text: "One trace: pulse, width, force.",
     createdAt: new Date("2026-05-04T23:20:00").toISOString(),
   },
   {
     id: "seed-bench-proof-control",
-    pack: seedPackVersion,
+    pack: benchProofWallSeedPackVersion,
     text: "Active, dummy, empty. Same cell.",
     createdAt: new Date("2026-05-04T23:19:00").toISOString(),
   },
   {
     id: "seed-bench-proof-gap",
-    pack: seedPackVersion,
+    pack: benchProofWallSeedPackVersion,
     text: "Gap shims before new geometry.",
     createdAt: new Date("2026-05-04T23:18:00").toISOString(),
   },
   {
     id: "seed-bench-proof-load",
-    pack: seedPackVersion,
+    pack: benchProofWallSeedPackVersion,
     text: "Move one cell under load.",
     createdAt: new Date("2026-05-04T23:17:00").toISOString(),
   },
   {
     id: "seed-bench-proof-claim",
-    pack: seedPackVersion,
+    pack: benchProofWallSeedPackVersion,
     text: "Make the first proof impossible to dismiss.",
     createdAt: new Date("2026-05-04T23:16:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-integration-stack",
+    pack: seedPackVersion,
+    text: "Design the cross-section first.",
+    createdAt: new Date("2026-05-04T23:36:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-integration-coil",
+    pack: seedPackVersion,
+    text: "Give the coil a real window.",
+    createdAt: new Date("2026-05-04T23:35:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-integration-gap",
+    pack: seedPackVersion,
+    text: "A printed datum is a force multiplier.",
+    createdAt: new Date("2026-05-04T23:34:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-integration-wires",
+    pack: seedPackVersion,
+    text: "Keep wires out of hinge strain.",
+    createdAt: new Date("2026-05-04T23:33:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-integration-evidence",
+    pack: seedPackVersion,
+    text: "One photo beside one trace.",
+    createdAt: new Date("2026-05-04T23:32:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-integration-proud",
+    pack: seedPackVersion,
+    text: "Make the object look inevitable.",
+    createdAt: new Date("2026-05-04T23:31:00").toISOString(),
   },
 ];
 
