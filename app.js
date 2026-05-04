@@ -16,8 +16,9 @@ const fabricationSeedPackVersion = "2026-05-04-fluxcell-fabrication-plan";
 const printableSeedPackVersion = "2026-05-04-fluxcell-printable-electromagnetics";
 const validationSeedPackVersion = "2026-05-04-fluxcell-validation-model";
 const cellIntegrationSeedPackVersion = "2026-05-04-fluxcell-cell-integration";
-const seedPackVersion = "2026-05-04-fluxcell-force-budget";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, seedPackVersion];
+const forceBudgetSeedPackVersion = "2026-05-04-fluxcell-force-budget";
+const seedPackVersion = "2026-05-04-fluxcell-monolithic-endgame";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -479,63 +480,123 @@ const seedNotes = [
   },
   {
     id: "seed-force-budget-first",
-    pack: seedPackVersion,
+    pack: forceBudgetSeedPackVersion,
     text: "Force budget first: required lateral cell force, linkage mechanical advantage, magnetic pull, and losses.",
     createdAt: new Date("2026-05-04T22:32:00").toISOString(),
   },
   {
     id: "seed-force-gap-table",
-    pack: seedPackVersion,
+    pack: forceBudgetSeedPackVersion,
     text: "Make one table: gap, overlap area, pulse energy, pull force, lateral width change, hold state.",
     createdAt: new Date("2026-05-04T22:31:00").toISOString(),
   },
   {
     id: "seed-force-minimum-demo",
-    pack: seedPackVersion,
+    pack: forceBudgetSeedPackVersion,
     text: "Minimum demo: one printed Sarrus cell widens under embedded EPM switching, then holds with zero current.",
     createdAt: new Date("2026-05-04T22:30:00").toISOString(),
   },
   {
     id: "seed-force-short-stroke",
-    pack: seedPackVersion,
+    pack: forceBudgetSeedPackVersion,
     text: "Design around short magnetic stroke. Convert sub-millimeter gap closure into millimeter-scale width change.",
     createdAt: new Date("2026-05-04T22:29:00").toISOString(),
   },
   {
     id: "seed-force-bistable-cell",
-    pack: seedPackVersion,
+    pack: forceBudgetSeedPackVersion,
     text: "If direct pull is weak, make the Sarrus cell bistable and let the EPM trigger the snap.",
     createdAt: new Date("2026-05-04T22:28:00").toISOString(),
   },
   {
     id: "seed-force-heat-limit",
-    pack: seedPackVersion,
+    pack: forceBudgetSeedPackVersion,
     text: "Pulse limit is thermal: coil heat, polymer softening, magnet demag, and hinge creep.",
     createdAt: new Date("2026-05-04T22:27:00").toISOString(),
   },
   {
     id: "seed-force-driver",
-    pack: seedPackVersion,
+    pack: forceBudgetSeedPackVersion,
     text: "Driver target: bipolar H-bridge pulse, current sense, temperature log, and no steady-state coil power.",
     createdAt: new Date("2026-05-04T22:26:00").toISOString(),
   },
   {
     id: "seed-force-fixture",
-    pack: seedPackVersion,
+    pack: forceBudgetSeedPackVersion,
     text: "Fixture target: fixed cell base, dial width marker, load cell against lateral expansion, top-view camera.",
     createdAt: new Date("2026-05-04T22:25:00").toISOString(),
   },
   {
     id: "seed-force-cad-export",
-    pack: seedPackVersion,
+    pack: forceBudgetSeedPackVersion,
     text: "CAD export should expose magnet pockets, keeper faces, coil path, pivots, and lateral measurement tabs.",
     createdAt: new Date("2026-05-04T22:24:00").toISOString(),
   },
   {
     id: "seed-force-paper-claim",
-    pack: seedPackVersion,
+    pack: forceBudgetSeedPackVersion,
     text: "Paper claim: a printed linkage cell can make EPM switching act as local structural actuation.",
     createdAt: new Date("2026-05-04T22:23:00").toISOString(),
+  },
+  {
+    id: "seed-endgame-printed-domain",
+    pack: seedPackVersion,
+    text: "Endgame material stack: printed hard-magnetic domains provide bias; EPM pulse changes the useful flux path.",
+    createdAt: new Date("2026-05-04T22:52:00").toISOString(),
+  },
+  {
+    id: "seed-endgame-two-claims",
+    pack: seedPackVersion,
+    text: "Separate two claims: monolithically packaged actuator now, monolithically printed magnetic actuator later.",
+    createdAt: new Date("2026-05-04T22:51:00").toISOString(),
+  },
+  {
+    id: "seed-endgame-printed-yoke",
+    pack: seedPackVersion,
+    text: "Try a printed soft-magnetic yoke before a printed permanent magnet. The yoke is the easier printable win.",
+    createdAt: new Date("2026-05-04T22:50:00").toISOString(),
+  },
+  {
+    id: "seed-endgame-bistable-sarrus",
+    pack: seedPackVersion,
+    text: "A bistable Sarrus cell makes the EPM a switch, not a muscle. That may be the cleanest route.",
+    createdAt: new Date("2026-05-04T22:49:00").toISOString(),
+  },
+  {
+    id: "seed-endgame-domain-map",
+    pack: seedPackVersion,
+    text: "Map magnetic domains onto mechanical domains: hinge zone, rigid rib, keeper face, flux return.",
+    createdAt: new Date("2026-05-04T22:48:00").toISOString(),
+  },
+  {
+    id: "seed-endgame-printability-test",
+    pack: seedPackVersion,
+    text: "Printability test: same cell geometry with inert filler, soft magnetic filler, then magnetic + coil.",
+    createdAt: new Date("2026-05-04T22:47:00").toISOString(),
+  },
+  {
+    id: "seed-endgame-no-hidden-actuator",
+    pack: seedPackVersion,
+    text: "Do not hide a big actuator outside the frame. The actuation evidence has to live inside the cell boundary.",
+    createdAt: new Date("2026-05-04T22:46:00").toISOString(),
+  },
+  {
+    id: "seed-endgame-reviewer-proof",
+    pack: seedPackVersion,
+    text: "Reviewer-proof test: remove the EPM cartridge and the same cell should lose the switched lateral response.",
+    createdAt: new Date("2026-05-04T22:45:00").toISOString(),
+  },
+  {
+    id: "seed-endgame-cross-section",
+    pack: seedPackVersion,
+    text: "Best figure: one cutaway showing Sarrus linkage, magnetic circuit, coil, and lateral expansion arrow.",
+    createdAt: new Date("2026-05-04T22:44:00").toISOString(),
+  },
+  {
+    id: "seed-endgame-next-cad",
+    pack: seedPackVersion,
+    text: "Next CAD: one-piece cell shell with replaceable actuator core, then freeze geometry for force testing.",
+    createdAt: new Date("2026-05-04T22:43:00").toISOString(),
   },
 ];
 
