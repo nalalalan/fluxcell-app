@@ -9,13 +9,15 @@ const dbName = "forge-file-vault";
 const fileStore = "files";
 const seedPackKey = "fluxcell.seed-pack.v1";
 const baseSeedPackVersion = "2026-05-04-fluxcell";
-const seedPackVersion = "2026-05-04-fluxcell-integrated-epm";
+const integratedSeedPackVersion = "2026-05-04-fluxcell-integrated-epm";
+const seedPackVersion = "2026-05-04-fluxcell-monolithic-cell";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
   domain: "fluxcell.aolabs.io",
   title: "Printed electropermanent actuation for Sarrus cells.",
-  current: "Compact EPM latch/driver for one cell.",
+  current: "Integrated EPM actuation in one laterally expanding cell.",
 };
 
 const seedNotes = [
@@ -57,57 +59,117 @@ const seedNotes = [
   },
   {
     id: "seed-integrated-target",
-    pack: seedPackVersion,
+    pack: integratedSeedPackVersion,
     text: "End target: a laterally expanding Sarrus cell with EPM actuation inside the printed architecture.",
     createdAt: new Date("2026-05-04T20:10:00").toISOString(),
   },
   {
     id: "seed-integrated-role",
-    pack: seedPackVersion,
+    pack: integratedSeedPackVersion,
     text: "EPM role: latch, bias switch, or stroke assist. Sarrus geometry supplies the lateral expansion.",
     createdAt: new Date("2026-05-04T20:09:00").toISOString(),
   },
   {
     id: "seed-integrated-demo",
-    pack: seedPackVersion,
+    pack: integratedSeedPackVersion,
     text: "First demo: one cell expands laterally, holds without continuous power, then resets cleanly.",
     createdAt: new Date("2026-05-04T20:08:00").toISOString(),
   },
   {
     id: "seed-integrated-loop",
-    pack: seedPackVersion,
+    pack: integratedSeedPackVersion,
     text: "Mechanical loop: magnetic force changes one internal link state; linkage converts it to lateral strain.",
     createdAt: new Date("2026-05-04T20:07:00").toISOString(),
   },
   {
     id: "seed-integrated-print-path",
-    pack: seedPackVersion,
+    pack: integratedSeedPackVersion,
     text: "Print path: inserted magnets and coils first; printed magnetic composite only after the force closes.",
     createdAt: new Date("2026-05-04T20:06:00").toISOString(),
   },
   {
     id: "seed-integrated-package",
-    pack: seedPackVersion,
+    pack: integratedSeedPackVersion,
     text: "Packaging rule: no external actuator tower. Coil, keeper, flux return, and link interface stay cell-sized.",
     createdAt: new Date("2026-05-04T20:05:00").toISOString(),
   },
   {
     id: "seed-integrated-metrics",
-    pack: seedPackVersion,
+    pack: integratedSeedPackVersion,
     text: "Measure lateral strain, blocked force, hold force, pulse energy, heat, and reset reliability.",
     createdAt: new Date("2026-05-04T20:04:00").toISOString(),
   },
   {
     id: "seed-integrated-risk",
-    pack: seedPackVersion,
+    pack: integratedSeedPackVersion,
     text: "Risk: printed magnetic material is weak. Keep the design compatible with inserted NdFeB and steel.",
     createdAt: new Date("2026-05-04T20:03:00").toISOString(),
   },
   {
     id: "seed-integrated-figure",
-    pack: seedPackVersion,
+    pack: integratedSeedPackVersion,
     text: "Figure idea: one cell cross-section showing coil, keeper, flux path, hinge line, and expansion direction.",
     createdAt: new Date("2026-05-04T20:02:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-direct-force",
+    pack: seedPackVersion,
+    text: "Do not just pull a wall. Route magnetic force through a link or rocker that amplifies lateral expansion.",
+    createdAt: new Date("2026-05-04T20:28:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-air-gap",
+    pack: seedPackVersion,
+    text: "CAD constraint: keep the working air gap short even while the cell expands laterally.",
+    createdAt: new Date("2026-05-04T20:27:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-zero-power-state",
+    pack: seedPackVersion,
+    text: "Choose the zero-power state now: expanded hold, contracted hold, or only a pulse-triggered transition.",
+    createdAt: new Date("2026-05-04T20:26:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-stage-plan",
+    pack: seedPackVersion,
+    text: "Prototype ladder: external EPM near cell, embedded EPM cartridge, then monolithic printed package.",
+    createdAt: new Date("2026-05-04T20:25:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-bistable",
+    pack: seedPackVersion,
+    text: "Best architecture may be bistable Sarrus mechanics plus EPM switching, not continuous magnetic pulling.",
+    createdAt: new Date("2026-05-04T20:24:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-coil-path",
+    pack: seedPackVersion,
+    text: "Print coil channels and keeper pockets as real geometry; winding and insertion can happen before full printing works.",
+    createdAt: new Date("2026-05-04T20:23:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-paper-link",
+    pack: seedPackVersion,
+    text: "Paper link: compliant EPMs inform the soft package; EPM jamming papers inform zero-power holding.",
+    createdAt: new Date("2026-05-04T20:22:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-test",
+    pack: seedPackVersion,
+    text: "Test: pulse the EPM while measuring lateral cell width, blocked force, current, and surface temperature.",
+    createdAt: new Date("2026-05-04T20:21:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-material-stack",
+    pack: seedPackVersion,
+    text: "Material stack: hard magnet, soft keeper, coil, printed hinge, printed body. Do not merge failures.",
+    createdAt: new Date("2026-05-04T20:20:00").toISOString(),
+  },
+  {
+    id: "seed-monolithic-module-contract",
+    pack: seedPackVersion,
+    text: "Module contract: same Sarrus cell footprint, added actuation, no pneumatic line, one pulse input.",
+    createdAt: new Date("2026-05-04T20:19:00").toISOString(),
   },
 ];
 
@@ -136,7 +198,11 @@ function loadState() {
 function pendingSeedNotes() {
   const currentPack = localStorage.getItem(seedPackKey);
   if (currentPack === seedPackVersion) return [];
-  if (currentPack === baseSeedPackVersion) return seedNotes.filter((note) => note.pack === seedPackVersion);
+  const currentIndex = seedPackOrder.indexOf(currentPack);
+  if (currentIndex >= 0) {
+    const pendingPacks = new Set(seedPackOrder.slice(currentIndex + 1));
+    return seedNotes.filter((note) => pendingPacks.has(note.pack));
+  }
   return seedNotes;
 }
 
