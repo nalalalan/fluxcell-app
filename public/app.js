@@ -31,8 +31,9 @@ const sarrusActuationProofSeedPackVersion = "2026-05-04-fluxcell-sarrus-actuatio
 const memoryFigureObjectSeedPackVersion = "2026-05-04-fluxcell-memory-figure-object";
 const cartridgeProofWallSeedPackVersion = "2026-05-04-fluxcell-cartridge-proof-wall";
 const sarrusFirstExperimentWallSeedPackVersion = "2026-05-04-fluxcell-sarrus-first-experiment-wall";
-const seedPackVersion = "2026-05-04-fluxcell-proud-object-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, seedPackVersion];
+const proudObjectWallSeedPackVersion = "2026-05-04-fluxcell-proud-object-wall";
+const seedPackVersion = "2026-05-04-fluxcell-dopamine-object-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1274,39 +1275,81 @@ const seedNotes = [
   },
   {
     id: "seed-proud-object-one-cell",
-    pack: seedPackVersion,
+    pack: proudObjectWallSeedPackVersion,
     text: "One beautiful cell is enough if the actuation is real.",
     createdAt: new Date("2026-05-05T12:10:00").toISOString(),
   },
   {
     id: "seed-proud-object-force-loop",
-    pack: seedPackVersion,
+    pack: proudObjectWallSeedPackVersion,
     text: "Close the loop: pulse, flux, torque, width, work.",
     createdAt: new Date("2026-05-05T12:09:00").toISOString(),
   },
   {
     id: "seed-proud-object-datums",
-    pack: seedPackVersion,
+    pack: proudObjectWallSeedPackVersion,
     text: "Design datums before design flourishes.",
     createdAt: new Date("2026-05-05T12:08:00").toISOString(),
   },
   {
     id: "seed-proud-object-variables",
-    pack: seedPackVersion,
+    pack: proudObjectWallSeedPackVersion,
     text: "Gap, magnetization, stiffness. Change one at a time.",
     createdAt: new Date("2026-05-05T12:07:00").toISOString(),
   },
   {
     id: "seed-proud-object-failure",
-    pack: seedPackVersion,
+    pack: proudObjectWallSeedPackVersion,
     text: "Make failure beautiful enough to read quickly.",
     createdAt: new Date("2026-05-05T12:06:00").toISOString(),
   },
   {
     id: "seed-proud-object-claim",
-    pack: seedPackVersion,
+    pack: proudObjectWallSeedPackVersion,
     text: "The claim is lateral work from an integrated magnetic actuator.",
     createdAt: new Date("2026-05-05T12:05:00").toISOString(),
+  },
+  {
+    id: "seed-dopamine-object-argument",
+    pack: seedPackVersion,
+    text: "The object is the argument.",
+    createdAt: new Date("2026-05-05T13:10:00").toISOString(),
+  },
+  {
+    id: "seed-dopamine-object-no-tubes",
+    pack: seedPackVersion,
+    text: "No tubes. No tower. Wires only.",
+    createdAt: new Date("2026-05-05T13:09:00").toISOString(),
+  },
+  {
+    id: "seed-dopamine-object-alive",
+    pack: seedPackVersion,
+    text: "Make the cell feel alive, then make the numbers undeniable.",
+    createdAt: new Date("2026-05-05T13:08:00").toISOString(),
+  },
+  {
+    id: "seed-dopamine-object-frame",
+    pack: seedPackVersion,
+    text: "One frame: object, pulse, width, force.",
+    createdAt: new Date("2026-05-05T13:07:00").toISOString(),
+  },
+  {
+    id: "seed-dopamine-object-baseline",
+    pack: seedPackVersion,
+    text: "Active, dummy, empty. Same cell. Same beauty.",
+    createdAt: new Date("2026-05-05T13:06:00").toISOString(),
+  },
+  {
+    id: "seed-dopamine-object-ladder",
+    pack: seedPackVersion,
+    text: "Monolithic is earned: pocket, yoke, conductor, magnet.",
+    createdAt: new Date("2026-05-05T13:05:00").toISOString(),
+  },
+  {
+    id: "seed-dopamine-object-tomorrow",
+    pack: seedPackVersion,
+    text: "Tomorrow: print one cell worth photographing.",
+    createdAt: new Date("2026-05-05T13:04:00").toISOString(),
   },
 ];
 
