@@ -23,8 +23,9 @@ const cellEpmIntegrationSeedPackVersion = "2026-05-04-fluxcell-cell-epm-integrat
 const mechanismCouplingSeedPackVersion = "2026-05-04-fluxcell-mechanism-coupling";
 const prototypeProtocolSeedPackVersion = "2026-05-04-fluxcell-prototype-protocol";
 const monolithicActuationRouteSeedPackVersion = "2026-05-04-fluxcell-monolithic-actuation-route";
-const seedPackVersion = "2026-05-04-fluxcell-north-star-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, seedPackVersion];
+const northStarWallSeedPackVersion = "2026-05-04-fluxcell-north-star-wall";
+const seedPackVersion = "2026-05-04-fluxcell-gallery-object";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -906,51 +907,99 @@ const seedNotes = [
   },
   {
     id: "seed-north-star-photograph",
-    pack: seedPackVersion,
+    pack: northStarWallSeedPackVersion,
     text: "Make one object worth photographing: one Sarrus cell, visible coil, visible keeper, clean lateral width markers.",
     createdAt: new Date("2026-05-05T04:10:00").toISOString(),
   },
   {
     id: "seed-north-star-one-sentence",
-    pack: seedPackVersion,
+    pack: northStarWallSeedPackVersion,
     text: "A printed Sarrus cell where the actuator is part of the architecture, not a tube attached to it.",
     createdAt: new Date("2026-05-05T04:09:00").toISOString(),
   },
   {
     id: "seed-north-star-pretty-proof",
-    pack: seedPackVersion,
+    pack: northStarWallSeedPackVersion,
     text: "Pretty proof: dark cell, copper coil, pale keeper faces, one clean width trace beside the photo.",
     createdAt: new Date("2026-05-05T04:08:00").toISOString(),
   },
   {
     id: "seed-north-star-first-figure",
-    pack: seedPackVersion,
+    pack: northStarWallSeedPackVersion,
     text: "First figure should feel obvious: pulse in, flux switches, links expand, zero-power hold.",
     createdAt: new Date("2026-05-05T04:07:00").toISOString(),
   },
   {
     id: "seed-north-star-monolithic-ladder",
-    pack: seedPackVersion,
+    pack: northStarWallSeedPackVersion,
     text: "Monolithic ladder: beautiful inserted cartridge now, printed yoke next, printed coil after, printed hard magnet last.",
     createdAt: new Date("2026-05-05T04:06:00").toISOString(),
   },
   {
     id: "seed-north-star-cell-aesthetic",
-    pack: seedPackVersion,
+    pack: northStarWallSeedPackVersion,
     text: "Design the prototype like a product: symmetric cell, hidden wire path, deliberate colors, no bench clutter in the frame.",
     createdAt: new Date("2026-05-05T04:05:00").toISOString(),
   },
   {
     id: "seed-north-star-real-test",
-    pack: seedPackVersion,
+    pack: northStarWallSeedPackVersion,
     text: "Real test: same cell with EPM core, dummy core, and no core. The difference is the contribution.",
     createdAt: new Date("2026-05-05T04:04:00").toISOString(),
   },
   {
     id: "seed-north-star-tomorrow",
-    pack: seedPackVersion,
+    pack: northStarWallSeedPackVersion,
     text: "Tomorrow build: freeze one cutaway CAD and print the cleanest cartridge pocket possible.",
     createdAt: new Date("2026-05-05T04:03:00").toISOString(),
+  },
+  {
+    id: "seed-gallery-object-physical",
+    pack: seedPackVersion,
+    text: "The next object should look finished, not like a bench workaround.",
+    createdAt: new Date("2026-05-05T05:08:00").toISOString(),
+  },
+  {
+    id: "seed-gallery-object-cutaway",
+    pack: seedPackVersion,
+    text: "Cutaway: coil, keeper, yoke, magnet, hinge, and lateral width markers in one view.",
+    createdAt: new Date("2026-05-05T05:07:00").toISOString(),
+  },
+  {
+    id: "seed-gallery-object-no-tubes",
+    pack: seedPackVersion,
+    text: "No pneumatic tube in the hero photo. The actuator lives inside the cell.",
+    createdAt: new Date("2026-05-05T05:06:00").toISOString(),
+  },
+  {
+    id: "seed-gallery-object-same-frame",
+    pack: seedPackVersion,
+    text: "Beauty and evidence in the same frame: object photo, width trace, pulse trace.",
+    createdAt: new Date("2026-05-05T05:05:00").toISOString(),
+  },
+  {
+    id: "seed-gallery-object-materials",
+    pack: seedPackVersion,
+    text: "Material direction: dark printed body, copper coil, pale keeper faces, clean ruler marks.",
+    createdAt: new Date("2026-05-05T05:04:00").toISOString(),
+  },
+  {
+    id: "seed-gallery-object-three-versions",
+    pack: seedPackVersion,
+    text: "Photograph three cells together: dummy, inserted EPM, printed-yoke EPM.",
+    createdAt: new Date("2026-05-05T05:03:00").toISOString(),
+  },
+  {
+    id: "seed-gallery-object-publishable",
+    pack: seedPackVersion,
+    text: "Publishable claim starts when EPM pulse changes lateral strain above dummy-core baseline.",
+    createdAt: new Date("2026-05-05T05:02:00").toISOString(),
+  },
+  {
+    id: "seed-gallery-object-next-cad",
+    pack: seedPackVersion,
+    text: "Next CAD: one beautiful cutaway cell with swappable cartridge, hidden wires, and hard gap stops.",
+    createdAt: new Date("2026-05-05T05:01:00").toISOString(),
   },
 ];
 
