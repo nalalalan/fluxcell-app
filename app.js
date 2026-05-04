@@ -7,6 +7,8 @@ const ownerKey = "fluxcell.owner.delete.hash.v1";
 const legacyOwnerKey = "forge.owner.delete.hash.v1";
 const dbName = "forge-file-vault";
 const fileStore = "files";
+const seedPackKey = "fluxcell.seed-pack.v1";
+const seedPackVersion = "2026-05-04-fluxcell";
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -18,8 +20,33 @@ const focus = {
 const seedNotes = [
   {
     id: "seed-flux",
-    text: "Electropermanent magnet actuation for Sarrus-linkage cells. Track force, gap, pulse energy, latch geometry, heat, and how the actuator fits inside the cell.",
-    createdAt: new Date("2026-05-02T12:00:00").toISOString(),
+    text: "One-cell proof: an EPM latch moves one Sarrus cell before array work.",
+    createdAt: new Date("2026-05-04T04:00:00").toISOString(),
+  },
+  {
+    id: "seed-force-gap",
+    text: "Force-gap sweep: same fixture, same pulse, 0.5-5 mm gap, hold and release result.",
+    createdAt: new Date("2026-05-04T03:55:00").toISOString(),
+  },
+  {
+    id: "seed-driver-log",
+    text: "Driver log: voltage, current, pulse width, polarity, temperature rise.",
+    createdAt: new Date("2026-05-04T03:50:00").toISOString(),
+  },
+  {
+    id: "seed-geometry-lock",
+    text: "Geometry lock: keeper area, air gap, alignment pins, and core material stay explicit.",
+    createdAt: new Date("2026-05-04T03:45:00").toISOString(),
+  },
+  {
+    id: "seed-print-role",
+    text: "Printed part role: fixture, coil form, flux path, or magnet. Test one at a time.",
+    createdAt: new Date("2026-05-04T03:40:00").toISOString(),
+  },
+  {
+    id: "seed-benchmark",
+    text: "Benchmark: compare EPM force to the pneumatic curve at the same cell displacement.",
+    createdAt: new Date("2026-05-04T03:35:00").toISOString(),
   },
 ];
 
@@ -31,20 +58,38 @@ let toastTimer = 0;
 const previewUrls = new Map();
 
 function loadState() {
+  const applySeeds = localStorage.getItem(seedPackKey) !== seedPackVersion;
   for (const key of [stateKey, legacyStateKey]) {
     try {
       const parsed = JSON.parse(localStorage.getItem(key) || "null");
       if (parsed && Array.isArray(parsed.notes) && Array.isArray(parsed.files)) {
-        return {
-          notes: parsed.notes.length ? parsed.notes : seedNotes,
-          files: parsed.files,
-        };
+        return finalizeLoadedState({ notes: parsed.notes, files: parsed.files }, applySeeds);
       }
     } catch (error) {
       console.warn(error);
     }
   }
-  return { notes: seedNotes, files: [] };
+  return finalizeLoadedState({ notes: [], files: [] }, applySeeds);
+}
+
+function finalizeLoadedState(next, applySeeds) {
+  if (!applySeeds) return next;
+  const seeded = { ...next, notes: mergeSeedNotes(next.notes) };
+  try {
+    localStorage.setItem(seedPackKey, seedPackVersion);
+    localStorage.setItem(stateKey, JSON.stringify(seeded));
+  } catch (error) {
+    console.warn(error);
+  }
+  return seeded;
+}
+
+function mergeSeedNotes(notes) {
+  const seedById = new Map(seedNotes.map((note) => [note.id, note]));
+  const updated = notes.map((note) => seedById.get(note.id) || note);
+  const existing = new Set(updated.map((note) => note.id));
+  const missing = seedNotes.filter((note) => !existing.has(note.id));
+  return [...missing, ...updated];
 }
 
 function saveState() {
