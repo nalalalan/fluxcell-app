@@ -42,8 +42,9 @@ const monolithicIntegrationWallSeedPackVersion = "2026-05-04-fluxcell-monolithic
 const actuatorCandidatesWallSeedPackVersion = "2026-05-04-fluxcell-actuator-candidates-wall";
 const magneticCircuitWallSeedPackVersion = "2026-05-04-fluxcell-magnetic-circuit-wall";
 const integratedCellWallSeedPackVersion = "2026-05-05-fluxcell-integrated-cell-wall";
-const seedPackVersion = "2026-05-05-fluxcell-proof-object-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, actuatorCandidatesWallSeedPackVersion, magneticCircuitWallSeedPackVersion, integratedCellWallSeedPackVersion, seedPackVersion];
+const proofObjectWallSeedPackVersion = "2026-05-05-fluxcell-proof-object-wall";
+const seedPackVersion = "2026-05-05-fluxcell-absorbable-playbook-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, actuatorCandidatesWallSeedPackVersion, magneticCircuitWallSeedPackVersion, integratedCellWallSeedPackVersion, proofObjectWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1705,39 +1706,75 @@ const seedNotes = [
   },
   {
     id: "seed-proof-object-sequence",
-    pack: seedPackVersion,
+    pack: proofObjectWallSeedPackVersion,
     text: "External, embedded, printed.",
     createdAt: new Date("2026-05-05T00:40:00").toISOString(),
   },
   {
     id: "seed-proof-object-fixture",
-    pack: seedPackVersion,
+    pack: proofObjectWallSeedPackVersion,
     text: "The first fixture should make bad data hard.",
     createdAt: new Date("2026-05-05T00:39:00").toISOString(),
   },
   {
     id: "seed-proof-object-window",
-    pack: seedPackVersion,
+    pack: proofObjectWallSeedPackVersion,
     text: "Coil window outside the hinge strain.",
     createdAt: new Date("2026-05-05T00:38:00").toISOString(),
   },
   {
     id: "seed-proof-object-figure",
-    pack: seedPackVersion,
+    pack: proofObjectWallSeedPackVersion,
     text: "Object, trace, cross-section.",
     createdAt: new Date("2026-05-05T00:37:00").toISOString(),
   },
   {
     id: "seed-proof-object-hold",
-    pack: seedPackVersion,
+    pack: proofObjectWallSeedPackVersion,
     text: "Show it holding with power off.",
     createdAt: new Date("2026-05-05T00:36:00").toISOString(),
   },
   {
     id: "seed-proof-object-failure",
-    pack: seedPackVersion,
+    pack: proofObjectWallSeedPackVersion,
     text: "Every failed build gets one parameter name.",
     createdAt: new Date("2026-05-05T00:35:00").toISOString(),
+  },
+  {
+    id: "seed-playbook-route",
+    pack: seedPackVersion,
+    text: "Route, role, trace.",
+    createdAt: new Date("2026-05-05T00:58:00").toISOString(),
+  },
+  {
+    id: "seed-playbook-one-cell",
+    pack: seedPackVersion,
+    text: "One cell before array.",
+    createdAt: new Date("2026-05-05T00:57:00").toISOString(),
+  },
+  {
+    id: "seed-playbook-paper",
+    pack: seedPackVersion,
+    text: "One paper, one experiment.",
+    createdAt: new Date("2026-05-05T00:56:00").toISOString(),
+  },
+  {
+    id: "seed-playbook-width",
+    pack: seedPackVersion,
+    text: "Measure width every time.",
+    createdAt: new Date("2026-05-05T00:55:00").toISOString(),
+  },
+  {
+    id: "seed-playbook-steps",
+    pack: seedPackVersion,
+    text: "External, embedded, printed.",
+    createdAt: new Date("2026-05-05T00:54:00").toISOString(),
+  },
+  {
+    id: "seed-playbook-figure",
+    pack: seedPackVersion,
+    text: "Object, trace, section.",
+    createdAt: new Date("2026-05-05T00:53:00").toISOString(),
   },
 ];
 
