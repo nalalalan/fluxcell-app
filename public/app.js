@@ -57,6 +57,33 @@ const focus = {
   current: "Integrated EPM actuation in one laterally expanding cell.",
 };
 
+const focusPaperRules = [
+  {
+    match: /Knaian 2010|Electropermanent Magnetic Connectors/i,
+    reason: "EPM actuator baseline",
+  },
+  {
+    match: /Park 2020|Attractive Force Using an Electropermanent Magnet/i,
+    reason: "Force vs. gap model",
+  },
+  {
+    match: /Johnson 2024|Compliant Electropermanent Magnets/i,
+    reason: "Compliant EPM package",
+  },
+  {
+    match: /Canada 2024|soft magnetic-cored solenoids/i,
+    reason: "Printed coil and core route",
+  },
+  {
+    match: /Wang 2023|Sequential multi-material embedded/i,
+    reason: "Embedded printing route",
+  },
+  {
+    match: /Yang 2023|Linkage-based three-dimensional/i,
+    reason: "Sarrus-cell kinematics",
+  },
+];
+
 const seedNotes = [
   {
     id: "seed-flux",
@@ -2080,7 +2107,10 @@ function render() {
 
 function createShell() {
   const shell = el("main", "app-shell");
-  shell.append(createTopbar(), createWorkspace(), createLibrary());
+  shell.append(createTopbar(), createWorkspace());
+  const focusLibrary = createFocusLibrary();
+  if (focusLibrary) shell.append(focusLibrary);
+  shell.append(createLibrary());
   return shell;
 }
 
@@ -2217,21 +2247,36 @@ function generateNextStep() {
   return ["One measurable EPM latch test.", "Keep the next test cell-sized.", "One variable, one result."][phase];
 }
 
-function createLibrary() {
-  const section = el("section", "library");
+function createFocusLibrary() {
+  const items = focusPaperItems();
+  if (!items.length) return null;
+
+  const section = el("section", "focus-library");
   const head = el("div", "section-head");
-  head.append(el("h2", "", "Library"));
+  head.append(el("h2", "", "Figures"));
   section.append(head);
 
+  const grid = el("div", "focus-grid");
+  items.forEach((item, index) => grid.append(createFocusCard(item, index)));
+  section.append(grid);
+  return section;
+}
+
+function createLibrary() {
+  const section = el("section", "library archive-library");
   const items = libraryItems();
   if (!items.length) {
     section.append(el("p", "empty", "Nothing saved yet."));
     return section;
   }
 
-  const grid = el("div", "library-grid");
+  const drawer = document.createElement("details");
+  drawer.className = "archive-drawer";
+  const summary = el("summary", "archive-summary", `Everything (${items.length})`);
+  const grid = el("div", "library-grid archive-grid");
   items.forEach((item, index) => grid.append(createItemCard(item, index)));
-  section.append(grid);
+  drawer.append(summary, grid);
+  section.append(drawer);
   return section;
 }
 
@@ -2257,6 +2302,37 @@ function libraryItems() {
   return saved;
 }
 
+function paperSearchText(file) {
+  return `${file.name || ""} ${file.paperTitle || ""} ${file.detectedTitle || ""} ${file.title || ""}`;
+}
+
+function paperItem(file) {
+  return {
+    ...file,
+    type: "file",
+    title: paperDisplayTitle(file),
+    kind: file.kind || classifyFile(file),
+    meta: fileMeta(file),
+  };
+}
+
+function focusPaperItems() {
+  const papers = state.files
+    .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file))
+    .map(paperItem);
+  const used = new Set();
+  const focused = focusPaperRules
+    .map((rule) => {
+      const file = papers.find((paper) => !used.has(paper.id) && rule.match.test(paperSearchText(paper)));
+      if (!file) return null;
+      used.add(file.id);
+      return { ...file, focusReason: rule.reason };
+    })
+    .filter(Boolean);
+
+  return focused.length ? focused : papers.slice(0, 6);
+}
+
 function fileMeta(file) {
   const kind = file.kind || classifyFile(file);
   const label = kind === "paper" ? "paper" : file.source === "sync" ? "synced" : "browser";
@@ -2272,6 +2348,14 @@ function createNoteCard(note) {
   const card = el("article", "item-card note-card");
   const actions = createActions([{ action: "delete-note", id: note.id, title: "Delete note", iconName: "trash", danger: true }]);
   card.append(actions, el("p", "item-text", note.text), el("p", "item-meta", note.meta));
+  return card;
+}
+
+function createFocusCard(file, index) {
+  const card = createFileCard(file, index);
+  card.classList.add("focus-card");
+  const body = card.querySelector(".item-body");
+  if (body && file.focusReason) body.append(el("p", "focus-reason", file.focusReason));
   return card;
 }
 
