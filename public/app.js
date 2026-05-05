@@ -41,8 +41,9 @@ const benchProofWallSeedPackVersion = "2026-05-04-fluxcell-bench-proof-wall";
 const monolithicIntegrationWallSeedPackVersion = "2026-05-04-fluxcell-monolithic-integration-wall";
 const actuatorCandidatesWallSeedPackVersion = "2026-05-04-fluxcell-actuator-candidates-wall";
 const magneticCircuitWallSeedPackVersion = "2026-05-04-fluxcell-magnetic-circuit-wall";
-const seedPackVersion = "2026-05-05-fluxcell-integrated-cell-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, actuatorCandidatesWallSeedPackVersion, magneticCircuitWallSeedPackVersion, seedPackVersion];
+const integratedCellWallSeedPackVersion = "2026-05-05-fluxcell-integrated-cell-wall";
+const seedPackVersion = "2026-05-05-fluxcell-proof-object-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, actuatorCandidatesWallSeedPackVersion, magneticCircuitWallSeedPackVersion, integratedCellWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1668,39 +1669,75 @@ const seedNotes = [
   },
   {
     id: "seed-integrated-cell-width",
-    pack: seedPackVersion,
+    pack: integratedCellWallSeedPackVersion,
     text: "One cell first. Width change is the proof.",
     createdAt: new Date("2026-05-05T00:24:00").toISOString(),
   },
   {
     id: "seed-integrated-cell-force",
-    pack: seedPackVersion,
+    pack: integratedCellWallSeedPackVersion,
     text: "The EPM must move the linkage.",
     createdAt: new Date("2026-05-05T00:23:00").toISOString(),
   },
   {
     id: "seed-integrated-cell-gap",
-    pack: seedPackVersion,
+    pack: integratedCellWallSeedPackVersion,
     text: "Keep the air gap beautiful and small.",
     createdAt: new Date("2026-05-05T00:22:00").toISOString(),
   },
   {
     id: "seed-integrated-cell-pocket",
-    pack: seedPackVersion,
+    pack: integratedCellWallSeedPackVersion,
     text: "Print the pocket. Insert the truth. Replace it later.",
     createdAt: new Date("2026-05-05T00:21:00").toISOString(),
   },
   {
     id: "seed-integrated-cell-trace",
-    pack: seedPackVersion,
+    pack: integratedCellWallSeedPackVersion,
     text: "Measure pulse, heat, width, hold.",
     createdAt: new Date("2026-05-05T00:20:00").toISOString(),
   },
   {
     id: "seed-integrated-cell-memory",
-    pack: seedPackVersion,
+    pack: integratedCellWallSeedPackVersion,
     text: "The final object is a cell that remembers.",
     createdAt: new Date("2026-05-05T00:19:00").toISOString(),
+  },
+  {
+    id: "seed-proof-object-sequence",
+    pack: seedPackVersion,
+    text: "External, embedded, printed.",
+    createdAt: new Date("2026-05-05T00:40:00").toISOString(),
+  },
+  {
+    id: "seed-proof-object-fixture",
+    pack: seedPackVersion,
+    text: "The first fixture should make bad data hard.",
+    createdAt: new Date("2026-05-05T00:39:00").toISOString(),
+  },
+  {
+    id: "seed-proof-object-window",
+    pack: seedPackVersion,
+    text: "Coil window outside the hinge strain.",
+    createdAt: new Date("2026-05-05T00:38:00").toISOString(),
+  },
+  {
+    id: "seed-proof-object-figure",
+    pack: seedPackVersion,
+    text: "Object, trace, cross-section.",
+    createdAt: new Date("2026-05-05T00:37:00").toISOString(),
+  },
+  {
+    id: "seed-proof-object-hold",
+    pack: seedPackVersion,
+    text: "Show it holding with power off.",
+    createdAt: new Date("2026-05-05T00:36:00").toISOString(),
+  },
+  {
+    id: "seed-proof-object-failure",
+    pack: seedPackVersion,
+    text: "Every failed build gets one parameter name.",
+    createdAt: new Date("2026-05-05T00:35:00").toISOString(),
   },
 ];
 
