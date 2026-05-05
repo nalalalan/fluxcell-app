@@ -352,6 +352,17 @@ h1 {
   min-width: 0;
 }
 
+.approved-block {
+  display: grid;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 18px;
+}
+
+.approved-grid + .approved-grid {
+  margin-top: 4px;
+}
+
 .notes-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
