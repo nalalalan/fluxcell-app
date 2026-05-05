@@ -46,8 +46,9 @@ const proofObjectWallSeedPackVersion = "2026-05-05-fluxcell-proof-object-wall";
 const absorbablePlaybookWallSeedPackVersion = "2026-05-05-fluxcell-absorbable-playbook-wall";
 const nextBuildProtocolWallSeedPackVersion = "2026-05-05-fluxcell-next-build-protocol-wall";
 const sprintBoardWallSeedPackVersion = "2026-05-05-fluxcell-sprint-board-wall";
-const seedPackVersion = "2026-05-05-fluxcell-monolithic-atlas-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, actuatorCandidatesWallSeedPackVersion, magneticCircuitWallSeedPackVersion, integratedCellWallSeedPackVersion, proofObjectWallSeedPackVersion, absorbablePlaybookWallSeedPackVersion, nextBuildProtocolWallSeedPackVersion, sprintBoardWallSeedPackVersion, seedPackVersion];
+const monolithicAtlasWallSeedPackVersion = "2026-05-05-fluxcell-monolithic-atlas-wall";
+const seedPackVersion = "2026-05-05-fluxcell-bridge-coupling-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, actuatorCandidatesWallSeedPackVersion, magneticCircuitWallSeedPackVersion, integratedCellWallSeedPackVersion, proofObjectWallSeedPackVersion, absorbablePlaybookWallSeedPackVersion, nextBuildProtocolWallSeedPackVersion, sprintBoardWallSeedPackVersion, monolithicAtlasWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1853,39 +1854,75 @@ const seedNotes = [
   },
   {
     id: "seed-atlas-cell",
-    pack: seedPackVersion,
+    pack: monolithicAtlasWallSeedPackVersion,
     text: "Design the cell around the flux path.",
     createdAt: new Date("2026-05-05T01:44:00").toISOString(),
   },
   {
     id: "seed-atlas-keeper",
-    pack: seedPackVersion,
+    pack: monolithicAtlasWallSeedPackVersion,
     text: "The keeper face is the actuator face.",
     createdAt: new Date("2026-05-05T01:43:00").toISOString(),
   },
   {
     id: "seed-atlas-cartridge",
-    pack: seedPackVersion,
+    pack: monolithicAtlasWallSeedPackVersion,
     text: "Use an inserted cartridge until the force is real.",
     createdAt: new Date("2026-05-05T01:42:00").toISOString(),
   },
   {
     id: "seed-atlas-monolith",
-    pack: seedPackVersion,
+    pack: monolithicAtlasWallSeedPackVersion,
     text: "Monolithic is the destination.",
     createdAt: new Date("2026-05-05T01:41:00").toISOString(),
   },
   {
     id: "seed-atlas-proof",
-    pack: seedPackVersion,
+    pack: monolithicAtlasWallSeedPackVersion,
     text: "Show width change, hold, heat.",
     createdAt: new Date("2026-05-05T01:40:00").toISOString(),
   },
   {
     id: "seed-atlas-figure",
-    pack: seedPackVersion,
+    pack: monolithicAtlasWallSeedPackVersion,
     text: "One cell becomes the figure.",
     createdAt: new Date("2026-05-05T01:39:00").toISOString(),
+  },
+  {
+    id: "seed-bridge-force",
+    pack: seedPackVersion,
+    text: "Pull a link, not a wall.",
+    createdAt: new Date("2026-05-05T01:58:00").toISOString(),
+  },
+  {
+    id: "seed-bridge-gap",
+    pack: seedPackVersion,
+    text: "Make the gap short and repeatable.",
+    createdAt: new Date("2026-05-05T01:57:00").toISOString(),
+  },
+  {
+    id: "seed-bridge-reset",
+    pack: seedPackVersion,
+    text: "Reset is part of actuation.",
+    createdAt: new Date("2026-05-05T01:56:00").toISOString(),
+  },
+  {
+    id: "seed-bridge-load",
+    pack: seedPackVersion,
+    text: "Test against a known load.",
+    createdAt: new Date("2026-05-05T01:55:00").toISOString(),
+  },
+  {
+    id: "seed-bridge-pocket",
+    pack: seedPackVersion,
+    text: "Print the pocket before the magnet.",
+    createdAt: new Date("2026-05-05T01:54:00").toISOString(),
+  },
+  {
+    id: "seed-bridge-proof",
+    pack: seedPackVersion,
+    text: "One clean cycle is the proof.",
+    createdAt: new Date("2026-05-05T01:53:00").toISOString(),
   },
 ];
 
