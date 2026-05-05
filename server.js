@@ -526,6 +526,7 @@ const aiFeedSchema = {
     properties: {
       summary: {
         type: "string",
+        maxLength: 900,
         description: "A dense but readable project preference profile in 80 to 150 words.",
       },
       notes: {
@@ -538,13 +539,13 @@ const aiFeedSchema = {
           required: ["id", "text", "reason", "keywords"],
           properties: {
             id: { type: "string" },
-            text: { type: "string" },
-            reason: { type: "string" },
+            text: { type: "string", maxLength: 520 },
+            reason: { type: "string", maxLength: 120 },
             keywords: {
               type: "array",
               minItems: 3,
               maxItems: 8,
-              items: { type: "string" },
+              items: { type: "string", maxLength: 60 },
             },
           },
         },
@@ -553,7 +554,7 @@ const aiFeedSchema = {
         type: "array",
         minItems: 0,
         maxItems: 18,
-        items: { type: "string" },
+        items: { type: "string", maxLength: 120 },
         description: "IDs from candidatePapers only, ordered by usefulness.",
       },
     },
@@ -568,6 +569,8 @@ function aiSystemPrompt() {
     "Generate concise, technically useful suggested notes and rank existing paper candidates.",
     "Prefer concrete experiment design, magnetic circuit variables, actuator-cell coupling, measurement plans, paper figures that change a build, credibility, and near-term one-cell proof.",
     "Do not write motivational slogans. Do not be vague. Do not over-explain.",
+    "Each suggested note must be complete, not clipped, and useful as a saved research note.",
+    "Keep each suggested note to one or two complete sentences.",
     "Suggested notes can be similar to approved notes, but should extend or sharpen the direction.",
     "Rejected content should be avoided, especially if it looks low credibility, low quality, or irrelevant.",
     "Return JSON only in the requested schema.",
@@ -589,12 +592,12 @@ function responseOutputText(response) {
 function normalizeAiResult(result, candidatePaperIds) {
   const paperIdSet = new Set(candidatePaperIds);
   const notes = compactArray(result.notes, 18, (note, index) => {
-    const text = compactString(note?.text, 260);
+    const text = compactString(note?.text, 520);
     if (!text) return null;
     return {
       id: `ai-${compactString(note.id, 80) || crypto.createHash("sha1").update(text).digest("hex").slice(0, 12)}-${index}`,
       text,
-      reason: compactString(note?.reason, 80) || "AI suggestion",
+      reason: compactString(note?.reason, 120) || "AI suggestion",
       keywords: compactArray(note?.keywords, 8, (keyword) => compactString(keyword, 60)),
       source: "ai",
     };
@@ -632,7 +635,7 @@ async function createAiSuggestions(payload) {
       instructions: aiSystemPrompt(),
       input: `JSON context:\n${JSON.stringify(compact)}`,
       text: { format: aiFeedSchema },
-      max_output_tokens: 2500,
+      max_output_tokens: 8000,
     }),
   });
 

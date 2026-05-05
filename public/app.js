@@ -2474,7 +2474,7 @@ function normalizeAiFeed(record) {
 
 function normalizeAiIdea(idea) {
   if (!idea || typeof idea !== "object") return null;
-  const text = String(idea.text || "").replace(/\s+/g, " ").trim().slice(0, 260);
+  const text = String(idea.text || "").replace(/\s+/g, " ").trim().slice(0, 520);
   if (!text) return null;
   return {
     id: String(idea.id || `ai-${hashId(text)}`).replace(/\s+/g, "-").slice(0, 120),
