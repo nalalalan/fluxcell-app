@@ -1926,6 +1926,8 @@ const seedNotes = [
   },
 ];
 
+const seedNoteIds = new Set(seedNotes.map((note) => note.id));
+
 let state = loadState();
 let sync = { status: "checking", base: "", root: "", deleteConfigured: false };
 let noteDraft = "";
@@ -1934,52 +1936,44 @@ let toastTimer = 0;
 const previewUrls = new Map();
 
 function loadState() {
-  const seeds = pendingSeedNotes();
   for (const key of [stateKey, legacyStateKey]) {
     try {
       const parsed = JSON.parse(localStorage.getItem(key) || "null");
       if (parsed && Array.isArray(parsed.notes) && Array.isArray(parsed.files)) {
-        return finalizeLoadedState({ notes: parsed.notes, files: parsed.files }, seeds);
+        return finalizeLoadedState({ notes: parsed.notes, files: parsed.files });
       }
     } catch (error) {
       console.warn(error);
     }
   }
-  return finalizeLoadedState({ notes: [], files: [] }, seeds);
+  return finalizeLoadedState({ notes: [], files: [] });
 }
 
-function pendingSeedNotes() {
-  const currentPack = localStorage.getItem(seedPackKey);
-  if (currentPack === seedPackVersion) return [];
-  const currentIndex = seedPackOrder.indexOf(currentPack);
-  if (currentIndex >= 0) {
-    const pendingPacks = new Set(seedPackOrder.slice(currentIndex + 1));
-    return seedNotes.filter((note) => pendingPacks.has(note.pack));
-  }
-  return seedNotes;
+function isSeedNote(note) {
+  return seedNoteIds.has(note?.id) || /^seed-/.test(String(note?.id || ""));
 }
 
-function finalizeLoadedState(next, seeds) {
-  if (!seeds.length) return next;
-  const seeded = { ...next, notes: mergeSeedNotes(next.notes, seeds) };
+function userNotes(notes) {
+  return (Array.isArray(notes) ? notes : []).filter((note) => !isSeedNote(note));
+}
+
+function finalizeLoadedState(next) {
+  const cleaned = {
+    notes: userNotes(next.notes),
+    files: Array.isArray(next.files) ? next.files.filter(isVisibleLibraryFile) : [],
+  };
   try {
     localStorage.setItem(seedPackKey, seedPackVersion);
-    localStorage.setItem(stateKey, JSON.stringify(seeded));
+    localStorage.setItem(stateKey, JSON.stringify(cleaned));
   } catch (error) {
     console.warn(error);
   }
-  return seeded;
-}
-
-function mergeSeedNotes(notes, seeds) {
-  const seedById = new Map(seeds.map((note) => [note.id, note]));
-  const updated = notes.map((note) => seedById.get(note.id) || note);
-  const existing = new Set(updated.map((note) => note.id));
-  const missing = seeds.filter((note) => !existing.has(note.id));
-  return [...missing, ...updated];
+  return cleaned;
 }
 
 function saveState() {
+  state.notes = userNotes(state.notes);
+  state.files = state.files.filter(isVisibleLibraryFile);
   localStorage.setItem(stateKey, JSON.stringify(state));
 }
 
@@ -2097,9 +2091,10 @@ function createTopbar() {
 
   const status = el("div", "status-strip");
   const fileCount = state.files.filter(isVisibleLibraryFile).length;
+  const noteCount = userNotes(state.notes).length;
   status.append(createStatusPill(syncLabel(), `sync sync-${sync.status}`));
   status.append(createStatusPill(`${fileCount} files`, "stat"));
-  status.append(createStatusPill(`${state.notes.length} notes`, "stat"));
+  status.append(createStatusPill(`${noteCount} notes`, "stat"));
 
   topbar.append(brand, status);
   return topbar;
@@ -2186,14 +2181,14 @@ function createNextPanel() {
 
 function generateNextStep() {
   const visibleFiles = state.files.filter(isVisibleLibraryFile);
-  const latestNotes = state.notes.slice(0, 2);
+  const latestNotes = userNotes(state.notes).slice(0, 2);
   const latestFiles = visibleFiles.slice(0, 3);
   const latestNoteText = String(latestNotes[0]?.text || "").toLowerCase();
   const text = [
     ...latestNotes.map((note) => note.text),
     ...latestFiles.map((file) => `${file.paperTitle || ""} ${file.name}`),
   ].join(" ").toLowerCase();
-  const phase = (state.notes.length + visibleFiles.length) % 3;
+  const phase = (latestNotes.length + visibleFiles.length) % 3;
 
   if (/force|gap|load|pull|stiff/.test(latestNoteText)) {
     return ["Run one force-gap sweep.", "Hold fixture constant; change one gap.", "Record force, gap, pulse, hold state."][phase];
@@ -2241,7 +2236,7 @@ function createLibrary() {
 }
 
 function libraryItems() {
-  const notes = state.notes.map((note) => ({
+  const notes = userNotes(state.notes).map((note) => ({
     ...note,
     type: "note",
     title: note.text,
