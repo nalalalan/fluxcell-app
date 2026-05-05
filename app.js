@@ -2652,13 +2652,19 @@ function createProjectStatePanel() {
 }
 
 function generateProjectState() {
-  const notes = userNotes(state.notes);
+  const approvedIdeas = approvedIdeaItems();
+  const approvedPapers = approvedPaperItems();
   const topics = activeProjectTopics(currentProjectText());
-  const topicText = topics.length ? topics.join(", ") : "one-cell EPM integration";
-  if (!notes.length) {
-    return `Current state: ${focus.current}`;
+  const terms = preferenceTerms(8);
+  const topicText = topics.length ? topics.join(", ") : "one-cell EPM actuation";
+  if (!approvedIdeas.length && !approvedPapers.length && !userNotes(state.notes).length) {
+    return `Selection profile: ${focus.current}`;
   }
-  return `Current state: ${topicText} around a laterally expanding Sarrus cell with embedded EPM actuation.`;
+  const recentIdeas = approvedIdeas.slice(0, 3).map((idea) => idea.reason).filter(Boolean);
+  const summaryTerms = terms.filter((term) => !["cell", "sarrus", "linkage", "paper"].includes(term)).slice(0, 6);
+  const preference = summaryTerms.length ? ` You keep circling ${joinNatural(summaryTerms)}.` : "";
+  const approvedSignal = recentIdeas.length ? ` Recent approvals point toward ${joinNatural([...new Set(recentIdeas)])}.` : "";
+  return `Selection profile: ${topicText} for a laterally expanding Sarrus cell with EPM actuation inside the printed architecture.${preference}${approvedSignal} Keep feeding it approvals and rejections; the feed should bias toward buildable one-cell proof, measured magnetic circuits, clean pulse/heat data, and papers with figures that change the next experiment. Approved bank: ${approvedIdeas.length} ideas, ${approvedPapers.length} papers.`;
 }
 
 function currentProjectText() {
@@ -2752,11 +2758,151 @@ function activeProjectTopics(text) {
 
 function allIdeaCandidates() {
   const seen = new Set();
-  return [...ideaGuideRules, ...dynamicIdeaTemplates].filter((idea) => {
+  return [...ideaGuideRules, ...dynamicIdeaTemplates, ...approvalDrivenIdeaCandidates()].filter((idea) => {
     if (!idea?.id || seen.has(idea.id)) return false;
     seen.add(idea.id);
     return true;
   });
+}
+
+function approvalDrivenIdeaCandidates() {
+  const terms = preferenceTerms(24)
+    .filter((term) => !["cell", "sarrus", "linkage", "paper"].includes(term))
+    .slice(0, 18);
+  const templates = [
+    {
+      id: "one-cell-test",
+      reason: "next test",
+      make: (term) => `Turn ${term} into a one-cell experiment with apparatus, one number, and pass/fail.`,
+      keywords: ["experiment", "one cell", "apparatus", "measurement"],
+    },
+    {
+      id: "paper-hunt",
+      reason: "paper hunt",
+      make: (term) => `Find a paper where ${term} is shown as a figure, table, or apparatus photo.`,
+      keywords: ["paper", "figure", "table", "apparatus"],
+    },
+    {
+      id: "fixture",
+      reason: "fixture",
+      make: (term) => `Make a fixture where ${term} is the only changed variable.`,
+      keywords: ["fixture", "variable", "repeatable", "test"],
+    },
+    {
+      id: "sarrus-coupling",
+      reason: "cell coupling",
+      make: (term) => `Ask how ${term} creates lateral width change in the Sarrus cell, not just magnetic attraction.`,
+      keywords: ["sarrus", "lateral", "width", "coupling"],
+    },
+    {
+      id: "trace",
+      reason: "evidence",
+      make: (term) => `Attach ${term} to a trace: current, temperature, force, width, or state.`,
+      keywords: ["trace", "current", "temperature", "force", "width"],
+    },
+    {
+      id: "failure",
+      reason: "failure mode",
+      make: (term) => `List the failure mode for ${term}: weak hold, no release, heating, slip, twist, or fracture.`,
+      keywords: ["failure", "hold", "release", "heat", "slip", "twist"],
+    },
+    {
+      id: "monolithic-route",
+      reason: "print route",
+      make: (term) => `Separate the inserted-core version of ${term} from the monolithically printed version.`,
+      keywords: ["monolithic", "insert", "printed", "core", "route"],
+    },
+    {
+      id: "decision-figure",
+      reason: "figure filter",
+      make: (term) => `Only keep a ${term} paper if one figure changes the next build decision.`,
+      keywords: ["paper", "figure", "decision", "build"],
+    },
+    {
+      id: "metric",
+      reason: "metric",
+      make: (term) => `Give ${term} a metric: force per volume, displacement per energy, or hold per heat rise.`,
+      keywords: ["metric", "force", "volume", "energy", "heat"],
+    },
+    {
+      id: "beautiful-object",
+      reason: "showcase object",
+      make: (term) => `Make ${term} visible in the object: section cut, clean silhouette, and one measured motion.`,
+      keywords: ["object", "section", "visible", "motion", "measurement"],
+    },
+  ];
+
+  return terms.flatMap((term, termIndex) => templates.map((template, templateIndex) => ({
+    id: `adaptive-${template.id}-${slugify(term)}`,
+    text: template.make(term),
+    reason: template.reason,
+    keywords: [term, ...template.keywords],
+    core: termIndex < 4 && templateIndex < 4,
+  })));
+}
+
+function preferenceTerms(limit = 12) {
+  const text = rawPreferenceText();
+  const vocabulary = [
+    "force", "air gap", "keeper", "yoke", "flux", "magnetic circuit", "coil", "pulse", "current", "heat",
+    "temperature", "energy", "width", "lateral", "sarrus", "linkage", "cell", "one cell", "bistable", "hold",
+    "release", "reset", "latch", "printed", "monolithic", "embedded", "cartridge", "core", "soft magnetic",
+    "hard magnet", "conductor", "hinge", "fixture", "coupon", "trace", "camera", "figure", "paper", "permeability",
+    "mechanical advantage", "rocker", "wedge", "repeatability", "failure", "zero power",
+  ];
+  const scored = vocabulary
+    .map((term) => ({ term, score: termScore(text, term) }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || a.term.localeCompare(b.term))
+    .map((item) => item.term);
+
+  const wordScores = new Map();
+  importantWords(text).forEach((word) => {
+    if (/adaptive|template|useful|approved|suggested/.test(word)) return;
+    wordScores.set(word, termScore(text, word));
+  });
+
+  const extras = [...wordScores]
+    .sort((a, b) => b[1] - a[1])
+    .map(([word]) => word)
+    .filter((word) => !scored.includes(word));
+
+  return [...scored, ...extras].slice(0, limit);
+}
+
+function rawPreferenceText() {
+  const baseIdeas = [...ideaGuideRules, ...dynamicIdeaTemplates]
+    .filter((idea) => ideaFeedbackValue(idea.id) === "useful")
+    .map((idea) => `${idea.text} ${idea.reason} ${(idea.keywords || []).join(" ")}`);
+  const approvedIdeaIds = Object.entries(ideaFeedback)
+    .filter(([, record]) => normalizeFeedbackRecord(record).value === "useful")
+    .map(([id]) => id.replace(/[-_]/g, " "));
+  const approvedPapers = state.files
+    .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file) && paperFeedbackValue(file.id) === "useful")
+    .map(paperSearchText);
+  const notes = userNotes(state.notes).slice(0, 32).map((note) => note.text);
+  return [`${focus.title} ${focus.current}`, ...baseIdeas, ...approvedIdeaIds, ...approvedPapers, ...notes].join(" ").toLowerCase();
+}
+
+function termScore(text, term) {
+  const escaped = String(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const matches = text.match(new RegExp(`\\b${escaped}\\b`, "g"));
+  return matches ? matches.length : 0;
+}
+
+function slugify(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48) || "idea";
+}
+
+function joinNatural(items) {
+  const values = items.filter(Boolean);
+  if (values.length <= 1) return values[0] || "";
+  if (values.length === 2) return `${values[0]} and ${values[1]}`;
+  return `${values.slice(0, -1).join(", ")}, and ${values.at(-1)}`;
 }
 
 function suggestionEntryId(entry) {
@@ -2872,28 +3018,13 @@ function createFocusLibrary() {
 
   const section = el("section", "focus-library useful-library");
   const head = el("div", "section-head section-head-row");
-  head.append(el("h2", "", "Useful"), createRefreshSuggestionsButton());
+  head.append(el("h2", "", "Feed"), createRefreshSuggestionsButton());
   section.append(head);
 
   const layout = el("div", "useful-layout");
-  if (approvedIdeas.length || approvedPapers.length) {
-    const approvedBlock = el("section", "useful-block approved-block");
-    approvedBlock.append(el("p", "section-label", "Approved"));
-    if (approvedIdeas.length) {
-      const approvedIdeaGrid = el("div", "ideas-grid approved-grid");
-      approvedIdeas.forEach((idea) => approvedIdeaGrid.append(createIdeaCard(idea)));
-      approvedBlock.append(approvedIdeaGrid);
-    }
-    if (approvedPapers.length) {
-      const approvedPaperGrid = el("div", "focus-grid approved-grid");
-      approvedPapers.forEach((item, index) => approvedPaperGrid.append(createFocusCard(item, index)));
-      approvedBlock.append(approvedPaperGrid);
-    }
-    layout.append(approvedBlock);
-  }
   if (ideas.length) {
     const ideaBlock = el("section", "useful-block");
-    ideaBlock.append(el("p", "section-label", `Suggested ideas (${ideas.length})`));
+    ideaBlock.append(el("p", "section-label", `Suggested notes (${ideas.length})`));
     const ideaGrid = el("div", "ideas-grid");
     ideas.forEach((idea) => ideaGrid.append(createIdeaCard(idea)));
     ideaBlock.append(ideaGrid);
@@ -2907,8 +3038,38 @@ function createFocusLibrary() {
     paperBlock.append(grid);
     layout.append(paperBlock);
   }
+  const approvedBank = createApprovedBank(approvedIdeas, approvedPapers);
+  if (approvedBank) layout.append(approvedBank);
   section.append(layout);
   return section;
+}
+
+function createApprovedBank(approvedIdeas, approvedPapers) {
+  if (!approvedIdeas.length && !approvedPapers.length) return null;
+  const total = approvedIdeas.length + approvedPapers.length;
+  const drawer = document.createElement("details");
+  drawer.className = "archive-drawer approved-drawer";
+  drawer.append(el("summary", "archive-summary", `Approved bank (${total})`));
+
+  const body = el("div", "approved-bank-body archive-grid");
+  if (approvedIdeas.length) {
+    const ideaBlock = el("section", "approved-bank-block");
+    ideaBlock.append(el("p", "section-label", `Notes (${approvedIdeas.length})`));
+    const ideaGrid = el("div", "ideas-grid approved-grid");
+    approvedIdeas.forEach((idea) => ideaGrid.append(createIdeaCard(idea)));
+    ideaBlock.append(ideaGrid);
+    body.append(ideaBlock);
+  }
+  if (approvedPapers.length) {
+    const paperBlock = el("section", "approved-bank-block");
+    paperBlock.append(el("p", "section-label", `Papers (${approvedPapers.length})`));
+    const paperGrid = el("div", "focus-grid approved-grid");
+    approvedPapers.forEach((item, index) => paperGrid.append(createFocusCard(item, index)));
+    paperBlock.append(paperGrid);
+    body.append(paperBlock);
+  }
+  drawer.append(body);
+  return drawer;
 }
 
 function createRefreshSuggestionsButton() {
