@@ -7,6 +7,8 @@ const ownerKey = "fluxcell.owner.delete.hash.v1";
 const legacyOwnerKey = "forge.owner.delete.hash.v1";
 const dbName = "forge-file-vault";
 const fileStore = "files";
+const feedbackKey = "fluxcell.paper.feedback.v1";
+const ideaFeedbackKey = "fluxcell.idea.feedback.v1";
 const seedPackKey = "fluxcell.seed-pack.v1";
 const baseSeedPackVersion = "2026-05-04-fluxcell";
 const integratedSeedPackVersion = "2026-05-04-fluxcell-integrated-epm";
@@ -57,30 +59,150 @@ const focus = {
   current: "Integrated EPM actuation in one laterally expanding cell.",
 };
 
-const focusPaperRules = [
+const paperGuideRules = [
   {
     match: /Knaian 2010|Electropermanent Magnetic Connectors/i,
     reason: "EPM actuator baseline",
+    keywords: ["epm", "electropermanent", "actuator", "latch", "hold", "release", "connector", "one cell"],
+    core: true,
   },
   {
     match: /Park 2020|Attractive Force Using an Electropermanent Magnet/i,
     reason: "Force vs. gap model",
+    keywords: ["force", "gap", "pull", "model", "air gap", "keeper", "yoke", "flux"],
+    core: true,
   },
   {
     match: /Johnson 2024|Compliant Electropermanent Magnets/i,
     reason: "Compliant EPM package",
+    keywords: ["compliant", "soft", "flexible", "embedded", "cell", "print", "monolithic"],
+    core: true,
   },
   {
     match: /Canada 2024|soft magnetic-cored solenoids/i,
     reason: "Printed coil and core route",
+    keywords: ["coil", "core", "solenoid", "printed", "soft magnetic", "conductor", "current"],
+    core: true,
   },
   {
     match: /Wang 2023|Sequential multi-material embedded/i,
     reason: "Embedded printing route",
+    keywords: ["embedded", "multimaterial", "monolithic", "print", "fabrication", "soft actuator"],
+    core: true,
   },
   {
     match: /Yang 2023|Linkage-based three-dimensional/i,
     reason: "Sarrus-cell kinematics",
+    keywords: ["sarrus", "linkage", "cell", "lateral", "expand", "kinematic", "poisson"],
+    core: true,
+  },
+  {
+    match: /Knaian 2012|Milli-Motein/i,
+    reason: "Module-scale EPM motion",
+    keywords: ["module", "pitch", "motor", "fold", "pivot", "chain", "cell"],
+  },
+  {
+    match: /Ntella 2023|Gholizadeh 2019|Gallentine 2024|Rus_Soft|s44172|EPM Valve|electropermanent magnet valve/i,
+    reason: "Low-power EPM switching",
+    keywords: ["valve", "pneumatic", "onboard", "switch", "zero power", "mrf", "fluid", "low power"],
+  },
+  {
+    match: /Compton 2017|Huber 2016|Jacimovic 2016|Li 2016|Domingo-Roca/i,
+    reason: "Printed permanent magnet reality",
+    keywords: ["printed magnet", "ndfeb", "hard magnet", "permanent magnet", "bonded magnet", "material"],
+  },
+  {
+    match: /Khatri 2018|Rodriguez-Vargas 2023|soft magnetic materials|soft-magnetic functional composite/i,
+    reason: "Printed soft magnetic path",
+    keywords: ["soft magnetic", "permeability", "iron", "flux", "core", "yoke", "keeper"],
+  },
+  {
+    match: /Choi 2026|Wen 2025|Pal 2023|bistable|mechanical memory/i,
+    reason: "Bistable actuation memory",
+    keywords: ["bistable", "memory", "snap", "amplified", "hold", "reset", "state"],
+  },
+  {
+    match: /CLOVER 2022|Sarrus Linkage|Son 2017/i,
+    reason: "Sarrus actuator precedent",
+    keywords: ["sarrus", "linkage", "jump", "capsule", "robot", "mechanism"],
+  },
+  {
+    match: /Wehner 2016|Zixiao 2025|Iyer 2023|Exley 2025|embedded actuation/i,
+    reason: "Integrated soft robot build",
+    keywords: ["integrated", "embedded", "actuation", "sensing", "monolithic", "soft robot"],
+  },
+  {
+    match: /Peng 2016|Li 2024|liquid metal coils|electromagnetic devices/i,
+    reason: "Printed electromagnetic routing",
+    keywords: ["electromagnetic", "coil", "wire", "liquid metal", "routing", "conductor"],
+  },
+];
+
+const ideaGuideRules = [
+  {
+    id: "one-cell-cassette",
+    text: "Make one cell-sized EPM cassette with hard gap stops and visible width markers.",
+    reason: "first proof object",
+    keywords: ["cell", "sarrus", "gap", "embedded", "cassette", "width", "lateral"],
+    core: true,
+  },
+  {
+    id: "force-gap-first",
+    text: "Run force vs. air-gap before changing the printed cell geometry.",
+    reason: "measurement first",
+    keywords: ["force", "gap", "keeper", "yoke", "pull", "load", "model"],
+    core: true,
+  },
+  {
+    id: "insert-now-print-last",
+    text: "Use inserted NdFeB and steel now; print magnetic materials after the force closes.",
+    reason: "material risk control",
+    keywords: ["printed", "magnet", "ndfeb", "steel", "material", "monolithic", "composite"],
+    core: true,
+  },
+  {
+    id: "short-gap-long-stroke",
+    text: "Use a rocker or wedge so short magnetic gap closure becomes lateral expansion.",
+    reason: "mechanism coupling",
+    keywords: ["sarrus", "linkage", "lateral", "expand", "rocker", "wedge", "stroke", "gap"],
+    core: true,
+  },
+  {
+    id: "pulse-table",
+    text: "Keep one pulse table: voltage, current, width change, hold, release, heat.",
+    reason: "clean evidence",
+    keywords: ["pulse", "current", "voltage", "heat", "hold", "release", "driver", "energy"],
+    core: true,
+  },
+  {
+    id: "bistable-switch",
+    text: "Consider EPM switching of a bistable cell instead of continuous magnetic pulling.",
+    reason: "zero-power state",
+    keywords: ["bistable", "memory", "snap", "state", "hold", "release", "reset", "zero power"],
+  },
+  {
+    id: "coil-out-of-hinge",
+    text: "Route coils and wires through low-strain regions, not through the Sarrus hinges.",
+    reason: "survivable integration",
+    keywords: ["coil", "wire", "routing", "hinge", "strain", "fatigue", "current"],
+  },
+  {
+    id: "null-cell",
+    text: "Build a dummy-magnet null cell so mass and friction cannot fake actuation.",
+    reason: "credible comparison",
+    keywords: ["test", "compare", "control", "dummy", "friction", "proof", "measurement"],
+  },
+  {
+    id: "paper-to-number",
+    text: "For each new paper, extract one number: gap, force, energy, turns, or material loading.",
+    reason: "literature becomes build input",
+    keywords: ["paper", "literature", "review", "reference", "number", "figure"],
+  },
+  {
+    id: "cutaway-figure",
+    text: "Aim for one cutaway figure: Sarrus linkage, EPM flux path, pulse trace, width trace.",
+    reason: "paper-quality evidence",
+    keywords: ["figure", "science", "paper", "cutaway", "trace", "evidence", "result"],
   },
 ];
 
@@ -1956,6 +2078,8 @@ const seedNotes = [
 const seedNoteIds = new Set(seedNotes.map((note) => note.id));
 
 let state = loadState();
+let paperFeedback = loadPaperFeedback();
+let ideaFeedback = loadIdeaFeedback();
 let sync = { status: "checking", base: "", root: "", deleteConfigured: false };
 let noteDraft = "";
 let pendingFiles = [];
@@ -2004,6 +2128,42 @@ function saveState() {
   localStorage.setItem(stateKey, JSON.stringify(state));
 }
 
+function loadPaperFeedback() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(feedbackKey) || "{}");
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (error) {
+    console.warn(error);
+    return {};
+  }
+}
+
+function savePaperFeedback() {
+  localStorage.setItem(feedbackKey, JSON.stringify(paperFeedback));
+}
+
+function paperFeedbackValue(id) {
+  return paperFeedback[id] || "";
+}
+
+function loadIdeaFeedback() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(ideaFeedbackKey) || "{}");
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (error) {
+    console.warn(error);
+    return {};
+  }
+}
+
+function saveIdeaFeedback() {
+  localStorage.setItem(ideaFeedbackKey, JSON.stringify(ideaFeedback));
+}
+
+function ideaFeedbackValue(id) {
+  return ideaFeedback[id] || "";
+}
+
 function el(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -2037,6 +2197,8 @@ function iconPath(name) {
     upload: "M12 21V9m0 0-5 5m5-5 5 5M5 3h14",
     spark: "M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Z",
     open: "M7 17 17 7M10 7h7v7M5 5v14h14",
+    check: "M20 6 9 17l-5-5",
+    x: "M18 6 6 18M6 6l12 12",
   }[name];
 }
 
@@ -2108,6 +2270,8 @@ function render() {
 function createShell() {
   const shell = el("main", "app-shell");
   shell.append(createTopbar(), createWorkspace());
+  const notes = createNotesSection();
+  if (notes) shell.append(notes);
   const focusLibrary = createFocusLibrary();
   if (focusLibrary) shell.append(focusLibrary);
   shell.append(createLibrary());
@@ -2146,8 +2310,8 @@ function createWorkspace() {
   const capture = el("section", "capture-panel");
   capture.append(createIntro(), createCaptureForm());
 
-  const thinking = el("aside", "next-panel");
-  thinking.append(createNextPanel());
+  const thinking = el("aside", "state-panel");
+  thinking.append(createProjectStatePanel());
 
   section.append(capture, thinking);
   return section;
@@ -2155,11 +2319,7 @@ function createWorkspace() {
 
 function createIntro() {
   const wrap = el("div", "intro");
-  wrap.append(el("p", "domain", focus.domain), el("h1", "", appName), el("p", "tagline", focus.title));
-
-  const current = el("p", "current-line");
-  current.append(el("span", "", "focus"), document.createTextNode(focus.current));
-  wrap.append(current);
+  wrap.append(el("h1", "", appName), el("p", "tagline", focus.title));
   return wrap;
 }
 
@@ -2203,62 +2363,142 @@ function createPendingList() {
   return wrap;
 }
 
-function createNextPanel() {
-  const panel = el("div", "next-card");
-  panel.append(el("p", "next-note", generateNextStep()));
+function createProjectStatePanel() {
+  const panel = el("div", "state-card");
+  panel.append(el("p", "state-note", generateProjectState()));
   return panel;
 }
 
-function generateNextStep() {
-  const visibleFiles = state.files.filter(isVisibleLibraryFile);
-  const latestNotes = userNotes(state.notes).slice(0, 2);
-  const latestFiles = visibleFiles.slice(0, 3);
-  const latestNoteText = String(latestNotes[0]?.text || "").toLowerCase();
-  const text = [
-    ...latestNotes.map((note) => note.text),
-    ...latestFiles.map((file) => `${file.paperTitle || ""} ${file.name}`),
-  ].join(" ").toLowerCase();
-  const phase = (latestNotes.length + visibleFiles.length) % 3;
+function generateProjectState() {
+  const notes = userNotes(state.notes);
+  const topics = activeProjectTopics(currentProjectText());
+  const topicText = topics.length ? topics.join(", ") : "one-cell EPM integration";
+  if (!notes.length) {
+    return `Current state: ${focus.current}`;
+  }
+  return `Current state: ${topicText} around a laterally expanding Sarrus cell with embedded EPM actuation.`;
+}
 
-  if (/force|gap|load|pull|stiff/.test(latestNoteText)) {
-    return ["Run one force-gap sweep.", "Hold fixture constant; change one gap.", "Record force, gap, pulse, hold state."][phase];
+function currentProjectText() {
+  const latestNotes = userNotes(state.notes).slice(0, 24).map((note) => note.text);
+  const latestFiles = state.files
+    .filter(isVisibleLibraryFile)
+    .slice(0, 12)
+    .map((file) => `${file.paperTitle || ""} ${file.name || ""}`);
+  return [focus.title, focus.current, ...latestNotes, ...latestFiles].join(" ").toLowerCase();
+}
+
+function activeProjectTopics(text) {
+  const topics = [];
+  if (/sarrus|linkage|cell|lateral|width|expand|kinematic|poisson/.test(text)) topics.push("cell mechanics");
+  if (/force|gap|pull|load|keeper|yoke|flux|magnetic circuit|air gap|permeab/.test(text)) topics.push("magnetic circuit");
+  if (/coil|pulse|current|driver|heat|energy|wire|conductor/.test(text)) topics.push("pulse and coil behavior");
+  if (/print|printed|monolithic|embedded|multimaterial|material|composite|core/.test(text)) topics.push("printed integration");
+  if (/bistable|memory|snap|hold|release|reset|latch|state/.test(text)) topics.push("state memory");
+  if (/paper|literature|reference|review|science|article/.test(text)) topics.push("paper search");
+  return topics.slice(0, 3);
+}
+
+function usefulIdeaItems() {
+  const projectText = currentProjectText();
+  const scored = ideaGuideRules
+    .map((idea) => scoreIdeaForProject(idea, projectText))
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score);
+  const usefulCount = scored.filter((entry) => entry.feedback === "useful").length;
+  const target = Math.max(4, Math.min(6, usefulCount || 4));
+  const selected = [];
+
+  scored.forEach((entry) => {
+    if (entry.feedback === "useful" || selected.length < target) {
+      selected.push(entry.idea);
+    }
+  });
+
+  return selected;
+}
+
+function scoreIdeaForProject(idea, projectText) {
+  const feedback = ideaFeedbackValue(idea.id);
+  if (feedback === "not-useful") return null;
+
+  const keywordHits = (idea.keywords || []).filter((word) => projectText.includes(word)).length;
+  let score = feedback === "useful" ? 100 : 0;
+  score += idea.core ? 8 : 0;
+  score += keywordHits * 7;
+  if (!userNotes(state.notes).length && !idea.core && feedback !== "useful") return null;
+
+  return {
+    idea: { ...idea, feedback },
+    score,
+    feedback,
+  };
+}
+
+function createNotesSection() {
+  const notes = userNotes(state.notes);
+  if (!notes.length) return null;
+
+  const section = el("section", "notes-library");
+  const head = el("div", "section-head");
+  head.append(el("h2", "", "Notes"));
+  section.append(head);
+
+  const grid = el("div", "notes-grid");
+  notes.slice(0, 8).forEach((note) => grid.append(createNoteCard({
+    ...note,
+    type: "note",
+    title: note.text,
+    meta: formatDate(note.createdAt),
+  })));
+  section.append(grid);
+
+  const older = notes.slice(8);
+  if (older.length) {
+    const drawer = document.createElement("details");
+    drawer.className = "archive-drawer notes-drawer";
+    drawer.append(el("summary", "archive-summary", `Older notes (${older.length})`));
+    const olderGrid = el("div", "notes-grid archive-grid");
+    older.forEach((note) => olderGrid.append(createNoteCard({
+      ...note,
+      type: "note",
+      title: note.text,
+      meta: formatDate(note.createdAt),
+    })));
+    drawer.append(olderGrid);
+    section.append(drawer);
   }
-  if (/heat|coil|pulse|current|driver|energy/.test(latestNoteText)) {
-    return ["Log pulse width, current, heat.", "Separate switching from temperature.", "One pulse test before geometry changes."][phase];
-  }
-  if (/cad|print|fixture|mount|core|magnet/.test(latestNoteText)) {
-    return ["Make the gap repeatable.", "Print only the fixture needed for one test.", "Remove alignment doubt first."][phase];
-  }
-  if (/latch|hold|release|polarity|switch/.test(latestNoteText)) {
-    return ["Make the latch/release table.", "Test hold, release, reset.", "One cell-sized latch cycle."][phase];
-  }
-  if (latestFiles.some(isPaperFile)) {
-    return [
-      "Extract one build constraint from the newest paper.",
-      "Pull one geometry, one drive condition, one number.",
-      "Turn the newest paper into a single EPM test.",
-    ][phase];
-  }
-  if (/force|gap|load|pull|stiff/.test(text)) return ["Run one force-gap sweep.", "Hold fixture constant; change one gap.", "Record force, gap, pulse, hold state."][phase];
-  if (/heat|coil|pulse|current|driver|energy/.test(text)) return ["Log pulse width, current, heat.", "Separate switching from temperature.", "One pulse test before geometry changes."][phase];
-  if (/cad|print|fixture|mount|core|magnet/.test(text)) return ["Make the gap repeatable.", "Print only the fixture needed for one test.", "Remove alignment doubt first."][phase];
-  if (/latch|hold|release|polarity|switch/.test(text)) return ["Make the latch/release table.", "Test hold, release, reset.", "One cell-sized latch cycle."][phase];
-  if (!visibleFiles.length) return ["Save one piece of evidence.", "Add a photo, CAD, paper, or force plot.", "One input, one next test."][phase];
-  return ["One measurable EPM latch test.", "Keep the next test cell-sized.", "One variable, one result."][phase];
+  return section;
 }
 
 function createFocusLibrary() {
-  const items = focusPaperItems();
-  if (!items.length) return null;
+  const ideas = usefulIdeaItems();
+  const papers = focusPaperItems();
+  if (!ideas.length && !papers.length) return null;
 
-  const section = el("section", "focus-library");
+  const section = el("section", "focus-library useful-library");
   const head = el("div", "section-head");
-  head.append(el("h2", "", "Figures"));
+  head.append(el("h2", "", "Useful"));
   section.append(head);
 
-  const grid = el("div", "focus-grid");
-  items.forEach((item, index) => grid.append(createFocusCard(item, index)));
-  section.append(grid);
+  const layout = el("div", "useful-layout");
+  if (ideas.length) {
+    const ideaBlock = el("section", "useful-block");
+    ideaBlock.append(el("p", "section-label", "Ideas"));
+    const ideaGrid = el("div", "ideas-grid");
+    ideas.forEach((idea) => ideaGrid.append(createIdeaCard(idea)));
+    ideaBlock.append(ideaGrid);
+    layout.append(ideaBlock);
+  }
+  if (papers.length) {
+    const paperBlock = el("section", "useful-block");
+    paperBlock.append(el("p", "section-label", "Papers"));
+    const grid = el("div", "focus-grid");
+    papers.forEach((item, index) => grid.append(createFocusCard(item, index)));
+    paperBlock.append(grid);
+    layout.append(paperBlock);
+  }
+  section.append(layout);
   return section;
 }
 
@@ -2272,7 +2512,7 @@ function createLibrary() {
 
   const drawer = document.createElement("details");
   drawer.className = "archive-drawer";
-  const summary = el("summary", "archive-summary", `Everything (${items.length})`);
+  const summary = el("summary", "archive-summary", `All files (${items.length})`);
   const grid = el("div", "library-grid archive-grid");
   items.forEach((item, index) => grid.append(createItemCard(item, index)));
   drawer.append(summary, grid);
@@ -2281,25 +2521,13 @@ function createLibrary() {
 }
 
 function libraryItems() {
-  const notes = userNotes(state.notes).map((note) => ({
-    ...note,
-    type: "note",
-    title: note.text,
-    meta: formatDate(note.createdAt),
-  }));
-
-  const files = state.files.filter(isVisibleLibraryFile).map((file) => ({
+  return state.files.filter(isVisibleLibraryFile).map((file) => ({
     ...file,
     type: "file",
     title: isPaperFile(file) ? paperDisplayTitle(file) : file.name,
     kind: file.kind || classifyFile(file),
     meta: fileMeta(file),
-  }));
-
-  const saved = [...notes, ...files]
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-  return saved;
+  })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 function paperSearchText(file) {
@@ -2320,17 +2548,59 @@ function focusPaperItems() {
   const papers = state.files
     .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file))
     .map(paperItem);
-  const used = new Set();
-  const focused = focusPaperRules
-    .map((rule) => {
-      const file = papers.find((paper) => !used.has(paper.id) && rule.match.test(paperSearchText(paper)));
-      if (!file) return null;
-      used.add(file.id);
-      return { ...file, focusReason: rule.reason };
-    })
-    .filter(Boolean);
+  const scored = papers
+    .map((paper) => scorePaperForProject(paper))
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score || new Date(b.paper.createdAt) - new Date(a.paper.createdAt));
+  const usefulCount = scored.filter((entry) => entry.feedback === "useful").length;
+  const target = Math.max(6, Math.min(10, usefulCount || 6));
+  const selected = [];
 
-  return focused.length ? focused : papers.slice(0, 6);
+  scored.forEach((entry) => {
+    if (entry.feedback === "useful" || selected.length < target) {
+      selected.push({ ...entry.paper, focusReason: entry.reason });
+    }
+  });
+
+  return selected;
+}
+
+function scorePaperForProject(paper) {
+  const feedback = paperFeedbackValue(paper.id);
+  if (feedback === "not-useful") return null;
+
+  const projectText = currentProjectText();
+  const search = paperSearchText(paper).toLowerCase();
+  let score = feedback === "useful" ? 100 : 0;
+  let bestReason = feedback === "useful" ? "Marked useful" : "";
+  let bestReasonScore = 0;
+
+  paperGuideRules.forEach((rule) => {
+    if (!rule.match.test(paperSearchText(paper))) return;
+    const keywordHits = (rule.keywords || []).filter((word) => projectText.includes(word)).length;
+    const ruleScore = (rule.core ? 8 : 2) + keywordHits * 7;
+    score += ruleScore;
+    if (ruleScore > bestReasonScore) {
+      bestReason = rule.reason;
+      bestReasonScore = ruleScore;
+    }
+  });
+
+  const words = importantWords(projectText);
+  const overlap = words.filter((word) => search.includes(word)).slice(0, 14).length;
+  score += overlap;
+
+  if (/electropermanent|epm|sarrus|linkage|printed|embedded|monolithic|magnetic/.test(search)) score += 3;
+  if (!bestReason && overlap) bestReason = "Matches notes";
+  if (!bestReason) bestReason = "Reference";
+
+  return { paper, score, reason: bestReason, feedback };
+}
+
+function importantWords(text) {
+  const stop = new Set(["about", "after", "again", "also", "based", "because", "before", "being", "build", "could", "from", "have", "into", "like", "make", "more", "need", "notes", "paper", "papers", "should", "that", "then", "there", "thing", "this", "want", "with"]);
+  return [...new Set(String(text || "").toLowerCase().match(/[a-z0-9]{4,}/g) || [])]
+    .filter((word) => !stop.has(word));
 }
 
 function fileMeta(file) {
@@ -2351,6 +2621,19 @@ function createNoteCard(note) {
   return card;
 }
 
+function createIdeaCard(idea) {
+  const feedback = ideaFeedbackValue(idea.id);
+  const card = el("article", `item-card idea-card${feedback === "useful" ? " paper-kept" : ""}`);
+  const body = el("div", "item-body");
+  body.append(el("p", "item-title", idea.text), el("p", "item-meta", idea.reason));
+  const actions = createActions([
+    { action: "idea-feedback", id: idea.id, value: "useful", title: "Useful", iconName: "check", className: "feedback-useful", active: feedback === "useful" },
+    { action: "idea-feedback", id: idea.id, value: "not-useful", title: "Not useful", iconName: "x", className: "feedback-not-useful", active: feedback === "not-useful" },
+  ]);
+  card.append(body, actions);
+  return card;
+}
+
 function createFocusCard(file, index) {
   const card = createFileCard(file, index);
   card.classList.add("focus-card");
@@ -2362,6 +2645,9 @@ function createFocusCard(file, index) {
 function createFileCard(file, index) {
   const kind = file.kind || classifyFile(file);
   const card = el("article", `item-card file-card ${kind === "paper" ? "paper-card" : ""}${isImageFile(file) ? " image-card" : ""}`);
+  const feedback = paperFeedbackValue(file.id);
+  if (feedback === "not-useful") card.classList.add("paper-dismissed");
+  if (feedback === "useful") card.classList.add("paper-kept");
   if (kind === "paper") {
     card.dataset.openFile = file.id;
     card.tabIndex = 0;
@@ -2409,6 +2695,8 @@ function createFileCard(file, index) {
   const actions = createActions(kind === "paper"
     ? [
       { action: "open-file", id: file.id, title: "Open", iconName: "open" },
+      { action: "paper-feedback", id: file.id, value: "useful", title: "Useful", iconName: "check", className: "feedback-useful", active: feedback === "useful" },
+      { action: "paper-feedback", id: file.id, value: "not-useful", title: "Not useful", iconName: "x", className: "feedback-not-useful", active: feedback === "not-useful" },
       { action: "delete", id: file.id, title: "Delete", iconName: "trash", danger: true },
     ]
     : [
@@ -2422,11 +2710,12 @@ function createFileCard(file, index) {
 function createActions(items) {
   const actions = el("div", "item-actions");
   items.forEach((item) => {
-    const button = el("button", `icon-button${item.danger ? " danger" : ""}`);
+    const button = el("button", `icon-button${item.className ? ` ${item.className}` : ""}${item.active ? " active" : ""}${item.danger ? " danger" : ""}`);
     button.type = "button";
     button.title = item.title;
     button.dataset.action = item.action;
     button.dataset.id = item.id;
+    if (item.value) button.dataset.value = item.value;
     button.append(icon(item.iconName));
     actions.append(button);
   });
@@ -2507,6 +2796,12 @@ function bind() {
   });
   root.querySelectorAll("[data-action='open-file']").forEach((button) => {
     button.addEventListener("click", () => openFile(button.dataset.id));
+  });
+  root.querySelectorAll("[data-action='paper-feedback']").forEach((button) => {
+    button.addEventListener("click", () => setPaperFeedback(button.dataset.id, button.dataset.value));
+  });
+  root.querySelectorAll("[data-action='idea-feedback']").forEach((button) => {
+    button.addEventListener("click", () => setIdeaFeedback(button.dataset.id, button.dataset.value));
   });
   root.querySelectorAll("[data-action='delete']").forEach((button) => {
     button.addEventListener("click", () => deleteFile(button.dataset.id));
@@ -2727,6 +3022,32 @@ async function downloadFile(id) {
   URL.revokeObjectURL(url);
 }
 
+function setPaperFeedback(id, value) {
+  if (!id || !["useful", "not-useful"].includes(value)) return;
+  const wasActive = paperFeedback[id] === value;
+  if (paperFeedback[id] === value) {
+    delete paperFeedback[id];
+  } else {
+    paperFeedback[id] = value;
+  }
+  savePaperFeedback();
+  render();
+  toast(wasActive ? "Rating cleared." : value === "useful" ? "Kept in useful papers." : "Removed from useful papers.");
+}
+
+function setIdeaFeedback(id, value) {
+  if (!id || !["useful", "not-useful"].includes(value)) return;
+  const wasActive = ideaFeedback[id] === value;
+  if (ideaFeedback[id] === value) {
+    delete ideaFeedback[id];
+  } else {
+    ideaFeedback[id] = value;
+  }
+  saveIdeaFeedback();
+  render();
+  toast(wasActive ? "Rating cleared." : value === "useful" ? "Kept idea." : "Removed idea.");
+}
+
 async function deleteFile(id) {
   const file = state.files.find((item) => item.id === id);
   if (!file) return;
@@ -2760,6 +3081,8 @@ async function deleteFile(id) {
   }
 
   state.files = state.files.filter((item) => item.id !== id);
+  delete paperFeedback[id];
+  savePaperFeedback();
   saveState();
   render();
   toast("Deleted.");

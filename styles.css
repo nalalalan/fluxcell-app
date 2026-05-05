@@ -112,14 +112,15 @@ a {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, .65fr);
+  gap: 16px;
   align-items: start;
-  padding: 26px 0 20px;
+  padding: 16px 0 12px;
 }
 
 .capture-panel,
-.next-panel,
+.state-panel,
+.notes-library,
 .focus-library,
 .library {
   min-width: 0;
@@ -127,7 +128,7 @@ a {
 
 .intro {
   max-width: 780px;
-  margin-bottom: 18px;
+  margin-bottom: 10px;
 }
 
 .domain,
@@ -147,16 +148,16 @@ p {
 }
 
 h1 {
-  font-size: clamp(34px, 4vw, 48px);
+  font-size: clamp(30px, 3vw, 38px);
   font-weight: 900;
   line-height: .96;
 }
 
 .tagline {
   max-width: 620px;
-  margin-top: 8px;
+  margin-top: 6px;
   color: var(--muted);
-  font-size: clamp(16px, 1.45vw, 19px);
+  font-size: clamp(15px, 1.2vw, 17px);
   font-weight: 590;
   line-height: 1.35;
 }
@@ -199,7 +200,7 @@ h1 {
 
 .note-input {
   width: 100%;
-  min-height: 86px;
+  min-height: 72px;
   resize: vertical;
   border: 0;
   border-bottom: 1px solid rgba(255, 255, 255, .08);
@@ -292,7 +293,7 @@ h1 {
   white-space: nowrap;
 }
 
-.next-panel {
+.state-panel {
   margin-top: 2px;
   border-left: 1px solid rgba(255, 250, 240, .16);
   padding: 2px 0 2px 14px;
@@ -305,13 +306,14 @@ h1 {
   line-height: 1.05;
 }
 
-.next-note {
+.state-note {
   color: var(--muted);
   font-size: 15px;
   font-weight: 650;
   line-height: 1.45;
 }
 
+.notes-library,
 .focus-library,
 .library {
   border-top: 1px solid var(--line);
@@ -338,6 +340,27 @@ h1 {
 .library-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.useful-layout {
+  display: grid;
+  gap: 22px;
+}
+
+.useful-block {
+  min-width: 0;
+}
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ideas-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -416,6 +439,18 @@ h1 {
 .note-card {
   min-height: 140px;
   padding: 16px 56px 16px 16px;
+}
+
+.notes-library .note-card {
+  min-height: 116px;
+}
+
+.idea-card {
+  min-height: 118px;
+}
+
+.idea-card .item-body {
+  padding-right: 82px;
 }
 
 .item-text,
@@ -568,10 +603,36 @@ h1 {
   color: var(--cyan);
 }
 
+.icon-button.active {
+  background: rgba(104, 214, 200, .12);
+}
+
+.icon-button.feedback-useful.active,
+.icon-button.feedback-useful:hover,
+.icon-button.feedback-useful:focus-visible {
+  border-color: rgba(141, 231, 155, .7);
+  color: var(--green);
+}
+
+.icon-button.feedback-not-useful.active,
+.icon-button.feedback-not-useful:hover,
+.icon-button.feedback-not-useful:focus-visible {
+  border-color: rgba(244, 106, 95, .72);
+  color: var(--red);
+}
+
 .icon-button.danger:hover,
 .icon-button.danger:focus-visible {
   border-color: rgba(244, 106, 95, .72);
   color: var(--red);
+}
+
+.paper-kept {
+  border-color: rgba(141, 231, 155, .32);
+}
+
+.paper-dismissed {
+  opacity: .48;
 }
 
 svg {
@@ -599,9 +660,17 @@ svg {
 
 @media (max-width: 900px) {
   .workspace,
+  .ideas-grid,
+  .notes-grid,
   .focus-grid,
   .library-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .state-panel {
+    border-left: 0;
+    border-top: 1px solid rgba(255, 250, 240, .16);
+    padding: 12px 0 0;
   }
 
   .focus-card {
@@ -634,7 +703,7 @@ svg {
   }
 
   h1 {
-    font-size: 36px;
+    font-size: 34px;
   }
 
   .tagline {
@@ -642,7 +711,7 @@ svg {
   }
 
   .note-input {
-    min-height: 96px;
+    min-height: 84px;
     font-size: 16px;
   }
 
