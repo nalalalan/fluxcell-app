@@ -2252,8 +2252,7 @@ function libraryItems() {
   }));
 
   const saved = [...notes, ...files]
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 12);
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   return saved;
 }
