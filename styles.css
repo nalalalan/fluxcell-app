@@ -224,6 +224,7 @@ h1 {
 
 .file-inline,
 .save-button,
+.refresh-button,
 .icon-button {
   display: inline-flex;
   align-items: center;
@@ -337,6 +338,29 @@ h1 {
   margin-bottom: 14px;
 }
 
+.section-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.refresh-button {
+  min-height: 34px;
+  gap: 7px;
+  padding: 0 12px;
+  background: rgba(255, 250, 240, .045);
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.refresh-button:hover,
+.refresh-button:focus-visible {
+  border-color: rgba(104, 214, 200, .7);
+  color: var(--cyan);
+}
+
 .library-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -371,7 +395,7 @@ h1 {
 
 .ideas-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -461,7 +485,7 @@ h1 {
 }
 
 .idea-card .item-body {
-  padding-right: 82px;
+  padding-right: 126px;
 }
 
 .item-text,
@@ -630,6 +654,12 @@ h1 {
 .icon-button.feedback-not-useful:focus-visible {
   border-color: rgba(244, 106, 95, .72);
   color: var(--red);
+}
+
+.icon-button.feedback-skip:hover,
+.icon-button.feedback-skip:focus-visible {
+  border-color: rgba(230, 179, 77, .7);
+  color: var(--amber);
 }
 
 .icon-button.danger:hover,
