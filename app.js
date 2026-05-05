@@ -2142,8 +2142,24 @@ function savePaperFeedback() {
   localStorage.setItem(feedbackKey, JSON.stringify(paperFeedback));
 }
 
+function feedbackRecord(store, id) {
+  const record = store[id];
+  return normalizeFeedbackRecord(record);
+}
+
+function normalizeFeedbackRecord(record) {
+  if (!record) return { value: "", updatedAt: "" };
+  if (typeof record === "string") return { value: record, updatedAt: "" };
+  if (typeof record === "object") return { value: record.value || "", updatedAt: record.updatedAt || "" };
+  return { value: "", updatedAt: "" };
+}
+
 function paperFeedbackValue(id) {
-  return paperFeedback[id] || "";
+  return feedbackRecord(paperFeedback, id).value;
+}
+
+function paperFeedbackUpdatedAt(id) {
+  return feedbackRecord(paperFeedback, id).updatedAt;
 }
 
 function loadIdeaFeedback() {
@@ -2161,7 +2177,11 @@ function saveIdeaFeedback() {
 }
 
 function ideaFeedbackValue(id) {
-  return ideaFeedback[id] || "";
+  return feedbackRecord(ideaFeedback, id).value;
+}
+
+function ideaFeedbackUpdatedAt(id) {
+  return feedbackRecord(ideaFeedback, id).updatedAt;
 }
 
 function el(tag, className, text) {
@@ -2380,12 +2400,35 @@ function generateProjectState() {
 }
 
 function currentProjectText() {
+  return weightedContextSources().map((source) => source.text).join(" ").toLowerCase();
+}
+
+function weightedContextSources() {
   const latestNotes = userNotes(state.notes).slice(0, 24).map((note) => note.text);
   const latestFiles = state.files
     .filter(isVisibleLibraryFile)
     .slice(0, 12)
     .map((file) => `${file.paperTitle || ""} ${file.name || ""}`);
-  return [focus.title, focus.current, approvedContextText(), ...latestNotes, ...latestFiles].join(" ").toLowerCase();
+  const approvedIdeas = ideaGuideRules
+    .filter((idea) => ideaFeedbackValue(idea.id) === "useful")
+    .map((idea) => ({
+      text: `${idea.text} ${idea.reason} ${(idea.keywords || []).join(" ")}`,
+      weight: approvalWeight(ideaFeedbackUpdatedAt(idea.id), 16),
+    }));
+  const approvedPapers = state.files
+    .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file) && paperFeedbackValue(file.id) === "useful")
+    .map((file) => ({
+      text: paperSearchText(file),
+      weight: approvalWeight(paperFeedbackUpdatedAt(file.id), 15),
+    }));
+
+  return [
+    { text: `${focus.title} ${focus.current}`, weight: 5 },
+    ...approvedIdeas,
+    ...approvedPapers,
+    ...latestNotes.map((text, index) => ({ text, weight: recentNoteWeight(index) })),
+    ...latestFiles.map((text, index) => ({ text, weight: Math.max(1.4, 3.4 - index * 0.18) })),
+  ];
 }
 
 function approvedContextText() {
@@ -2396,6 +2439,42 @@ function approvedContextText() {
     .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file) && paperFeedbackValue(file.id) === "useful")
     .map(paperSearchText);
   return [...approvedIdeas, ...approvedPapers].join(" ");
+}
+
+function recentNoteWeight(index) {
+  return Math.max(3.5, 18 * Math.pow(0.82, index));
+}
+
+function approvalWeight(updatedAt, base) {
+  if (!updatedAt) return base * 0.55;
+  const date = new Date(updatedAt);
+  if (Number.isNaN(date.getTime())) return base * 0.55;
+  const ageDays = Math.max(0, (Date.now() - date.getTime()) / 86400000);
+  return Math.max(4, base * Math.exp(-ageDays / 18));
+}
+
+function contextKeywordScore(keywords) {
+  const sources = weightedContextSources();
+  return (keywords || []).reduce((total, keyword) => {
+    const needle = String(keyword || "").toLowerCase();
+    if (!needle) return total;
+    return total + sources.reduce((sum, source) => (
+      String(source.text || "").toLowerCase().includes(needle) ? sum + source.weight : sum
+    ), 0);
+  }, 0);
+}
+
+function weightedImportantWords() {
+  const stop = importantStopWords();
+  const scores = new Map();
+  weightedContextSources().forEach((source) => {
+    const words = String(source.text || "").toLowerCase().match(/[a-z0-9]{4,}/g) || [];
+    words.forEach((word) => {
+      if (stop.has(word)) return;
+      scores.set(word, (scores.get(word) || 0) + source.weight);
+    });
+  });
+  return scores;
 }
 
 function activeProjectTopics(text) {
@@ -2410,9 +2489,8 @@ function activeProjectTopics(text) {
 }
 
 function usefulIdeaItems() {
-  const projectText = currentProjectText();
   const scored = ideaGuideRules
-    .map((idea) => scoreIdeaForProject(idea, projectText))
+    .map((idea) => scoreIdeaForProject(idea))
     .filter(Boolean)
     .sort((a, b) => b.score - a.score);
 
@@ -2422,15 +2500,15 @@ function usefulIdeaItems() {
     .map((entry) => entry.idea);
 }
 
-function scoreIdeaForProject(idea, projectText) {
+function scoreIdeaForProject(idea) {
   const feedback = ideaFeedbackValue(idea.id);
   if (feedback === "not-useful") return null;
 
-  const keywordHits = (idea.keywords || []).filter((word) => projectText.includes(word)).length;
+  const keywordScore = contextKeywordScore(idea.keywords);
   let score = feedback === "useful" ? 100 : 0;
   score += idea.core ? 8 : 0;
-  score += keywordHits * 7;
-  if (!userNotes(state.notes).length && !idea.core && feedback !== "useful") return null;
+  score += keywordScore;
+  if (!hasGuidanceContext() && !idea.core && feedback !== "useful") return null;
 
   return {
     idea: { ...idea, feedback },
@@ -2442,7 +2520,14 @@ function scoreIdeaForProject(idea, projectText) {
 function approvedIdeaItems() {
   return ideaGuideRules
     .filter((idea) => ideaFeedbackValue(idea.id) === "useful")
-    .map((idea) => ({ ...idea, feedback: "useful" }));
+    .map((idea) => ({ ...idea, feedback: "useful", approvedAt: ideaFeedbackUpdatedAt(idea.id) }))
+    .sort((a, b) => feedbackTime(b.approvedAt) - feedbackTime(a.approvedAt));
+}
+
+function hasGuidanceContext() {
+  return userNotes(state.notes).length
+    || Object.values(ideaFeedback).some((record) => normalizeFeedbackRecord(record).value === "useful")
+    || Object.values(paperFeedback).some((record) => normalizeFeedbackRecord(record).value === "useful");
 }
 
 function createNotesSection() {
@@ -2587,15 +2672,14 @@ function focusPaperItems() {
 function approvedPaperItems() {
   return state.files
     .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file) && paperFeedbackValue(file.id) === "useful")
-    .map((file) => ({ ...paperItem(file), focusReason: "Approved" }))
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    .map((file) => ({ ...paperItem(file), focusReason: "Approved", approvedAt: paperFeedbackUpdatedAt(file.id) }))
+    .sort((a, b) => feedbackTime(b.approvedAt) - feedbackTime(a.approvedAt) || new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 function scorePaperForProject(paper) {
   const feedback = paperFeedbackValue(paper.id);
   if (feedback === "not-useful") return null;
 
-  const projectText = currentProjectText();
   const search = paperSearchText(paper).toLowerCase();
   let score = feedback === "useful" ? 100 : 0;
   let bestReason = feedback === "useful" ? "Marked useful" : "";
@@ -2603,8 +2687,7 @@ function scorePaperForProject(paper) {
 
   paperGuideRules.forEach((rule) => {
     if (!rule.match.test(paperSearchText(paper))) return;
-    const keywordHits = (rule.keywords || []).filter((word) => projectText.includes(word)).length;
-    const ruleScore = (rule.core ? 8 : 2) + keywordHits * 7;
+    const ruleScore = (rule.core ? 8 : 2) + contextKeywordScore(rule.keywords);
     score += ruleScore;
     if (ruleScore > bestReasonScore) {
       bestReason = rule.reason;
@@ -2612,21 +2695,33 @@ function scorePaperForProject(paper) {
     }
   });
 
-  const words = importantWords(projectText);
-  const overlap = words.filter((word) => search.includes(word)).slice(0, 14).length;
-  score += overlap;
+  const wordOverlap = [...weightedImportantWords()]
+    .filter(([word]) => search.includes(word))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 14)
+    .reduce((sum, [, weight]) => sum + weight * 0.2, 0);
+  score += wordOverlap;
 
   if (/electropermanent|epm|sarrus|linkage|printed|embedded|monolithic|magnetic/.test(search)) score += 3;
-  if (!bestReason && overlap) bestReason = "Matches notes";
+  if (!bestReason && wordOverlap) bestReason = "Matches notes";
   if (!bestReason) bestReason = "Reference";
 
   return { paper, score, reason: bestReason, feedback };
 }
 
 function importantWords(text) {
-  const stop = new Set(["about", "after", "again", "also", "based", "because", "before", "being", "build", "could", "from", "have", "into", "like", "make", "more", "need", "notes", "paper", "papers", "should", "that", "then", "there", "thing", "this", "want", "with"]);
+  const stop = importantStopWords();
   return [...new Set(String(text || "").toLowerCase().match(/[a-z0-9]{4,}/g) || [])]
     .filter((word) => !stop.has(word));
+}
+
+function importantStopWords() {
+  return new Set(["about", "after", "again", "also", "based", "because", "before", "being", "build", "could", "from", "have", "into", "like", "make", "more", "need", "notes", "paper", "papers", "should", "that", "then", "there", "thing", "this", "want", "with"]);
+}
+
+function feedbackTime(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
 }
 
 function fileMeta(file) {
@@ -3050,11 +3145,11 @@ async function downloadFile(id) {
 
 function setPaperFeedback(id, value) {
   if (!id || !["useful", "not-useful"].includes(value)) return;
-  const wasActive = paperFeedback[id] === value;
-  if (paperFeedback[id] === value) {
+  const wasActive = paperFeedbackValue(id) === value;
+  if (wasActive) {
     delete paperFeedback[id];
   } else {
-    paperFeedback[id] = value;
+    paperFeedback[id] = { value, updatedAt: new Date().toISOString() };
   }
   savePaperFeedback();
   render();
@@ -3063,11 +3158,11 @@ function setPaperFeedback(id, value) {
 
 function setIdeaFeedback(id, value) {
   if (!id || !["useful", "not-useful"].includes(value)) return;
-  const wasActive = ideaFeedback[id] === value;
-  if (ideaFeedback[id] === value) {
+  const wasActive = ideaFeedbackValue(id) === value;
+  if (wasActive) {
     delete ideaFeedback[id];
   } else {
-    ideaFeedback[id] = value;
+    ideaFeedback[id] = { value, updatedAt: new Date().toISOString() };
   }
   saveIdeaFeedback();
   render();
