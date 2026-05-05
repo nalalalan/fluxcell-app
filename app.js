@@ -2150,7 +2150,7 @@ function feedbackRecord(store, id) {
 function normalizeFeedbackRecord(record) {
   if (!record) return { value: "", updatedAt: "" };
   if (typeof record === "string") return { value: record, updatedAt: "" };
-  if (typeof record === "object") return { value: record.value || "", updatedAt: record.updatedAt || "" };
+  if (typeof record === "object") return { value: record.value || "", updatedAt: record.updatedAt || "", reason: record.reason || "" };
   return { value: "", updatedAt: "" };
 }
 
@@ -2160,6 +2160,10 @@ function paperFeedbackValue(id) {
 
 function paperFeedbackUpdatedAt(id) {
   return feedbackRecord(paperFeedback, id).updatedAt;
+}
+
+function paperRejectReason(id) {
+  return feedbackRecord(paperFeedback, id).reason;
 }
 
 function loadIdeaFeedback() {
@@ -2701,12 +2705,26 @@ function scorePaperForProject(paper) {
     .slice(0, 14)
     .reduce((sum, [, weight]) => sum + weight * 0.2, 0);
   score += wordOverlap;
+  score -= rejectionPenalty(search);
 
   if (/electropermanent|epm|sarrus|linkage|printed|embedded|monolithic|magnetic/.test(search)) score += 3;
   if (!bestReason && wordOverlap) bestReason = "Matches notes";
   if (!bestReason) bestReason = "Reference";
 
   return { paper, score, reason: bestReason, feedback };
+}
+
+function rejectionPenalty(search) {
+  const candidateWords = new Set(importantWords(search));
+  if (!candidateWords.size) return 0;
+  return state.files
+    .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file))
+    .filter((file) => paperFeedbackValue(file.id) === "not-useful" && paperRejectReason(file.id) === "relevance")
+    .reduce((penalty, file) => {
+      const rejectedWords = importantWords(paperSearchText(file));
+      const overlap = rejectedWords.filter((word) => candidateWords.has(word)).length;
+      return penalty + Math.min(22, overlap * 3.5);
+    }, 0);
 }
 
 function importantWords(text) {
@@ -2817,7 +2835,7 @@ function createFileCard(file, index) {
     ? [
       { action: "open-file", id: file.id, title: "Open", iconName: "open" },
       { action: "paper-feedback", id: file.id, value: "useful", title: "Useful", iconName: "check", className: "feedback-useful", active: feedback === "useful" },
-      { action: "paper-feedback", id: file.id, value: "not-useful", title: "Not useful", iconName: "x", className: "feedback-not-useful", active: feedback === "not-useful" },
+      { action: "paper-feedback", id: file.id, value: "not-useful", title: paperRejectReason(file.id) ? `Not useful: ${paperRejectReason(file.id)}` : "Not useful", iconName: "x", className: "feedback-not-useful", active: feedback === "not-useful" },
       { action: "delete", id: file.id, title: "Delete", iconName: "trash", danger: true },
     ]
     : [
@@ -3149,11 +3167,24 @@ function setPaperFeedback(id, value) {
   if (wasActive) {
     delete paperFeedback[id];
   } else {
-    paperFeedback[id] = { value, updatedAt: new Date().toISOString() };
+    const reason = value === "not-useful" ? choosePaperRejectReason(id) : "";
+    if (value === "not-useful" && !reason) return;
+    paperFeedback[id] = { value, updatedAt: new Date().toISOString(), ...(reason ? { reason } : {}) };
   }
   savePaperFeedback();
   render();
-  toast(wasActive ? "Rating cleared." : value === "useful" ? "Kept in useful papers." : "Removed from useful papers.");
+  toast(wasActive ? "Rating cleared." : value === "useful" ? "Kept in useful papers." : `Removed: ${paperRejectReason(id) || "not useful"}.`);
+}
+
+function choosePaperRejectReason(id) {
+  const file = state.files.find((item) => item.id === id);
+  const title = paperDisplayTitle(file || {});
+  const answer = window.prompt(`Why reject this paper?\n\n${title}\n\nType: relevance, quality, or credibility`, paperRejectReason(id) || "relevance");
+  if (answer === null) return "";
+  const normalized = answer.toLowerCase().trim();
+  if (/cred|lab|venue|source|trust/.test(normalized)) return "credibility";
+  if (/qual|weak|bad|sloppy|unclear|paper/.test(normalized)) return "quality";
+  return "relevance";
 }
 
 function setIdeaFeedback(id, value) {
