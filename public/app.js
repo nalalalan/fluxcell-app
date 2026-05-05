@@ -44,8 +44,9 @@ const magneticCircuitWallSeedPackVersion = "2026-05-04-fluxcell-magnetic-circuit
 const integratedCellWallSeedPackVersion = "2026-05-05-fluxcell-integrated-cell-wall";
 const proofObjectWallSeedPackVersion = "2026-05-05-fluxcell-proof-object-wall";
 const absorbablePlaybookWallSeedPackVersion = "2026-05-05-fluxcell-absorbable-playbook-wall";
-const seedPackVersion = "2026-05-05-fluxcell-next-build-protocol-wall";
-const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, actuatorCandidatesWallSeedPackVersion, magneticCircuitWallSeedPackVersion, integratedCellWallSeedPackVersion, proofObjectWallSeedPackVersion, absorbablePlaybookWallSeedPackVersion, seedPackVersion];
+const nextBuildProtocolWallSeedPackVersion = "2026-05-05-fluxcell-next-build-protocol-wall";
+const seedPackVersion = "2026-05-05-fluxcell-sprint-board-wall";
+const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, actuatorCandidatesWallSeedPackVersion, magneticCircuitWallSeedPackVersion, integratedCellWallSeedPackVersion, proofObjectWallSeedPackVersion, absorbablePlaybookWallSeedPackVersion, nextBuildProtocolWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
 
 const focus = {
@@ -1779,39 +1780,75 @@ const seedNotes = [
   },
   {
     id: "seed-protocol-target",
-    pack: seedPackVersion,
+    pack: nextBuildProtocolWallSeedPackVersion,
     text: "Move one cell under a known load.",
     createdAt: new Date("2026-05-05T01:14:00").toISOString(),
   },
   {
     id: "seed-protocol-choice",
-    pack: seedPackVersion,
+    pack: nextBuildProtocolWallSeedPackVersion,
     text: "Choose pull pair, rocker, or latch.",
     createdAt: new Date("2026-05-05T01:13:00").toISOString(),
   },
   {
     id: "seed-protocol-variable",
-    pack: seedPackVersion,
+    pack: nextBuildProtocolWallSeedPackVersion,
     text: "One variable per test.",
     createdAt: new Date("2026-05-05T01:12:00").toISOString(),
   },
   {
     id: "seed-protocol-table",
-    pack: seedPackVersion,
+    pack: nextBuildProtocolWallSeedPackVersion,
     text: "Off, on, reset, fail.",
     createdAt: new Date("2026-05-05T01:11:00").toISOString(),
   },
   {
     id: "seed-protocol-daily",
-    pack: seedPackVersion,
+    pack: nextBuildProtocolWallSeedPackVersion,
     text: "One card, one test, one trace.",
     createdAt: new Date("2026-05-05T01:10:00").toISOString(),
   },
   {
     id: "seed-protocol-proof",
-    pack: seedPackVersion,
+    pack: nextBuildProtocolWallSeedPackVersion,
     text: "Beautiful, measurable, repeatable.",
     createdAt: new Date("2026-05-05T01:09:00").toISOString(),
+  },
+  {
+    id: "seed-sprint-geometry",
+    pack: seedPackVersion,
+    text: "Freeze one geometry.",
+    createdAt: new Date("2026-05-05T01:28:00").toISOString(),
+  },
+  {
+    id: "seed-sprint-sweep",
+    pack: seedPackVersion,
+    text: "Sweep gap before redesign.",
+    createdAt: new Date("2026-05-05T01:27:00").toISOString(),
+  },
+  {
+    id: "seed-sprint-pulse",
+    pack: seedPackVersion,
+    text: "Find the cold pulse window.",
+    createdAt: new Date("2026-05-05T01:26:00").toISOString(),
+  },
+  {
+    id: "seed-sprint-width",
+    pack: seedPackVersion,
+    text: "Record width change beside the trace.",
+    createdAt: new Date("2026-05-05T01:25:00").toISOString(),
+  },
+  {
+    id: "seed-sprint-reset",
+    pack: seedPackVersion,
+    text: "Reset counts as actuation.",
+    createdAt: new Date("2026-05-05T01:24:00").toISOString(),
+  },
+  {
+    id: "seed-sprint-done",
+    pack: seedPackVersion,
+    text: "Done means object, trace, section.",
+    createdAt: new Date("2026-05-05T01:23:00").toISOString(),
   },
 ];
 
