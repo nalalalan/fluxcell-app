@@ -105,6 +105,11 @@ a {
   color: var(--green);
 }
 
+.ai-stat {
+  border-color: rgba(104, 214, 200, .35);
+  color: var(--cyan);
+}
+
 .sync-browser {
   border-color: rgba(230, 179, 77, .42);
   color: var(--amber);

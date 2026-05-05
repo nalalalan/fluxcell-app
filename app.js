@@ -10,6 +10,8 @@ const fileStore = "files";
 const feedbackKey = "fluxcell.paper.feedback.v1";
 const ideaFeedbackKey = "fluxcell.idea.feedback.v1";
 const suggestionStateKey = "fluxcell.suggestion.stack.v1";
+const aiFeedKey = "fluxcell.ai.feed.v1";
+const apiBaseKey = "fluxcell.api.base.v1";
 const seedPackKey = "fluxcell.seed-pack.v1";
 const baseSeedPackVersion = "2026-05-04-fluxcell";
 const integratedSeedPackVersion = "2026-05-04-fluxcell-integrated-epm";
@@ -2309,10 +2311,12 @@ let state = loadState();
 let paperFeedback = loadPaperFeedback();
 let ideaFeedback = loadIdeaFeedback();
 let suggestionState = loadSuggestionState();
-let sync = { status: "checking", base: "", root: "", deleteConfigured: false };
+let aiFeed = loadAiFeed();
+let sync = { status: "checking", base: "", root: "", deleteConfigured: false, aiConfigured: false, aiModel: "" };
 let noteDraft = "";
 let pendingFiles = [];
 let toastTimer = 0;
+let aiRefreshTimer = 0;
 const previewUrls = new Map();
 
 function loadState() {
@@ -2433,6 +2437,7 @@ function normalizeSuggestionState(record) {
     refreshedAt: stateRecord.refreshedAt || "",
     skippedIdeas: objectRecord(stateRecord.skippedIdeas),
     skippedPapers: objectRecord(stateRecord.skippedPapers),
+    customIdeas: objectRecord(stateRecord.customIdeas),
   };
 }
 
@@ -2442,6 +2447,54 @@ function objectRecord(value) {
 
 function saveSuggestionState() {
   localStorage.setItem(suggestionStateKey, JSON.stringify(suggestionState));
+}
+
+function loadAiFeed() {
+  try {
+    return normalizeAiFeed(JSON.parse(localStorage.getItem(aiFeedKey) || "{}"));
+  } catch (error) {
+    console.warn(error);
+    return normalizeAiFeed({});
+  }
+}
+
+function normalizeAiFeed(record) {
+  const feed = record && typeof record === "object" && !Array.isArray(record) ? record : {};
+  return {
+    status: feed.status || "idle",
+    mode: feed.mode || "",
+    model: feed.model || "",
+    summary: String(feed.summary || ""),
+    ideas: Array.isArray(feed.ideas) ? feed.ideas.map(normalizeAiIdea).filter(Boolean) : [],
+    paperIds: Array.isArray(feed.paperIds) ? feed.paperIds.map((id) => String(id || "")).filter(Boolean) : [],
+    updatedAt: feed.updatedAt || "",
+    error: feed.error || "",
+  };
+}
+
+function normalizeAiIdea(idea) {
+  if (!idea || typeof idea !== "object") return null;
+  const text = String(idea.text || "").replace(/\s+/g, " ").trim().slice(0, 260);
+  if (!text) return null;
+  return {
+    id: String(idea.id || `ai-${hashId(text)}`).replace(/\s+/g, "-").slice(0, 120),
+    text,
+    reason: String(idea.reason || "AI suggestion").replace(/\s+/g, " ").trim().slice(0, 90),
+    keywords: Array.isArray(idea.keywords) ? idea.keywords.map((keyword) => String(keyword || "").trim()).filter(Boolean).slice(0, 8) : [],
+    source: "ai",
+  };
+}
+
+function hashId(text) {
+  let hash = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = ((hash << 5) - hash + text.charCodeAt(index)) | 0;
+  }
+  return Math.abs(hash).toString(16);
+}
+
+function saveAiFeed() {
+  localStorage.setItem(aiFeedKey, JSON.stringify(aiFeed));
 }
 
 function el(tag, className, text) {
@@ -2569,6 +2622,9 @@ function createTopbar() {
   const fileCount = state.files.filter(isVisibleLibraryFile).length;
   const noteCount = userNotes(state.notes).length;
   status.append(createStatusPill(syncLabel(), `sync sync-${sync.status}`));
+  if (sync.aiConfigured || aiFeed.mode === "ai") {
+    status.append(createStatusPill(aiFeed.status === "loading" ? "ai thinking" : "ai feed", "stat ai-stat"));
+  }
   status.append(createStatusPill(`${fileCount} files`, "stat"));
   status.append(createStatusPill(`${noteCount} notes`, "stat"));
 
@@ -2652,6 +2708,14 @@ function createProjectStatePanel() {
 }
 
 function generateProjectState() {
+  if (aiFeed.summary && aiFeed.mode === "ai") {
+    const suffix = aiFeed.status === "loading" ? " Updating." : "";
+    return `${aiFeed.summary}${suffix}`;
+  }
+  return generateLocalProjectState();
+}
+
+function generateLocalProjectState() {
   const approvedIdeas = approvedIdeaItems();
   const approvedPapers = approvedPaperItems();
   const topics = activeProjectTopics(currentProjectText());
@@ -2758,11 +2822,36 @@ function activeProjectTopics(text) {
 
 function allIdeaCandidates() {
   const seen = new Set();
-  return [...ideaGuideRules, ...dynamicIdeaTemplates, ...approvalDrivenIdeaCandidates()].filter((idea) => {
+  return [...ideaGuideRules, ...dynamicIdeaTemplates, ...storedCustomIdeas(), ...aiIdeaCandidates(), ...approvalDrivenIdeaCandidates()].filter((idea) => {
     if (!idea?.id || seen.has(idea.id)) return false;
     seen.add(idea.id);
     return true;
   });
+}
+
+function storedCustomIdeas() {
+  return Object.values(suggestionState.customIdeas || {}).map(normalizeAiIdea).filter(Boolean);
+}
+
+function aiIdeaCandidates() {
+  return (aiFeed.ideas || []).map(normalizeAiIdea).filter(Boolean);
+}
+
+function findIdeaCandidate(id) {
+  return [...ideaGuideRules, ...dynamicIdeaTemplates, ...storedCustomIdeas(), ...aiIdeaCandidates(), ...approvalDrivenIdeaCandidates()]
+    .find((idea) => idea.id === id);
+}
+
+function rememberCustomIdea(idea) {
+  if (!idea || !idea.id || !idea.text) return;
+  suggestionState.customIdeas[idea.id] = {
+    id: idea.id,
+    text: idea.text,
+    reason: idea.reason || "AI suggestion",
+    keywords: idea.keywords || [],
+    source: idea.source || "custom",
+  };
+  saveSuggestionState();
 }
 
 function approvalDrivenIdeaCandidates() {
@@ -2947,6 +3036,7 @@ function scoreIdeaForProject(idea) {
   const keywordScore = contextKeywordScore(idea.keywords);
   let score = feedback === "useful" ? 100 : 0;
   score += idea.core ? 8 : 0;
+  score += idea.source === "ai" ? 18 : 0;
   score += keywordScore;
   if (!hasGuidanceContext() && !idea.core && feedback !== "useful") return null;
 
@@ -3169,6 +3259,11 @@ function scorePaperForProject(paper) {
     .reduce((sum, [, weight]) => sum + weight * 0.2, 0);
   score += wordOverlap;
   score -= rejectionPenalty(search);
+  const aiRank = aiPaperRank(paper.id);
+  if (aiRank >= 0) {
+    score += 70 - aiRank * 2.5;
+    if (!bestReason || bestReason === "Reference") bestReason = "AI ranked";
+  }
 
   if (/electropermanent|epm|sarrus|linkage|printed|embedded|monolithic|magnetic/.test(search)) score += 3;
   if (!bestReason && wordOverlap) bestReason = "Matches notes";
@@ -3176,6 +3271,10 @@ function scorePaperForProject(paper) {
 
   const skippedAt = suggestionState.skippedPapers[paper.id]?.updatedAt || "";
   return { id: paper.id, paper, score, reason: bestReason, feedback, skippedAt };
+}
+
+function aiPaperRank(id) {
+  return (aiFeed.paperIds || []).findIndex((paperId) => paperId === id);
 }
 
 function rejectionPenalty(search) {
@@ -3551,6 +3650,7 @@ async function saveCapture(event) {
   pendingFiles = [];
   saveState();
   render();
+  scheduleAiFeedRefresh();
   toast(sync.status === "local" ? "Saved and synced." : "Saved in browser.");
 }
 
@@ -3644,12 +3744,108 @@ async function downloadFile(id) {
   URL.revokeObjectURL(url);
 }
 
-function refreshSuggestions() {
+async function refreshSuggestions() {
   suggestionState.refreshCount = (suggestionState.refreshCount || 0) + 1;
   suggestionState.refreshedAt = new Date().toISOString();
   saveSuggestionState();
   render();
-  toast("Suggestions refreshed.");
+  if (sync.status === "local" && sync.aiConfigured) {
+    toast("Refreshing AI feed.");
+    await requestAiFeed({ force: true });
+  } else {
+    toast(sync.status === "local" ? "Local suggestions refreshed. Add OPENAI_API_KEY for AI." : "Suggestions refreshed.");
+  }
+}
+
+function scheduleAiFeedRefresh() {
+  if (sync.status !== "local" || !sync.aiConfigured) return;
+  window.clearTimeout(aiRefreshTimer);
+  aiRefreshTimer = window.setTimeout(() => requestAiFeed({ force: false }), 350);
+}
+
+function aiFeedPayload() {
+  const approvedIdeas = approvedIdeaItems();
+  const approvedPapers = approvedPaperItems();
+  const ideaLookup = new Map(allIdeaCandidates().map((idea) => [idea.id, idea]));
+  const paperLookup = new Map(state.files.filter((file) => isVisibleLibraryFile(file) && isPaperFile(file)).map((file) => [file.id, file]));
+  return {
+    focus: `${focus.title} ${focus.current}`,
+    summary: generateLocalProjectState(),
+    refreshCount: suggestionState.refreshCount || 0,
+    notes: userNotes(state.notes).slice(0, 32).map((note) => ({ text: note.text, createdAt: note.createdAt })),
+    approvedIdeas: approvedIdeas.map((idea) => ({
+      id: idea.id,
+      text: idea.text,
+      reason: idea.reason,
+      approvedAt: idea.approvedAt,
+    })),
+    approvedPapers: approvedPapers.map((paper) => ({
+      id: paper.id,
+      title: paperDisplayTitle(paper),
+      reason: paper.focusReason || "",
+      approvedAt: paper.approvedAt,
+    })),
+    rejectedIdeas: Object.entries(ideaFeedback)
+      .filter(([, record]) => normalizeFeedbackRecord(record).value === "not-useful")
+      .map(([id]) => ({ id, text: ideaLookup.get(id)?.text || id })),
+    rejectedPapers: Object.entries(paperFeedback)
+      .filter(([, record]) => normalizeFeedbackRecord(record).value === "not-useful")
+      .map(([id, record]) => {
+        const paper = paperLookup.get(id);
+        return { id, title: paper ? paperDisplayTitle(paper) : id, reason: normalizeFeedbackRecord(record).reason || "" };
+      }),
+    skippedIdeas: Object.keys(suggestionState.skippedIdeas || {}).map((id) => ({ id, text: ideaLookup.get(id)?.text || id })),
+    skippedPapers: Object.keys(suggestionState.skippedPapers || {}).map((id) => {
+      const paper = paperLookup.get(id);
+      return { id, title: paper ? paperDisplayTitle(paper) : id };
+    }),
+    candidatePapers: state.files
+      .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file) && paperFeedbackValue(file.id) !== "useful")
+      .map((file) => ({
+        id: file.id,
+        title: paperDisplayTitle(file),
+        meta: fileMeta(file),
+      })),
+  };
+}
+
+async function requestAiFeed({ force = false } = {}) {
+  if (sync.status !== "local" || !sync.aiConfigured) return false;
+  if (!force && aiFeed.status === "loading") return false;
+  aiFeed = { ...aiFeed, status: "loading", error: "" };
+  saveAiFeed();
+  render();
+  try {
+    const response = await postJson(`${sync.base}/api/ai/suggestions`, aiFeedPayload());
+    if (response.mode !== "ai") {
+      aiFeed = normalizeAiFeed({ ...response, status: "idle" });
+      saveAiFeed();
+      render();
+      toast(response.error || "AI is not configured.");
+      return false;
+    }
+    aiFeed = normalizeAiFeed({
+      status: "idle",
+      mode: response.mode,
+      model: response.model,
+      summary: response.summary,
+      ideas: response.notes,
+      paperIds: response.paperIds,
+      updatedAt: response.updatedAt,
+    });
+    aiFeed.ideas.forEach(rememberCustomIdea);
+    saveAiFeed();
+    render();
+    toast("AI feed updated.");
+    return true;
+  } catch (error) {
+    console.error(error);
+    aiFeed = normalizeAiFeed({ ...aiFeed, status: "idle", error: error.message || "AI request failed" });
+    saveAiFeed();
+    render();
+    toast(aiFeed.error);
+    return false;
+  }
 }
 
 function skipIdea(id) {
@@ -3660,6 +3856,7 @@ function skipIdea(id) {
   };
   saveSuggestionState();
   render();
+  scheduleAiFeedRefresh();
   toast("Idea moved down.");
 }
 
@@ -3671,6 +3868,7 @@ function skipPaper(id) {
   };
   saveSuggestionState();
   render();
+  scheduleAiFeedRefresh();
   toast("Paper moved down.");
 }
 
@@ -3694,6 +3892,7 @@ function setPaperFeedback(id, value) {
   clearSuggestionSkip("paper", id);
   savePaperFeedback();
   render();
+  scheduleAiFeedRefresh();
   toast(wasActive ? "Rating cleared." : value === "useful" ? "Kept in useful papers." : `Removed: ${paperRejectReason(id) || "not useful"}.`);
 }
 
@@ -3711,14 +3910,17 @@ function choosePaperRejectReason(id) {
 function setIdeaFeedback(id, value) {
   if (!id || !["useful", "not-useful"].includes(value)) return;
   const wasActive = ideaFeedbackValue(id) === value;
+  const idea = findIdeaCandidate(id);
   if (wasActive) {
     delete ideaFeedback[id];
   } else {
+    if (value === "useful") rememberCustomIdea(idea);
     ideaFeedback[id] = { value, updatedAt: new Date().toISOString() };
   }
   clearSuggestionSkip("idea", id);
   saveIdeaFeedback();
   render();
+  scheduleAiFeedRefresh();
   toast(wasActive ? "Rating cleared." : value === "useful" ? "Kept idea." : "Removed idea.");
 }
 
@@ -3761,6 +3963,7 @@ async function deleteFile(id) {
   saveSuggestionState();
   saveState();
   render();
+  scheduleAiFeedRefresh();
   toast("Deleted.");
 }
 
@@ -3771,6 +3974,7 @@ function deleteNote(id) {
   state.notes = state.notes.filter((item) => item.id !== id);
   saveState();
   render();
+  scheduleAiFeedRefresh();
   toast("Note deleted.");
 }
 
@@ -3790,13 +3994,17 @@ async function browserDeleteAllowed(password) {
 
 async function detectSync() {
   const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-  const candidates = isLocalHost
-    ? [""]
-    : window.isSecureContext
-      ? ["http://127.0.0.1:3010", "http://127.0.0.1:3000"]
-      : [];
+  const configuredBase = configuredApiBase();
+  const candidates = [
+    ...(configuredBase ? [configuredBase] : []),
+    ...(isLocalHost
+      ? [""]
+      : window.isSecureContext
+        ? ["http://127.0.0.1:3010", "http://127.0.0.1:3000"]
+        : []),
+  ].filter((base, index, list) => list.indexOf(base) === index);
   if (!candidates.length) {
-    sync = { status: "browser", base: "", root: "", deleteConfigured: false };
+    sync = { status: "browser", base: "", root: "", deleteConfigured: false, aiConfigured: false, aiModel: "" };
     render();
     return;
   }
@@ -3811,16 +4019,26 @@ async function detectSync() {
         base,
         root: json.storageRoot || "research folder",
         deleteConfigured: Boolean(json.deleteConfigured),
+        aiConfigured: Boolean(json.aiConfigured),
+        aiModel: json.aiModel || "",
       };
       await refreshSyncFiles();
+      scheduleAiFeedRefresh();
       render();
       return;
     } catch (error) {
       // Keep checking quieter fallbacks.
     }
   }
-  sync = { status: "browser", base: "", root: "", deleteConfigured: false };
+  sync = { status: "browser", base: "", root: "", deleteConfigured: false, aiConfigured: false, aiModel: "" };
   render();
+}
+
+function configuredApiBase() {
+  const fromWindow = String(window.FLUXCELL_API_BASE || "").trim();
+  const fromStorage = String(localStorage.getItem(apiBaseKey) || "").trim();
+  const value = fromWindow || fromStorage;
+  return value.replace(/\/+$/, "");
 }
 
 async function refreshSyncFiles() {
