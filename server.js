@@ -175,7 +175,7 @@ function plausiblePaperTitle(value, filename = "") {
   const title = cleanPaperTitle(value);
   if (title.length < 12 || title.length > 220) return false;
   if (/\.(pdf|dvi|docx?|pptx?|tex)$/i.test(title)) return false;
-  if (/[\\/:*?"<>|]/.test(title)) return false;
+  if (/[\\*?"<>|]/.test(title)) return false;
   if (/\b(The MIT Faculty has made|Please share how this access benefits you|Downloaded from)\b/i.test(title)) return false;
   if (/^(untitled|microsoft word|download|article|full text|supplement)/i.test(title)) return false;
   const basename = cleanPaperTitle(path.basename(filename || "", path.extname(filename || "")));
@@ -191,7 +191,7 @@ function isPaperTitleStopLine(line) {
 
 function isPaperTitleNoiseLine(line) {
   if (!line) return true;
-  if (/^(communications engineering|nature portfolio|mit open access articles|article|research article|open access|www\.|doi\b)/i.test(line)) return true;
+  if (/^(communications engineering|nature portfolio|mit open access articles|sigchi conference paper format|article|research article|open access|www\.|doi\b)/i.test(line)) return true;
   if (/^(received|accepted|published|vol\.|no\.|page|pages)\b/i.test(line)) return true;
   if (/^\d+\s*$/.test(line)) return true;
   if ((line.match(/[A-Za-z]/g) || []).length < 8) return true;
