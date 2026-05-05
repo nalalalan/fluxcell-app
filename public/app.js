@@ -2385,7 +2385,17 @@ function currentProjectText() {
     .filter(isVisibleLibraryFile)
     .slice(0, 12)
     .map((file) => `${file.paperTitle || ""} ${file.name || ""}`);
-  return [focus.title, focus.current, ...latestNotes, ...latestFiles].join(" ").toLowerCase();
+  return [focus.title, focus.current, approvedContextText(), ...latestNotes, ...latestFiles].join(" ").toLowerCase();
+}
+
+function approvedContextText() {
+  const approvedIdeas = ideaGuideRules
+    .filter((idea) => ideaFeedbackValue(idea.id) === "useful")
+    .map((idea) => `${idea.text} ${idea.reason} ${(idea.keywords || []).join(" ")}`);
+  const approvedPapers = state.files
+    .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file) && paperFeedbackValue(file.id) === "useful")
+    .map(paperSearchText);
+  return [...approvedIdeas, ...approvedPapers].join(" ");
 }
 
 function activeProjectTopics(text) {
@@ -2405,17 +2415,11 @@ function usefulIdeaItems() {
     .map((idea) => scoreIdeaForProject(idea, projectText))
     .filter(Boolean)
     .sort((a, b) => b.score - a.score);
-  const usefulCount = scored.filter((entry) => entry.feedback === "useful").length;
-  const target = Math.max(4, Math.min(6, usefulCount || 4));
-  const selected = [];
 
-  scored.forEach((entry) => {
-    if (entry.feedback === "useful" || selected.length < target) {
-      selected.push(entry.idea);
-    }
-  });
-
-  return selected;
+  return scored
+    .filter((entry) => entry.feedback !== "useful")
+    .slice(0, 4)
+    .map((entry) => entry.idea);
 }
 
 function scoreIdeaForProject(idea, projectText) {
@@ -2433,6 +2437,12 @@ function scoreIdeaForProject(idea, projectText) {
     score,
     feedback,
   };
+}
+
+function approvedIdeaItems() {
+  return ideaGuideRules
+    .filter((idea) => ideaFeedbackValue(idea.id) === "useful")
+    .map((idea) => ({ ...idea, feedback: "useful" }));
 }
 
 function createNotesSection() {
@@ -2472,9 +2482,11 @@ function createNotesSection() {
 }
 
 function createFocusLibrary() {
+  const approvedIdeas = approvedIdeaItems();
+  const approvedPapers = approvedPaperItems();
   const ideas = usefulIdeaItems();
   const papers = focusPaperItems();
-  if (!ideas.length && !papers.length) return null;
+  if (!approvedIdeas.length && !approvedPapers.length && !ideas.length && !papers.length) return null;
 
   const section = el("section", "focus-library useful-library");
   const head = el("div", "section-head");
@@ -2482,9 +2494,24 @@ function createFocusLibrary() {
   section.append(head);
 
   const layout = el("div", "useful-layout");
+  if (approvedIdeas.length || approvedPapers.length) {
+    const approvedBlock = el("section", "useful-block approved-block");
+    approvedBlock.append(el("p", "section-label", "Approved"));
+    if (approvedIdeas.length) {
+      const approvedIdeaGrid = el("div", "ideas-grid approved-grid");
+      approvedIdeas.forEach((idea) => approvedIdeaGrid.append(createIdeaCard(idea)));
+      approvedBlock.append(approvedIdeaGrid);
+    }
+    if (approvedPapers.length) {
+      const approvedPaperGrid = el("div", "focus-grid approved-grid");
+      approvedPapers.forEach((item, index) => approvedPaperGrid.append(createFocusCard(item, index)));
+      approvedBlock.append(approvedPaperGrid);
+    }
+    layout.append(approvedBlock);
+  }
   if (ideas.length) {
     const ideaBlock = el("section", "useful-block");
-    ideaBlock.append(el("p", "section-label", "Ideas"));
+    ideaBlock.append(el("p", "section-label", "Suggested ideas"));
     const ideaGrid = el("div", "ideas-grid");
     ideas.forEach((idea) => ideaGrid.append(createIdeaCard(idea)));
     ideaBlock.append(ideaGrid);
@@ -2492,7 +2519,7 @@ function createFocusLibrary() {
   }
   if (papers.length) {
     const paperBlock = el("section", "useful-block");
-    paperBlock.append(el("p", "section-label", "Papers"));
+    paperBlock.append(el("p", "section-label", "Suggested papers"));
     const grid = el("div", "focus-grid");
     papers.forEach((item, index) => grid.append(createFocusCard(item, index)));
     paperBlock.append(grid);
@@ -2547,22 +2574,21 @@ function paperItem(file) {
 function focusPaperItems() {
   const papers = state.files
     .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file))
+    .filter((paper) => paperFeedbackValue(paper.id) !== "useful")
     .map(paperItem);
   const scored = papers
     .map((paper) => scorePaperForProject(paper))
     .filter(Boolean)
     .sort((a, b) => b.score - a.score || new Date(b.paper.createdAt) - new Date(a.paper.createdAt));
-  const usefulCount = scored.filter((entry) => entry.feedback === "useful").length;
-  const target = Math.max(6, Math.min(10, usefulCount || 6));
-  const selected = [];
 
-  scored.forEach((entry) => {
-    if (entry.feedback === "useful" || selected.length < target) {
-      selected.push({ ...entry.paper, focusReason: entry.reason });
-    }
-  });
+  return scored.slice(0, 6).map((entry) => ({ ...entry.paper, focusReason: entry.reason }));
+}
 
-  return selected;
+function approvedPaperItems() {
+  return state.files
+    .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file) && paperFeedbackValue(file.id) === "useful")
+    .map((file) => ({ ...paperItem(file), focusReason: "Approved" }))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 function scorePaperForProject(paper) {
