@@ -16,6 +16,7 @@ const storageRoot = path.resolve(
 );
 const deletePassword = process.env.FLUXCELL_DELETE_PASSWORD || process.env.FORGE_DELETE_PASSWORD || "";
 const maxUploadBytes = Number(process.env.FLUXCELL_MAX_UPLOAD_MB || process.env.FORGE_MAX_UPLOAD_MB || 100) * 1024 * 1024;
+const openAiModel = process.env.FLUXCELL_OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-5-mini";
 const legacyIndexPath = path.join(storageRoot, ".forge-files.json");
 const focusedIndexPath = path.join(storageRoot, ".fluxcell-files.json");
 const indexPath = fs.existsSync(legacyIndexPath) && !fs.existsSync(focusedIndexPath)
@@ -61,6 +62,10 @@ function sendJson(res, status, payload) {
 function sendText(res, status, text) {
   res.writeHead(status, { "Content-Type": "text/plain; charset=utf-8" });
   res.end(text);
+}
+
+function openAiKey() {
+  return process.env.OPENAI_API_KEY || process.env.FLUXCELL_OPENAI_API_KEY || "";
 }
 
 function isInside(root, filePath) {
@@ -471,6 +476,177 @@ async function saveTrackedFile({ name, mime, buffer, kind = "file" }) {
   return entry;
 }
 
+function compactString(value, max = 1400) {
+  return String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+function compactArray(items, maxItems, mapper) {
+  return (Array.isArray(items) ? items : []).slice(0, maxItems).map(mapper).filter(Boolean);
+}
+
+function compactAiPayload(payload) {
+  return {
+    focus: compactString(payload.focus, 700),
+    summary: compactString(payload.summary, 900),
+    refreshCount: Number(payload.refreshCount || 0),
+    notes: compactArray(payload.notes, 24, (note) => compactString(note?.text, 500)),
+    approvedIdeas: compactArray(payload.approvedIdeas, 36, (idea) => ({
+      id: compactString(idea?.id, 120),
+      text: compactString(idea?.text, 380),
+      reason: compactString(idea?.reason, 140),
+    })),
+    approvedPapers: compactArray(payload.approvedPapers, 18, (paper) => ({
+      id: compactString(paper?.id, 120),
+      title: compactString(paper?.title, 320),
+      reason: compactString(paper?.reason, 140),
+    })),
+    rejectedIdeas: compactArray(payload.rejectedIdeas, 24, (idea) => compactString(idea?.text || idea?.id, 260)),
+    rejectedPapers: compactArray(payload.rejectedPapers, 18, (paper) => ({
+      title: compactString(paper?.title, 260),
+      reason: compactString(paper?.reason, 80),
+    })),
+    skippedIdeas: compactArray(payload.skippedIdeas, 18, (idea) => compactString(idea?.text || idea?.id, 240)),
+    skippedPapers: compactArray(payload.skippedPapers, 18, (paper) => compactString(paper?.title, 240)),
+    candidatePapers: compactArray(payload.candidatePapers, 80, (paper) => ({
+      id: compactString(paper?.id, 120),
+      title: compactString(paper?.title, 340),
+      meta: compactString(paper?.meta, 180),
+    })),
+  };
+}
+
+const aiFeedSchema = {
+  type: "json_schema",
+  name: "fluxcell_feed",
+  strict: true,
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["summary", "notes", "paperIds"],
+    properties: {
+      summary: {
+        type: "string",
+        description: "A dense but readable project preference profile in 80 to 150 words.",
+      },
+      notes: {
+        type: "array",
+        minItems: 10,
+        maxItems: 18,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["id", "text", "reason", "keywords"],
+          properties: {
+            id: { type: "string" },
+            text: { type: "string" },
+            reason: { type: "string" },
+            keywords: {
+              type: "array",
+              minItems: 3,
+              maxItems: 8,
+              items: { type: "string" },
+            },
+          },
+        },
+      },
+      paperIds: {
+        type: "array",
+        minItems: 0,
+        maxItems: 18,
+        items: { type: "string" },
+        description: "IDs from candidatePapers only, ordered by usefulness.",
+      },
+    },
+  },
+};
+
+function aiSystemPrompt() {
+  return [
+    "You are the private research feed engine for FluxCell.",
+    "The project is 3D printed electropermanent magnet actuation integrated into laterally expanding Sarrus-linkage-based cells.",
+    "The user is shaping taste by approving, rejecting, and skipping notes and papers.",
+    "Generate concise, technically useful suggested notes and rank existing paper candidates.",
+    "Prefer concrete experiment design, magnetic circuit variables, actuator-cell coupling, measurement plans, paper figures that change a build, credibility, and near-term one-cell proof.",
+    "Do not write motivational slogans. Do not be vague. Do not over-explain.",
+    "Suggested notes can be similar to approved notes, but should extend or sharpen the direction.",
+    "Rejected content should be avoided, especially if it looks low credibility, low quality, or irrelevant.",
+    "Return JSON only in the requested schema.",
+  ].join(" ");
+}
+
+function responseOutputText(response) {
+  if (typeof response.output_text === "string") return response.output_text;
+  const chunks = [];
+  for (const item of response.output || []) {
+    for (const content of item.content || []) {
+      if (typeof content.text === "string") chunks.push(content.text);
+      if (typeof content.output_text === "string") chunks.push(content.output_text);
+    }
+  }
+  return chunks.join("");
+}
+
+function normalizeAiResult(result, candidatePaperIds) {
+  const paperIdSet = new Set(candidatePaperIds);
+  const notes = compactArray(result.notes, 18, (note, index) => {
+    const text = compactString(note?.text, 260);
+    if (!text) return null;
+    return {
+      id: `ai-${compactString(note.id, 80) || crypto.createHash("sha1").update(text).digest("hex").slice(0, 12)}-${index}`,
+      text,
+      reason: compactString(note?.reason, 80) || "AI suggestion",
+      keywords: compactArray(note?.keywords, 8, (keyword) => compactString(keyword, 60)),
+      source: "ai",
+    };
+  });
+  return {
+    mode: "ai",
+    model: openAiModel,
+    summary: compactString(result.summary, 900),
+    notes,
+    paperIds: compactArray(result.paperIds, 18, (id) => compactString(id, 120)).filter((id) => paperIdSet.has(id)),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+async function createAiSuggestions(payload) {
+  const apiKey = openAiKey();
+  if (!apiKey) {
+    return {
+      mode: "fallback",
+      error: "OPENAI_API_KEY is not configured on the local sync server.",
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  const compact = compactAiPayload(payload);
+  const candidatePaperIds = compact.candidatePapers.map((paper) => paper.id);
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: openAiModel,
+      instructions: aiSystemPrompt(),
+      input: `JSON context:\n${JSON.stringify(compact)}`,
+      text: { format: aiFeedSchema },
+      max_output_tokens: 2500,
+    }),
+  });
+
+  const json = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = json?.error?.message || `OpenAI request failed with ${response.status}`;
+    throw new Error(message);
+  }
+
+  const output = responseOutputText(json);
+  const parsed = JSON.parse(output);
+  return normalizeAiResult(parsed, candidatePaperIds);
+}
+
 async function handleApi(req, res, requestUrl) {
   setCors(res);
 
@@ -486,8 +662,17 @@ async function handleApi(req, res, requestUrl) {
       sync: true,
       storageRoot,
       deleteConfigured: Boolean(deletePassword),
+      aiConfigured: Boolean(openAiKey()),
+      aiModel: openAiKey() ? openAiModel : "",
       maxUploadMb: Math.round(maxUploadBytes / 1024 / 1024),
     });
+    return;
+  }
+
+  if (requestUrl.pathname === "/api/ai/suggestions" && req.method === "POST") {
+    const payload = await readJsonBody(req, 2 * 1024 * 1024);
+    const result = await createAiSuggestions(payload);
+    sendJson(res, 200, result);
     return;
   }
 
