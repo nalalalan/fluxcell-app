@@ -112,7 +112,7 @@ a {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(260px, .65fr);
+  grid-template-columns: minmax(0, 1fr) minmax(340px, .95fr);
   gap: 16px;
   align-items: start;
   padding: 16px 0 12px;
@@ -296,9 +296,17 @@ h1 {
 
 .state-panel {
   margin-top: 2px;
-  border-left: 1px solid rgba(255, 250, 240, .16);
-  padding: 2px 0 2px 14px;
+  padding: 0;
   background: transparent;
+}
+
+.state-card {
+  min-height: 196px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 18px;
+  background: rgba(255, 250, 240, .04);
+  box-shadow: var(--shadow);
 }
 
 .section-head h2 {
@@ -309,9 +317,9 @@ h1 {
 
 .state-note {
   color: var(--muted);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 650;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .notes-library,
@@ -374,17 +382,6 @@ h1 {
 
 .useful-block {
   min-width: 0;
-}
-
-.approved-block {
-  display: grid;
-  gap: 12px;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 18px;
-}
-
-.approved-grid + .approved-grid {
-  margin-top: 4px;
 }
 
 .notes-grid {
@@ -459,6 +456,16 @@ h1 {
 
 .archive-grid {
   padding: 12px;
+}
+
+.approved-drawer {
+  margin-top: 2px;
+}
+
+.approved-bank-body,
+.approved-bank-block {
+  display: grid;
+  gap: 12px;
 }
 
 .item-card {
@@ -709,9 +716,7 @@ svg {
   }
 
   .state-panel {
-    border-left: 0;
-    border-top: 1px solid rgba(255, 250, 240, .16);
-    padding: 12px 0 0;
+    padding: 0;
   }
 
   .focus-card {
