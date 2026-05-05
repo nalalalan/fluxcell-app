@@ -12,6 +12,7 @@ const ideaFeedbackKey = "fluxcell.idea.feedback.v1";
 const suggestionStateKey = "fluxcell.suggestion.stack.v1";
 const aiFeedKey = "fluxcell.ai.feed.v1";
 const apiBaseKey = "fluxcell.api.base.v1";
+const aiApiBaseKey = "fluxcell.ai.api.base.v1";
 const seedPackKey = "fluxcell.seed-pack.v1";
 const baseSeedPackVersion = "2026-05-04-fluxcell";
 const integratedSeedPackVersion = "2026-05-04-fluxcell-integrated-epm";
@@ -2313,6 +2314,7 @@ let ideaFeedback = loadIdeaFeedback();
 let suggestionState = loadSuggestionState();
 let aiFeed = loadAiFeed();
 let sync = { status: "checking", base: "", root: "", deleteConfigured: false, aiConfigured: false, aiModel: "" };
+let aiService = { status: "checking", base: "", configured: false, model: "" };
 let noteDraft = "";
 let pendingFiles = [];
 let toastTimer = 0;
@@ -2622,7 +2624,7 @@ function createTopbar() {
   const fileCount = state.files.filter(isVisibleLibraryFile).length;
   const noteCount = userNotes(state.notes).length;
   status.append(createStatusPill(syncLabel(), `sync sync-${sync.status}`));
-  if (sync.aiConfigured || aiFeed.mode === "ai") {
+  if (aiBackendAvailable() || aiFeed.mode === "ai") {
     status.append(createStatusPill(aiFeed.status === "loading" ? "ai thinking" : "ai feed", "stat ai-stat"));
   }
   status.append(createStatusPill(`${fileCount} files`, "stat"));
@@ -3749,7 +3751,7 @@ async function refreshSuggestions() {
   suggestionState.refreshedAt = new Date().toISOString();
   saveSuggestionState();
   render();
-  if (sync.status === "local" && sync.aiConfigured) {
+  if (aiBackendAvailable()) {
     toast("Refreshing AI feed.");
     await requestAiFeed({ force: true });
   } else {
@@ -3758,9 +3760,19 @@ async function refreshSuggestions() {
 }
 
 function scheduleAiFeedRefresh() {
-  if (sync.status !== "local" || !sync.aiConfigured) return;
+  if (!aiBackendAvailable()) return;
   window.clearTimeout(aiRefreshTimer);
   aiRefreshTimer = window.setTimeout(() => requestAiFeed({ force: false }), 350);
+}
+
+function aiBackendBase() {
+  if (aiService.configured && aiService.base) return aiService.base;
+  if (sync.status === "local" && sync.aiConfigured) return sync.base;
+  return "";
+}
+
+function aiBackendAvailable() {
+  return Boolean(aiBackendBase());
 }
 
 function aiFeedPayload() {
@@ -3810,13 +3822,14 @@ function aiFeedPayload() {
 }
 
 async function requestAiFeed({ force = false } = {}) {
-  if (sync.status !== "local" || !sync.aiConfigured) return false;
+  const base = aiBackendBase();
+  if (!base) return false;
   if (!force && aiFeed.status === "loading") return false;
   aiFeed = { ...aiFeed, status: "loading", error: "" };
   saveAiFeed();
   render();
   try {
-    const response = await postJson(`${sync.base}/api/ai/suggestions`, aiFeedPayload());
+    const response = await postJson(`${base}/api/ai/suggestions`, aiFeedPayload());
     if (response.mode !== "ai") {
       aiFeed = normalizeAiFeed({ ...response, status: "idle" });
       saveAiFeed();
@@ -4041,6 +4054,41 @@ function configuredApiBase() {
   return value.replace(/\/+$/, "");
 }
 
+async function detectAiService() {
+  const base = configuredAiApiBase();
+  if (!base) {
+    aiService = { status: "none", base: "", configured: false, model: "" };
+    render();
+    return;
+  }
+  try {
+    const response = await fetch(`${base}/api/health`, { cache: "no-store" });
+    if (!response.ok) throw new Error("AI service health check failed");
+    const json = await response.json();
+    if (!compatibleSyncApps.has(json.app) || !json.aiConfigured) {
+      throw new Error("AI service is not configured");
+    }
+    aiService = {
+      status: "ready",
+      base,
+      configured: true,
+      model: json.aiModel || "",
+    };
+    scheduleAiFeedRefresh();
+  } catch (error) {
+    console.warn(error);
+    aiService = { status: "offline", base, configured: false, model: "" };
+  }
+  render();
+}
+
+function configuredAiApiBase() {
+  const fromWindow = String(window.FLUXCELL_AI_API_BASE || "").trim();
+  const fromStorage = String(localStorage.getItem(aiApiBaseKey) || "").trim();
+  const value = fromWindow || fromStorage;
+  return value.replace(/\/+$/, "");
+}
+
 async function refreshSyncFiles() {
   if (sync.status !== "local") return;
   const response = await fetch(`${sync.base}/api/files`, { cache: "no-store" });
@@ -4073,3 +4121,4 @@ document.addEventListener("paste", (event) => {
 
 render();
 detectSync();
+detectAiService();
