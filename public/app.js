@@ -9,6 +9,7 @@ const dbName = "forge-file-vault";
 const fileStore = "files";
 const feedbackKey = "fluxcell.paper.feedback.v1";
 const ideaFeedbackKey = "fluxcell.idea.feedback.v1";
+const suggestionStateKey = "fluxcell.suggestion.stack.v1";
 const seedPackKey = "fluxcell.seed-pack.v1";
 const baseSeedPackVersion = "2026-05-04-fluxcell";
 const integratedSeedPackVersion = "2026-05-04-fluxcell-integrated-epm";
@@ -203,6 +204,233 @@ const ideaGuideRules = [
     text: "Aim for one cutaway figure: Sarrus linkage, EPM flux path, pulse trace, width trace.",
     reason: "paper-quality evidence",
     keywords: ["figure", "science", "paper", "cutaway", "trace", "evidence", "result"],
+  },
+];
+
+const dynamicIdeaTemplates = [
+  {
+    id: "coupon-force-matrix",
+    text: "Make a coupon matrix: three keeper areas, four air gaps, same pulse, force recorded.",
+    reason: "force map",
+    keywords: ["force", "gap", "keeper", "yoke", "pulse", "current", "matrix", "coupon"],
+    core: true,
+  },
+  {
+    id: "width-and-current-trace",
+    text: "Record current and cell width in the same video so actuation is visible and quantified.",
+    reason: "proof trace",
+    keywords: ["width", "current", "trace", "video", "actuation", "cell", "pulse"],
+    core: true,
+  },
+  {
+    id: "single-cell-actuation-loop",
+    text: "Define one cycle as contract, pulse, expand, hold, release, reset.",
+    reason: "demo protocol",
+    keywords: ["cycle", "expand", "hold", "release", "reset", "cell", "state"],
+    core: true,
+  },
+  {
+    id: "mechanical-advantage-before-current",
+    text: "Estimate linkage mechanical advantage before increasing coil current.",
+    reason: "coupling first",
+    keywords: ["linkage", "mechanical advantage", "force", "stroke", "current", "sarrus"],
+    core: true,
+  },
+  {
+    id: "keeper-gap-as-feature",
+    text: "Design the keeper gap as a printed datum, not an assembly accident.",
+    reason: "repeatability",
+    keywords: ["keeper", "gap", "datum", "fixture", "print", "repeatable"],
+    core: true,
+  },
+  {
+    id: "pause-print-cartridge",
+    text: "Try a pause-print EPM cartridge before claiming fully printed magnetic material.",
+    reason: "integration route",
+    keywords: ["pause print", "insert", "cartridge", "monolithic", "embedded", "magnet"],
+    core: true,
+  },
+  {
+    id: "core-material-ablation",
+    text: "Compare steel insert, iron-filled print, and no core in the same coil fixture.",
+    reason: "material ablation",
+    keywords: ["steel", "iron", "core", "soft magnetic", "coil", "print", "material"],
+    core: true,
+  },
+  {
+    id: "dummy-magnet-control",
+    text: "Run a dummy-magnet cell with the same mass and friction so movement cannot be faked.",
+    reason: "control",
+    keywords: ["control", "dummy", "mass", "friction", "cell", "comparison", "proof"],
+    core: true,
+  },
+  {
+    id: "thermal-ceiling",
+    text: "Set a pulse energy ceiling from hinge temperature rise and coil resistance.",
+    reason: "heat limit",
+    keywords: ["heat", "temperature", "pulse", "energy", "resistance", "coil", "hinge"],
+  },
+  {
+    id: "low-strain-wire-route",
+    text: "Route conductors through low-strain ribs and keep hinges purely mechanical.",
+    reason: "survivable wiring",
+    keywords: ["wire", "conductor", "route", "hinge", "strain", "rib", "fatigue"],
+  },
+  {
+    id: "rocker-or-wedge",
+    text: "Prototype a rocker or wedge that turns short magnetic closure into lateral width change.",
+    reason: "stroke conversion",
+    keywords: ["rocker", "wedge", "gap", "stroke", "lateral", "width", "sarrus"],
+  },
+  {
+    id: "symmetric-node-pairs",
+    text: "Pull symmetric node pairs so the Sarrus cell expands without twisting.",
+    reason: "clean motion",
+    keywords: ["symmetric", "node", "twist", "sarrus", "expand", "cell"],
+  },
+  {
+    id: "snap-threshold-first",
+    text: "Measure passive snap or stiffness thresholds before adding magnetic drive.",
+    reason: "mechanics baseline",
+    keywords: ["snap", "stiffness", "threshold", "bistable", "passive", "cell"],
+  },
+  {
+    id: "zero-power-hold-demo",
+    text: "Make zero-power hold visible: remove power, leave the cell expanded, then release.",
+    reason: "EPM advantage",
+    keywords: ["zero power", "hold", "release", "expanded", "epm", "latch"],
+  },
+  {
+    id: "flux-leakage-check",
+    text: "Check leakage by measuring attraction with and without the return yoke installed.",
+    reason: "magnetic circuit",
+    keywords: ["flux", "leakage", "return yoke", "yoke", "keeper", "force"],
+  },
+  {
+    id: "state-table",
+    text: "Keep a state table: contracted, expanded, held, released, failed.",
+    reason: "paper evidence",
+    keywords: ["state", "table", "contracted", "expanded", "hold", "release", "failure"],
+  },
+  {
+    id: "object-trace-section",
+    text: "For every promising build, save one object photo, one trace, one section cut.",
+    reason: "usable record",
+    keywords: ["photo", "trace", "section", "build", "record", "figure"],
+  },
+  {
+    id: "force-per-volume",
+    text: "Track force per actuator volume, not only peak force.",
+    reason: "cell-scale metric",
+    keywords: ["force", "volume", "density", "cell", "actuator", "metric"],
+  },
+  {
+    id: "force-per-energy",
+    text: "Track force and displacement per pulse energy so EPM beats pneumatic only where it matters.",
+    reason: "energy metric",
+    keywords: ["force", "displacement", "energy", "pulse", "pneumatic", "metric"],
+  },
+  {
+    id: "monolithic-word-discipline",
+    text: "Separate monolithically packaged from monolithically printed until magnetic material proves it.",
+    reason: "claim discipline",
+    keywords: ["monolithic", "printed", "embedded", "material", "claim", "proof"],
+  },
+  {
+    id: "paper-number-extract",
+    text: "For each useful paper, extract one number: gap, force, turns, pulse, material loading, or strain.",
+    reason: "paper to build",
+    keywords: ["paper", "number", "force", "gap", "turns", "loading", "strain"],
+  },
+  {
+    id: "paper-credibility-filter",
+    text: "Favor papers with apparatus photos, force curves, and repeatable geometry over broad claims.",
+    reason: "quality filter",
+    keywords: ["paper", "apparatus", "force", "curve", "geometry", "quality", "credibility"],
+  },
+  {
+    id: "figure-first-literature",
+    text: "A paper tile earns space only if its figure changes a build decision.",
+    reason: "library filter",
+    keywords: ["paper", "figure", "decision", "build", "useful", "library"],
+  },
+  {
+    id: "one-variable-fixture",
+    text: "Make the next fixture change exactly one variable: gap, pole area, turns, or core.",
+    reason: "experiment design",
+    keywords: ["fixture", "variable", "gap", "pole", "turns", "core", "experiment"],
+  },
+  {
+    id: "keeper-overlap-sweep",
+    text: "Sweep keeper overlap separately from air gap; they are different knobs.",
+    reason: "geometry sweep",
+    keywords: ["keeper", "overlap", "air gap", "geometry", "sweep", "force"],
+  },
+  {
+    id: "cell-width-fixture",
+    text: "Add two fixed camera marks so cell width can be measured from video.",
+    reason: "video measurement",
+    keywords: ["camera", "marks", "width", "video", "measurement", "cell"],
+  },
+  {
+    id: "driver-polarity-table",
+    text: "Log polarity, pulse length, and remanent state after every EPM switch.",
+    reason: "driver sanity",
+    keywords: ["polarity", "pulse", "remanent", "switch", "driver", "epm"],
+  },
+  {
+    id: "coil-resistance-before-pulse",
+    text: "Measure coil resistance before each pulse batch so heating is not invisible.",
+    reason: "thermal sanity",
+    keywords: ["coil", "resistance", "pulse", "heat", "batch", "measurement"],
+  },
+  {
+    id: "minimum-beautiful-proof",
+    text: "Build the smallest object that clearly shows printed cell, magnetic drive, and lateral motion.",
+    reason: "showcase proof",
+    keywords: ["object", "printed", "cell", "magnetic", "drive", "lateral", "motion"],
+  },
+  {
+    id: "array-later",
+    text: "Do not array until one cell has force, heat, hold, release, and repeatability.",
+    reason: "scope control",
+    keywords: ["array", "one cell", "force", "heat", "hold", "release", "repeatability"],
+  },
+  {
+    id: "paper-cluster",
+    text: "Cluster useful papers into magnetic circuit, printed materials, driver, and mechanism coupling.",
+    reason: "advisor map",
+    keywords: ["paper", "magnetic circuit", "printed materials", "driver", "mechanism", "coupling"],
+  },
+  {
+    id: "failure-photo-bank",
+    text: "Photograph failures: slipping keeper, hot coil, hinge tear, no release, weak hold.",
+    reason: "failure map",
+    keywords: ["failure", "keeper", "coil", "hinge", "release", "hold", "photo"],
+  },
+  {
+    id: "bench-before-cell",
+    text: "Use a bench EPM coupon to earn the force, then move that geometry into the Sarrus cell.",
+    reason: "risk order",
+    keywords: ["bench", "coupon", "force", "geometry", "sarrus", "cell", "epm"],
+  },
+  {
+    id: "printability-stack",
+    text: "Rank each component by printability: conductor, hard magnet, soft yoke, insulator, hinge.",
+    reason: "materials plan",
+    keywords: ["printability", "conductor", "hard magnet", "soft yoke", "insulator", "hinge"],
+  },
+  {
+    id: "cell-section-cutaway",
+    text: "Design the cell around one cutaway: hinges, yoke path, magnet, coil, and keeper all visible.",
+    reason: "figure-ready CAD",
+    keywords: ["cutaway", "hinge", "yoke", "magnet", "coil", "keeper", "cad"],
+  },
+  {
+    id: "approved-thread",
+    text: "Use the most recent approved items as the next search query, not the oldest idea bank.",
+    reason: "dynamic direction",
+    keywords: ["approved", "recent", "search", "query", "suggestion", "dynamic"],
   },
 ];
 
@@ -2080,6 +2308,7 @@ const seedNoteIds = new Set(seedNotes.map((note) => note.id));
 let state = loadState();
 let paperFeedback = loadPaperFeedback();
 let ideaFeedback = loadIdeaFeedback();
+let suggestionState = loadSuggestionState();
 let sync = { status: "checking", base: "", root: "", deleteConfigured: false };
 let noteDraft = "";
 let pendingFiles = [];
@@ -2188,6 +2417,33 @@ function ideaFeedbackUpdatedAt(id) {
   return feedbackRecord(ideaFeedback, id).updatedAt;
 }
 
+function loadSuggestionState() {
+  try {
+    return normalizeSuggestionState(JSON.parse(localStorage.getItem(suggestionStateKey) || "{}"));
+  } catch (error) {
+    console.warn(error);
+    return normalizeSuggestionState({});
+  }
+}
+
+function normalizeSuggestionState(record) {
+  const stateRecord = record && typeof record === "object" && !Array.isArray(record) ? record : {};
+  return {
+    refreshCount: Number.isFinite(stateRecord.refreshCount) ? stateRecord.refreshCount : 0,
+    refreshedAt: stateRecord.refreshedAt || "",
+    skippedIdeas: objectRecord(stateRecord.skippedIdeas),
+    skippedPapers: objectRecord(stateRecord.skippedPapers),
+  };
+}
+
+function objectRecord(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function saveSuggestionState() {
+  localStorage.setItem(suggestionStateKey, JSON.stringify(suggestionState));
+}
+
 function el(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -2223,6 +2479,8 @@ function iconPath(name) {
     open: "M7 17 17 7M10 7h7v7M5 5v14h14",
     check: "M20 6 9 17l-5-5",
     x: "M18 6 6 18M6 6l12 12",
+    skip: "M5 4l8 8-8 8V4Zm10 0v16",
+    refresh: "M21 12a9 9 0 0 1-15.5 6.2M3 12a9 9 0 0 1 15.5-6.2M18 3v5h-5M6 21v-5h5",
   }[name];
 }
 
@@ -2413,7 +2671,7 @@ function weightedContextSources() {
     .filter(isVisibleLibraryFile)
     .slice(0, 12)
     .map((file) => `${file.paperTitle || ""} ${file.name || ""}`);
-  const approvedIdeas = ideaGuideRules
+  const approvedIdeas = allIdeaCandidates()
     .filter((idea) => ideaFeedbackValue(idea.id) === "useful")
     .map((idea) => ({
       text: `${idea.text} ${idea.reason} ${(idea.keywords || []).join(" ")}`,
@@ -2436,7 +2694,7 @@ function weightedContextSources() {
 }
 
 function approvedContextText() {
-  const approvedIdeas = ideaGuideRules
+  const approvedIdeas = allIdeaCandidates()
     .filter((idea) => ideaFeedbackValue(idea.id) === "useful")
     .map((idea) => `${idea.text} ${idea.reason} ${(idea.keywords || []).join(" ")}`);
   const approvedPapers = state.files
@@ -2492,15 +2750,47 @@ function activeProjectTopics(text) {
   return topics.slice(0, 3);
 }
 
+function allIdeaCandidates() {
+  const seen = new Set();
+  return [...ideaGuideRules, ...dynamicIdeaTemplates].filter((idea) => {
+    if (!idea?.id || seen.has(idea.id)) return false;
+    seen.add(idea.id);
+    return true;
+  });
+}
+
+function suggestionEntryId(entry) {
+  return entry?.id || entry?.idea?.id || entry?.paper?.id || "";
+}
+
+function suggestionJitter(id) {
+  const text = `${suggestionState.refreshCount}:${id}`;
+  let hash = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = ((hash << 5) - hash + text.charCodeAt(index)) | 0;
+  }
+  return (((Math.abs(hash) % 1000) / 1000) - 0.5) * 8;
+}
+
+function suggestionSort(a, b) {
+  const aSkipped = Boolean(a.skippedAt);
+  const bSkipped = Boolean(b.skippedAt);
+  if (aSkipped !== bSkipped) return aSkipped ? 1 : -1;
+  if (aSkipped && bSkipped) return feedbackTime(a.skippedAt) - feedbackTime(b.skippedAt);
+  const aScore = a.score + suggestionJitter(suggestionEntryId(a));
+  const bScore = b.score + suggestionJitter(suggestionEntryId(b));
+  return bScore - aScore;
+}
+
 function usefulIdeaItems() {
-  const scored = ideaGuideRules
+  const scored = allIdeaCandidates()
     .map((idea) => scoreIdeaForProject(idea))
     .filter(Boolean)
-    .sort((a, b) => b.score - a.score);
+    .sort(suggestionSort);
 
   return scored
     .filter((entry) => entry.feedback !== "useful")
-    .slice(0, 4)
+    .slice(0, 24)
     .map((entry) => entry.idea);
 }
 
@@ -2514,15 +2804,18 @@ function scoreIdeaForProject(idea) {
   score += keywordScore;
   if (!hasGuidanceContext() && !idea.core && feedback !== "useful") return null;
 
+  const skippedAt = suggestionState.skippedIdeas[idea.id]?.updatedAt || "";
   return {
-    idea: { ...idea, feedback },
+    id: idea.id,
+    idea: { ...idea, feedback, skippedAt },
     score,
     feedback,
+    skippedAt,
   };
 }
 
 function approvedIdeaItems() {
-  return ideaGuideRules
+  return allIdeaCandidates()
     .filter((idea) => ideaFeedbackValue(idea.id) === "useful")
     .map((idea) => ({ ...idea, feedback: "useful", approvedAt: ideaFeedbackUpdatedAt(idea.id) }))
     .sort((a, b) => feedbackTime(b.approvedAt) - feedbackTime(a.approvedAt));
@@ -2578,8 +2871,8 @@ function createFocusLibrary() {
   if (!approvedIdeas.length && !approvedPapers.length && !ideas.length && !papers.length) return null;
 
   const section = el("section", "focus-library useful-library");
-  const head = el("div", "section-head");
-  head.append(el("h2", "", "Useful"));
+  const head = el("div", "section-head section-head-row");
+  head.append(el("h2", "", "Useful"), createRefreshSuggestionsButton());
   section.append(head);
 
   const layout = el("div", "useful-layout");
@@ -2600,7 +2893,7 @@ function createFocusLibrary() {
   }
   if (ideas.length) {
     const ideaBlock = el("section", "useful-block");
-    ideaBlock.append(el("p", "section-label", "Suggested ideas"));
+    ideaBlock.append(el("p", "section-label", `Suggested ideas (${ideas.length})`));
     const ideaGrid = el("div", "ideas-grid");
     ideas.forEach((idea) => ideaGrid.append(createIdeaCard(idea)));
     ideaBlock.append(ideaGrid);
@@ -2608,7 +2901,7 @@ function createFocusLibrary() {
   }
   if (papers.length) {
     const paperBlock = el("section", "useful-block");
-    paperBlock.append(el("p", "section-label", "Suggested papers"));
+    paperBlock.append(el("p", "section-label", `Suggested papers (${papers.length})`));
     const grid = el("div", "focus-grid");
     papers.forEach((item, index) => grid.append(createFocusCard(item, index)));
     paperBlock.append(grid);
@@ -2616,6 +2909,15 @@ function createFocusLibrary() {
   }
   section.append(layout);
   return section;
+}
+
+function createRefreshSuggestionsButton() {
+  const button = el("button", "refresh-button");
+  button.type = "button";
+  button.dataset.action = "refresh-suggestions";
+  button.title = "Refresh suggestions";
+  button.append(icon("refresh"), document.createTextNode("Refresh"));
+  return button;
 }
 
 function createLibrary() {
@@ -2668,9 +2970,9 @@ function focusPaperItems() {
   const scored = papers
     .map((paper) => scorePaperForProject(paper))
     .filter(Boolean)
-    .sort((a, b) => b.score - a.score || new Date(b.paper.createdAt) - new Date(a.paper.createdAt));
+    .sort((a, b) => suggestionSort(a, b) || new Date(b.paper.createdAt) - new Date(a.paper.createdAt));
 
-  return scored.slice(0, 6).map((entry) => ({ ...entry.paper, focusReason: entry.reason }));
+  return scored.slice(0, 24).map((entry) => ({ ...entry.paper, focusReason: entry.reason, skippedAt: entry.skippedAt }));
 }
 
 function approvedPaperItems() {
@@ -2711,7 +3013,8 @@ function scorePaperForProject(paper) {
   if (!bestReason && wordOverlap) bestReason = "Matches notes";
   if (!bestReason) bestReason = "Reference";
 
-  return { paper, score, reason: bestReason, feedback };
+  const skippedAt = suggestionState.skippedPapers[paper.id]?.updatedAt || "";
+  return { id: paper.id, paper, score, reason: bestReason, feedback, skippedAt };
 }
 
 function rejectionPenalty(search) {
@@ -2765,10 +3068,14 @@ function createIdeaCard(idea) {
   const card = el("article", `item-card idea-card${feedback === "useful" ? " paper-kept" : ""}`);
   const body = el("div", "item-body");
   body.append(el("p", "item-title", idea.text), el("p", "item-meta", idea.reason));
-  const actions = createActions([
+  const actionItems = [
     { action: "idea-feedback", id: idea.id, value: "useful", title: "Useful", iconName: "check", className: "feedback-useful", active: feedback === "useful" },
-    { action: "idea-feedback", id: idea.id, value: "not-useful", title: "Not useful", iconName: "x", className: "feedback-not-useful", active: feedback === "not-useful" },
-  ]);
+  ];
+  if (feedback !== "useful") {
+    actionItems.push({ action: "skip-idea", id: idea.id, title: "Skip", iconName: "skip", className: "feedback-skip" });
+  }
+  actionItems.push({ action: "idea-feedback", id: idea.id, value: "not-useful", title: "Not useful", iconName: "x", className: "feedback-not-useful", active: feedback === "not-useful" });
+  const actions = createActions(actionItems);
   card.append(body, actions);
   return card;
 }
@@ -2831,13 +3138,19 @@ function createFileCard(file, index) {
   const body = el("div", "item-body");
   body.append(el("p", "item-title", kind === "paper" ? paperDisplayTitle(file) : file.name), el("p", "item-meta", file.meta));
 
-  const actions = createActions(kind === "paper"
-    ? [
+  const paperActions = [
       { action: "open-file", id: file.id, title: "Open", iconName: "open" },
       { action: "paper-feedback", id: file.id, value: "useful", title: "Useful", iconName: "check", className: "feedback-useful", active: feedback === "useful" },
+    ];
+  if (feedback !== "useful") {
+    paperActions.push({ action: "skip-paper", id: file.id, title: "Skip", iconName: "skip", className: "feedback-skip" });
+  }
+  paperActions.push(
       { action: "paper-feedback", id: file.id, value: "not-useful", title: paperRejectReason(file.id) ? `Not useful: ${paperRejectReason(file.id)}` : "Not useful", iconName: "x", className: "feedback-not-useful", active: feedback === "not-useful" },
       { action: "delete", id: file.id, title: "Delete", iconName: "trash", danger: true },
-    ]
+  );
+  const actions = createActions(kind === "paper"
+    ? paperActions
     : [
       { action: "download", id: file.id, title: "Download", iconName: "down" },
       { action: "delete", id: file.id, title: "Delete", iconName: "trash", danger: true },
@@ -2933,8 +3246,17 @@ function bind() {
   root.querySelectorAll("[data-action='download']").forEach((button) => {
     button.addEventListener("click", () => downloadFile(button.dataset.id));
   });
+  root.querySelectorAll("[data-action='refresh-suggestions']").forEach((button) => {
+    button.addEventListener("click", refreshSuggestions);
+  });
   root.querySelectorAll("[data-action='open-file']").forEach((button) => {
     button.addEventListener("click", () => openFile(button.dataset.id));
+  });
+  root.querySelectorAll("[data-action='skip-paper']").forEach((button) => {
+    button.addEventListener("click", () => skipPaper(button.dataset.id));
+  });
+  root.querySelectorAll("[data-action='skip-idea']").forEach((button) => {
+    button.addEventListener("click", () => skipIdea(button.dataset.id));
   });
   root.querySelectorAll("[data-action='paper-feedback']").forEach((button) => {
     button.addEventListener("click", () => setPaperFeedback(button.dataset.id, button.dataset.value));
@@ -3161,6 +3483,43 @@ async function downloadFile(id) {
   URL.revokeObjectURL(url);
 }
 
+function refreshSuggestions() {
+  suggestionState.refreshCount = (suggestionState.refreshCount || 0) + 1;
+  suggestionState.refreshedAt = new Date().toISOString();
+  saveSuggestionState();
+  render();
+  toast("Suggestions refreshed.");
+}
+
+function skipIdea(id) {
+  if (!id) return;
+  suggestionState.skippedIdeas[id] = {
+    updatedAt: new Date().toISOString(),
+    count: (suggestionState.skippedIdeas[id]?.count || 0) + 1,
+  };
+  saveSuggestionState();
+  render();
+  toast("Idea moved down.");
+}
+
+function skipPaper(id) {
+  if (!id) return;
+  suggestionState.skippedPapers[id] = {
+    updatedAt: new Date().toISOString(),
+    count: (suggestionState.skippedPapers[id]?.count || 0) + 1,
+  };
+  saveSuggestionState();
+  render();
+  toast("Paper moved down.");
+}
+
+function clearSuggestionSkip(kind, id) {
+  const skipped = kind === "paper" ? suggestionState.skippedPapers : suggestionState.skippedIdeas;
+  if (!skipped[id]) return;
+  delete skipped[id];
+  saveSuggestionState();
+}
+
 function setPaperFeedback(id, value) {
   if (!id || !["useful", "not-useful"].includes(value)) return;
   const wasActive = paperFeedbackValue(id) === value;
@@ -3171,6 +3530,7 @@ function setPaperFeedback(id, value) {
     if (value === "not-useful" && !reason) return;
     paperFeedback[id] = { value, updatedAt: new Date().toISOString(), ...(reason ? { reason } : {}) };
   }
+  clearSuggestionSkip("paper", id);
   savePaperFeedback();
   render();
   toast(wasActive ? "Rating cleared." : value === "useful" ? "Kept in useful papers." : `Removed: ${paperRejectReason(id) || "not useful"}.`);
@@ -3195,6 +3555,7 @@ function setIdeaFeedback(id, value) {
   } else {
     ideaFeedback[id] = { value, updatedAt: new Date().toISOString() };
   }
+  clearSuggestionSkip("idea", id);
   saveIdeaFeedback();
   render();
   toast(wasActive ? "Rating cleared." : value === "useful" ? "Kept idea." : "Removed idea.");
@@ -3234,7 +3595,9 @@ async function deleteFile(id) {
 
   state.files = state.files.filter((item) => item.id !== id);
   delete paperFeedback[id];
+  delete suggestionState.skippedPapers[id];
   savePaperFeedback();
+  saveSuggestionState();
   saveState();
   render();
   toast("Deleted.");
