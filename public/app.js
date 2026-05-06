@@ -3015,8 +3015,7 @@ function createProjectStatePanel() {
 
 function generateProjectState() {
   if (aiFeed.summary && aiFeed.mode === "ai") {
-    const suffix = aiFeed.status === "loading" ? " Updating." : "";
-    return `${aiFeed.summary}${suffix}`;
+    return aiFeed.summary;
   }
   return generateLocalProjectState();
 }
@@ -3024,7 +3023,6 @@ function generateProjectState() {
 function projectStateBullets() {
   const text = generateProjectState().replace(/\bUpdating\.\s*$/i, "").trim();
   const bullets = summaryToBullets(text);
-  if (aiFeed.status === "loading") bullets.push("Updating feed.");
   return bullets.slice(0, 4);
 }
 
