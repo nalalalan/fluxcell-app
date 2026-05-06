@@ -3082,6 +3082,30 @@ function sentenceCaseBullet(text) {
 
 const projectStageDefinitions = [
   {
+    id: "body",
+    label: "body reset",
+    summary: "Handle the body need fast, then return with one tiny FluxCell move.",
+    patterns: [/hungry|hunger|food|eat|snack|ice cream|thirst|water|sleepy|exhausted|tired as fuck|tired af|need sleep/],
+  },
+  {
+    id: "vent",
+    label: "rough mood",
+    summary: "Let the ugly thought exist, then lower the project to one reversible move.",
+    patterns: [/fuck my life|fml|fuck|shit|lazy+|so lazy|hate this|everything sucks|miserable|bad mood|can't do this|cant do this|done with this/],
+  },
+  {
+    id: "play",
+    label: "chaos capture",
+    summary: "Let the random thought pass through, then convert it into one concrete project touch.",
+    patterns: [/slay|bestie|penis|lol|lmao|lmfao|random|silly|goofy|chaos|unhinged|whatever/],
+  },
+  {
+    id: "vision",
+    label: "north star",
+    summary: "Turn the ambition into a portfolio-visible proof with delight and real engineering.",
+    patterns: [/disney|imagineering|imagineer|hired|hire|portfolio|r&d|success|successful|cool stuff|dream job|showcase|magical|delight/],
+  },
+  {
     id: "reset",
     label: "focus reset",
     summary: "Take a clean reset, then return with one tiny physical FluxCell action.",
@@ -3132,6 +3156,50 @@ const projectStageDefinitions = [
 ];
 
 const projectStageTipBank = {
+  body: [
+    ["body-eat-first", "Eat something easy, then come back for one tiny FluxCell action.", "body reset", ["hungry", "food", "action"], ["eat", "tiny fluxcell action"]],
+    ["body-ice-cream-break", "If ice cream is the cue, make it a defined break, not the whole night.", "break", ["ice cream", "break"], ["ice cream", "defined break"]],
+    ["body-water", "Water and food first; do not make big design decisions while depleted.", "body reset", ["water", "food"], ["water", "food", "depleted"]],
+    ["body-low-energy-task", "Low-energy FluxCell task: add one part link, one photo, or one sentence.", "tiny action", ["low energy", "note"], ["part link", "photo", "sentence"]],
+    ["body-open-cart", "After the snack, open the parts cart or bench before any new tab.", "re-entry", ["parts", "bench"], ["parts cart", "bench"]],
+    ["body-stop-at-one", "Only promise one move after eating: order, wind, sketch, photograph, or write.", "scope", ["one move", "start"], ["order", "wind", "sketch", "photograph"]],
+    ["body-tired-proof", "If tired, protect tomorrow by leaving the next physical step obvious.", "re-entry", ["tired", "next"], ["protect tomorrow", "physical step"]],
+    ["body-no-hero-mode", "No hero mode while hungry; make the next action smaller.", "scope", ["hungry", "small"], ["hungry", "smaller"]],
+    ["body-return-object", "Return to one object on the bench, not the whole research plan.", "object", ["bench", "object"], ["one object", "research plan"]],
+  ],
+  vent: [
+    ["vent-lower-bar", "If the note is ugly, lower the bar: one visible proof, not project identity.", "reset", ["frustration", "proof"], ["ugly", "lower the bar"]],
+    ["vent-reversible", "Do one reversible move: add a part link, write a test, or clean the bench.", "tiny action", ["frustration", "action"], ["reversible move", "part link", "test"]],
+    ["vent-not-whole-project", "Do not solve the whole project from this mood; preserve the next step.", "scope", ["mood", "next"], ["whole project", "next step"]],
+    ["vent-tomorrow-note", "Leave tomorrow one sentence: the next physical thing to touch is ____.", "re-entry", ["tomorrow", "note"], ["one sentence", "physical thing"]],
+    ["vent-one-honest-note", "Today can count as one honest note plus one tiny prototype step.", "small win", ["note", "prototype"], ["honest note", "prototype step"]],
+    ["vent-no-verdict", "A bad mood is not data about whether FluxCell will work.", "reset", ["mood", "project"], ["bad mood", "data"]],
+    ["vent-name-blocker", "Name the blocker in five words, then pick the smallest next move.", "blocker", ["blocker", "next"], ["five words", "smallest next move"]],
+    ["vent-tools-away", "If frustration is high, step away from tools and leave a re-entry note.", "safety", ["frustration", "tools"], ["step away", "re-entry note"]],
+    ["vent-proof-not-plan", "Make the next proof smaller instead of making the plan bigger.", "scope", ["proof", "plan"], ["proof smaller", "plan bigger"]],
+  ],
+  play: [
+    ["play-logged", "Chaotic thought logged; now name one concrete object: magnet, coil, keeper, or fixture.", "capture", ["random", "object"], ["chaotic thought", "concrete object"]],
+    ["play-energy", "Use the goofy energy to make the next prototype visually satisfying.", "dopamine", ["goofy", "prototype"], ["goofy energy", "visually satisfying"]],
+    ["play-one-touch", "The app can absorb nonsense; the project still needs one small physical touch.", "re-entry", ["chaos", "project"], ["absorb nonsense", "physical touch"]],
+    ["play-do-not-spiral", "Do not interpret the random note; route it back to one action.", "scope", ["random", "action"], ["random note", "one action"]],
+    ["play-title-card", "Turn the chaos into a tile title only if it helps you reopen the app.", "dopamine", ["tile", "app"], ["tile title", "reopen"]],
+    ["play-quick-reset", "Smile at the dumb note, then add one part, sketch, photo, or test.", "tiny action", ["note", "test"], ["dumb note", "part", "sketch"]],
+    ["play-bench-object", "Put one object on the bench where future you can see it.", "setup", ["bench", "object"], ["one object", "future you"]],
+    ["play-noise-filter", "If it is just noise, the useful output is a smaller next step.", "filter", ["noise", "next"], ["noise", "smaller next step"]],
+    ["play-keep-human", "Keep the weird note; human context is allowed here.", "capture", ["human", "note"], ["weird note", "human context"]],
+  ],
+  vision: [
+    ["vision-disney-demo", "Imagineering proof: make one motion feel magical and back it with real data.", "north star", ["disney", "demo"], ["magical", "real data"]],
+    ["vision-portfolio-video", "Portfolio target: one beautiful video of a printed cell moving from an EPM pulse.", "portfolio", ["video", "portfolio"], ["beautiful video", "EPM pulse"]],
+    ["vision-artifact", "Every session should leave one artifact: clip, CAD screenshot, part list, or measurement.", "artifact", ["portfolio", "artifact"], ["clip", "cad screenshot", "part list", "measurement"]],
+    ["vision-nonexpert", "Make the demo legible to a non-expert: before, pulse, motion, hold.", "story", ["demo", "story"], ["non-expert", "before", "pulse"]],
+    ["vision-hire-signal", "Hire signal: delightful motion, robust mechanism, and a clear engineering story.", "career", ["imagineering", "career"], ["delightful motion", "robust mechanism"]],
+    ["vision-reel", "Build for the reel: clean background, visible scale, one sentence explanation.", "showcase", ["video", "reel"], ["clean background", "visible scale"]],
+    ["vision-cool-and-true", "The object needs both: cool enough to remember, measured enough to trust.", "north star", ["cool", "measure"], ["cool", "measured"]],
+    ["vision-one-wow", "Choose one wow moment first; the rest of the prototype supports it.", "scope", ["wow", "prototype"], ["wow moment", "supports it"]],
+    ["vision-today-step", "Today’s Imagineering move is tiny: make the next physical interaction more visible.", "today", ["visible", "interaction"], ["physical interaction", "visible"]],
+  ],
   reset: [
     ["reset-clean-break", "Practice violin as a clean reset, then return for one tiny FluxCell action.", "reset", ["violin", "reset", "action"], ["violin", "clean reset", "tiny action"]],
     ["reset-reentry-note", "Before leaving, write the next FluxCell action in one plain sentence.", "re-entry", ["note", "action"], ["next fluxcell action", "one sentence"]],
@@ -3218,6 +3286,18 @@ function generateLocalProjectState() {
   if (supportTopic) {
     return `Stage: paper support. Find papers for "${supportTopic}". Prefer papers with built devices, apparatus photos, and measurements.`;
   }
+  if (stage.id === "body") {
+    return `Stage: ${stage.label}. ${stage.summary} Next: handle the body cue, then one tiny move.`;
+  }
+  if (stage.id === "vent") {
+    return `Stage: ${stage.label}. ${stage.summary} Next: one reversible step, not the whole project.`;
+  }
+  if (stage.id === "play") {
+    return `Stage: ${stage.label}. ${stage.summary} Next: log it, then touch one object.`;
+  }
+  if (stage.id === "vision") {
+    return `Stage: ${stage.label}. ${stage.summary} Next: make one portfolio-visible artifact.`;
+  }
   if (stage.id === "reset") {
     return `Stage: ${stage.label}. ${stage.summary} Next: leave one re-entry action before the break.`;
   }
@@ -3243,6 +3323,10 @@ function projectStageProfile() {
       + stagePatternScore(recent, stage.patterns, 3)
       + stagePatternScore(preference, stage.patterns, 1.5)
       + stagePatternScore(fileText, stage.patterns, 1);
+    if (stage.id === "body" && /hungry|food|eat|snack|ice cream|tired as fuck|tired af|exhausted|sleepy/.test(latest)) score += 80;
+    if (stage.id === "vent" && /fuck my life|fml|fuck|shit|lazy+|hate this|everything sucks|miserable|can't do this|cant do this/.test(latest)) score += 80;
+    if (stage.id === "play" && /slay|bestie|penis|lol|lmao|lmfao|random|silly|goofy|chaos/.test(latest)) score += 80;
+    if (stage.id === "vision" && /disney|imagineering|imagineer|hired|hire|portfolio|r&d|success|cool stuff|dream job|magical/.test(latest)) score += 85;
     if (stage.id === "reset" && /violin|practice|music|rather|avoid|distract|not feeling|don't wanna|dont wanna|burnout|reset/.test(latest)) score += 70;
     if (stage.id === "start" && /too detailed|crazy detailed|overwhelm|tired|no idea|lost|just need.*start|start.*prototyp/.test(latest)) score += 45;
     if (stage.id === "sourcing" && /where.*buy|what kind.*component|off[- ]?the[- ]?shelf|quick shipping|order|supplier/.test(latest)) score += 45;
@@ -3429,14 +3513,14 @@ function contextHelpIdeaCandidates() {
 
   (projectStageTipBank[stage.id] || projectStageTipBank.start).forEach(([id, text, reason, keywords, signals]) => {
     if (stage.id === "start") addStart(id, text, reason, keywords, signals);
-    else add(id, text, reason, keywords, signals, { keepFresh: stage.id === "papers" || stage.id === "sourcing" || stage.id === "reset" });
+    else add(id, text, reason, keywords, signals, { keepFresh: ["papers", "sourcing", "reset", "body", "vent", "play", "vision"].includes(stage.id) });
   });
 
   if (stage.id !== "start" && startMode) {
     projectStageTipBank.start.slice(0, 3).forEach(([id, text, reason, keywords, signals]) => addStart(id, text, reason, keywords, signals));
   }
 
-  if (stage.id === "sourcing" || startMode || /where|buy|order|get|source|supplier|shipping|off[- ]?the[- ]?shelf|component/.test(notesText)) {
+  if (stage.id === "sourcing" || startMode || /where|buy|order|source|supplier|shipping|off[- ]?the[- ]?shelf|component/.test(notesText)) {
     add("magnet-supplier", "Browse small NdFeB blocks at K&J Magnetics: https://www.kjmagnetics.com", "supplier", ["buy", "magnet", "ndfeb"], ["k&j", "kjmagnetics", "ndfeb blocks"]);
     add("electronics-supplier", "Use Digi-Key (https://www.digikey.com) or Mouser (https://www.mouser.com) for magnet wire and driver parts.", "electronics", ["buy", "coil", "driver"], ["digikey", "digi-key", "mouser", "magnet wire"]);
     add("steel-supplier", "Use McMaster for low-carbon steel shim, small bars, screws, and repeatable fixture hardware: https://www.mcmaster.com", "hardware", ["steel", "yoke", "fixture"], ["mcmaster", "low-carbon steel", "steel shim"]);
@@ -3489,8 +3573,13 @@ function recentConcernText() {
 
 function startModeActive() {
   if (paperSupportTopic()) return false;
+  if (rawThoughtModeActive()) return false;
   if (resetModeActive()) return false;
   return /(?:\bstart\b|starter|prototyp|crazy detailed|too detailed|overwhelm|tired|no idea|what i'?m doing|lost|confus|just need|basic|beginner|where to buy|what kind of off[- ]?the[- ]?shelf|what kind of component)/i.test(recentConcernText());
+}
+
+function rawThoughtModeActive() {
+  return /(?:hungry|food|eat|snack|ice cream|tired as fuck|tired af|exhausted|sleepy|fuck my life|fml|fuck|shit|lazy+|hate this|everything sucks|miserable|can't do this|cant do this|slay|bestie|penis|lol|lmao|lmfao|random|silly|goofy|chaos|disney|imagineering|imagineer|hired|hire|portfolio|r&d|success|cool stuff|dream job|magical)/i.test(latestNoteText());
 }
 
 function resetModeActive() {
@@ -3828,6 +3917,10 @@ function stageRelevantIdea(stageId, idea) {
   if (supportTopic) return /paper|scholar|citation|cite|source|reference|figure|apparatus|measurement|built|device/.test(text);
   if (stageId === "start") return startModeTipText(text);
   if (stageId === "sourcing") return /buy|order|source|supplier|component|part|magnet|wire|steel|switch|power|shipping|mcmaster|mouser|digikey|digi-key|amazon/.test(text);
+  if (stageId === "body") return /eat|food|snack|water|hungry|ice cream|tired|sleep|depleted|low-energy|low energy|parts cart|one move|body/.test(text);
+  if (stageId === "vent") return /ugly|mood|frustration|reversible|blocker|tomorrow|honest note|prototype step|bad mood|proof smaller|step away/.test(text);
+  if (stageId === "play") return /chaotic|goofy|random|nonsense|weird note|human context|tile title|physical touch|bench|object|smile|noise/.test(text);
+  if (stageId === "vision") return /disney|imagineering|portfolio|reel|demo|magical|delight|delightful|artifact|video|non-expert|showcase|wow|career/.test(text);
   if (stageId === "reset") return /reset|break|return|re-entry|reentry|next action|one note|ordered part|pulse test|bench ready|smallest visible proof|violin|five minutes|parts cart|switching contexts/.test(text);
   if (stageId === "bench") return /bench|epm|coil|magnet|keeper|steel|hold|release|pulse|switch|wire|table|loop/.test(text);
   if (stageId === "measurement") return /measure|test|debug|failure|force|gap|current|heat|temperature|video|photo|trace|before|after/.test(text);
