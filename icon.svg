@@ -1,8 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="22" fill="#090b0d"/>
-  <path d="M21 64c15-32 71-32 86 0M21 64c15 32 71 32 86 0" fill="none" stroke="#3ee7d6" stroke-width="7" stroke-linecap="round"/>
-  <path d="M32 46h26v36H32z" fill="#fffaf0"/>
-  <path d="M70 46h26v36H70z" fill="#ff5f52"/>
-  <path d="M58 40h12v48H58z" fill="#111820"/>
-  <circle cx="64" cy="64" r="12" fill="#f5ba45"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="FluxCell icon">
+  <rect width="128" height="128" rx="18" fill="#141419"/>
+
+  <path d="M29 35h25v35c0 10 8 18 18 18s18-8 18-18V35h25v38c0 26-18 43-43 43S29 99 29 73V35Z" fill="none" stroke="#f7f8f5" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M38 44h16v27H38zM90 44h16v27H90z" fill="#59c5b8"/>
+  <path d="M90 44h16v27H90z" fill="#ff907d"/>
+  <path d="M18 66c14-24 80-24 94 0M18 66c14 24 80 24 94 0" fill="none" stroke="#59c5b8" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+  <circle cx="72" cy="79" r="17" fill="#f3c969" stroke="#0f1016" stroke-width="5"/>
+  <path d="m77 50-23 33h16l-15 27 35-39H72l5-21Z" fill="#f7f8f5" stroke="#0f1016" stroke-width="4" stroke-linejoin="round"/>
 </svg>
