@@ -327,6 +327,35 @@ h1 {
   line-height: 1.5;
 }
 
+.state-list {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.state-list li {
+  position: relative;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.36;
+  padding-left: 16px;
+}
+
+.state-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .62em;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--cyan);
+  opacity: .9;
+}
+
 .notes-library,
 .focus-library,
 .library {
