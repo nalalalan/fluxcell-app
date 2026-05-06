@@ -16,6 +16,7 @@ const maxUploadBytes = Number(process.env.FLUXCELL_MAX_UPLOAD_MB || 100) * 1024 
 const openAiModel = process.env.FLUXCELL_OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-5-mini";
 const focusedIndexPath = path.join(storageRoot, ".fluxcell-files.json");
 const indexPath = focusedIndexPath;
+const appStatePath = path.join(storageRoot, ".fluxcell-app-state.json");
 const paperPreviewRoot = path.join(storageRoot, ".fluxcell-paper-previews");
 const paperPreviewVersion = 5;
 
@@ -100,6 +101,148 @@ async function readIndex() {
 async function writeIndex(files) {
   await ensureStorage();
   await fsp.writeFile(indexPath, JSON.stringify({ files }, null, 2));
+}
+
+function objectRecord(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function cleanNote(note) {
+  const record = objectRecord(note);
+  const text = String(record.text || "").trim();
+  if (!text) return null;
+  return {
+    id: String(record.id || crypto.randomUUID()).slice(0, 160),
+    text,
+    createdAt: record.createdAt || new Date().toISOString(),
+    updatedAt: record.updatedAt || record.createdAt || "",
+  };
+}
+
+function cleanFeedbackStore(store) {
+  return Object.entries(objectRecord(store)).reduce((cleaned, [id, record]) => {
+    const key = String(id || "").trim().slice(0, 180);
+    if (!key) return cleaned;
+    if (typeof record === "string") {
+      cleaned[key] = { value: record, updatedAt: "" };
+      return cleaned;
+    }
+    const value = objectRecord(record).value || "";
+    if (!["useful", "not-useful", ""].includes(value)) return cleaned;
+    cleaned[key] = {
+      value,
+      updatedAt: objectRecord(record).updatedAt || new Date().toISOString(),
+      ...(objectRecord(record).reason ? { reason: String(objectRecord(record).reason).slice(0, 80) } : {}),
+    };
+    return cleaned;
+  }, {});
+}
+
+function cleanSkipStore(store) {
+  return Object.entries(objectRecord(store)).reduce((cleaned, [id, record]) => {
+    const key = String(id || "").trim().slice(0, 180);
+    if (!key) return cleaned;
+    const item = objectRecord(record);
+    cleaned[key] = {
+      updatedAt: item.updatedAt || new Date().toISOString(),
+      count: Number.isFinite(item.count) ? item.count : 1,
+      ...(item.cleared ? { cleared: true } : {}),
+    };
+    return cleaned;
+  }, {});
+}
+
+function cleanCustomIdeas(store) {
+  return Object.entries(objectRecord(store)).reduce((cleaned, [id, idea]) => {
+    const key = String(id || "").trim().slice(0, 180);
+    const record = objectRecord(idea);
+    const text = String(record.text || "").replace(/\s+/g, " ").trim().slice(0, 520);
+    if (!key || !text) return cleaned;
+    cleaned[key] = {
+      id: String(record.id || key).slice(0, 180),
+      text,
+      reason: String(record.reason || "").replace(/\s+/g, " ").trim().slice(0, 120),
+      keywords: Array.isArray(record.keywords)
+        ? record.keywords.map((keyword) => String(keyword || "").trim()).filter(Boolean).slice(0, 12)
+        : [],
+      source: String(record.source || "custom").slice(0, 40),
+    };
+    return cleaned;
+  }, {});
+}
+
+function cleanSuggestionState(record) {
+  const state = objectRecord(record);
+  return {
+    refreshCount: Number.isFinite(state.refreshCount) ? state.refreshCount : 0,
+    refreshedAt: state.refreshedAt || "",
+    skippedIdeas: cleanSkipStore(state.skippedIdeas),
+    skippedPapers: cleanSkipStore(state.skippedPapers),
+    customIdeas: cleanCustomIdeas(state.customIdeas),
+  };
+}
+
+function cleanAiFeed(record) {
+  const feed = objectRecord(record);
+  return {
+    status: feed.status === "loading" ? "idle" : String(feed.status || "idle").slice(0, 40),
+    mode: String(feed.mode || "").slice(0, 40),
+    model: String(feed.model || "").slice(0, 80),
+    summary: String(feed.summary || "").replace(/\s+/g, " ").trim().slice(0, 1200),
+    ideas: Array.isArray(feed.ideas) ? feed.ideas.map((idea) => objectRecord(idea)).slice(0, 80) : [],
+    paperIds: Array.isArray(feed.paperIds) ? feed.paperIds.map((id) => String(id || "")).filter(Boolean).slice(0, 120) : [],
+    updatedAt: feed.updatedAt || "",
+    error: String(feed.error || "").slice(0, 240),
+  };
+}
+
+function cleanAppState(record = {}) {
+  const state = objectRecord(record);
+  const deletedNoteIds = Array.isArray(state.deletedNoteIds)
+    ? state.deletedNoteIds.map((id) => String(id || "").trim()).filter(Boolean).slice(0, 5000)
+    : [];
+  const deletedNotes = new Set(deletedNoteIds);
+  return {
+    notes: Array.isArray(state.notes)
+      ? state.notes.map(cleanNote).filter(Boolean).filter((note) => !deletedNotes.has(note.id)).slice(0, 1000)
+      : [],
+    deletedNoteIds,
+    paperFeedback: cleanFeedbackStore(state.paperFeedback),
+    ideaFeedback: cleanFeedbackStore(state.ideaFeedback),
+    suggestionState: cleanSuggestionState(state.suggestionState),
+    aiFeed: cleanAiFeed(state.aiFeed),
+    updatedAt: state.updatedAt || new Date().toISOString(),
+  };
+}
+
+async function readAppState() {
+  await ensureStorage();
+  try {
+    const text = await fsp.readFile(appStatePath, "utf8");
+    return cleanAppState(JSON.parse(text));
+  } catch (error) {
+    if (error.code === "ENOENT") return cleanAppState();
+    throw error;
+  }
+}
+
+async function writeAppState(state) {
+  await ensureStorage();
+  const cleaned = cleanAppState({ ...state, updatedAt: new Date().toISOString() });
+  await fsp.writeFile(appStatePath, JSON.stringify(cleaned, null, 2));
+  return cleaned;
+}
+
+async function mergeAppState(patch) {
+  const current = await readAppState();
+  return writeAppState({
+    notes: Array.isArray(patch.notes) ? patch.notes : current.notes,
+    deletedNoteIds: Array.isArray(patch.deletedNoteIds) ? patch.deletedNoteIds : current.deletedNoteIds,
+    paperFeedback: patch.paperFeedback !== undefined ? patch.paperFeedback : current.paperFeedback,
+    ideaFeedback: patch.ideaFeedback !== undefined ? patch.ideaFeedback : current.ideaFeedback,
+    suggestionState: patch.suggestionState !== undefined ? patch.suggestionState : current.suggestionState,
+    aiFeed: patch.aiFeed !== undefined ? patch.aiFeed : current.aiFeed,
+  });
 }
 
 async function readJsonBody(req, limitBytes) {
@@ -673,6 +816,17 @@ async function handleApi(req, res, requestUrl) {
     return;
   }
 
+  if (requestUrl.pathname === "/api/app-state" && req.method === "GET") {
+    sendJson(res, 200, { state: await readAppState() });
+    return;
+  }
+
+  if (requestUrl.pathname === "/api/app-state" && req.method === "POST") {
+    const payload = await readJsonBody(req, 3 * 1024 * 1024);
+    sendJson(res, 200, { state: await mergeAppState(objectRecord(payload.state || payload)) });
+    return;
+  }
+
   if (requestUrl.pathname === "/api/files" && req.method === "GET") {
     sendJson(res, 200, { files: await enrichPdfEntries(await readIndex()) });
     return;
@@ -706,13 +860,16 @@ async function handleApi(req, res, requestUrl) {
       sendJson(res, 400, { error: "Missing note text" });
       return;
     }
-    sendJson(res, 201, {
-      note: {
-        id: crypto.randomUUID(),
-        text,
-        createdAt: new Date().toISOString(),
-      },
+    const appState = await readAppState();
+    const note = cleanNote({
+      id: payload.id || crypto.randomUUID(),
+      text,
+      createdAt: payload.createdAt || new Date().toISOString(),
     });
+    appState.deletedNoteIds = (appState.deletedNoteIds || []).filter((id) => id !== note.id);
+    appState.notes = [note, ...appState.notes.filter((item) => item.id !== note.id)];
+    await writeAppState(appState);
+    sendJson(res, 201, { note });
     return;
   }
 

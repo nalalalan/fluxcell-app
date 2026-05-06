@@ -9,6 +9,7 @@ const feedbackKey = "fluxcell.paper.feedback.v1";
 const ideaFeedbackKey = "fluxcell.idea.feedback.v1";
 const suggestionStateKey = "fluxcell.suggestion.stack.v1";
 const aiFeedKey = "fluxcell.ai.feed.v1";
+const deletedNoteKey = "fluxcell.deleted-notes.v1";
 const apiBaseKey = "fluxcell.api.base.v1";
 const aiApiBaseKey = "fluxcell.ai.api.base.v1";
 const seedPackKey = "fluxcell.seed-pack.v1";
@@ -2384,12 +2385,16 @@ let paperFeedback = loadPaperFeedback();
 let ideaFeedback = loadIdeaFeedback();
 let suggestionState = loadSuggestionState();
 let aiFeed = loadAiFeed();
+let deletedNoteIds = loadDeletedNoteIds();
 let sync = { status: "checking", base: "", root: "", deleteConfigured: false, aiConfigured: false, aiModel: "" };
 let aiService = { status: "checking", base: "", configured: false, model: "" };
 let noteDraft = "";
 let pendingFiles = [];
 let toastTimer = 0;
 let aiRefreshTimer = 0;
+let cloudSaveTimer = 0;
+let suppressCloudStateSave = false;
+let lastCloudStateSignature = "";
 const previewUrls = new Map();
 
 function loadState() {
@@ -2427,9 +2432,11 @@ function finalizeLoadedState(next) {
 }
 
 function saveState() {
-  state.notes = userNotes(state.notes);
+  const deleted = new Set(deletedNoteIds);
+  state.notes = userNotes(state.notes).filter((note) => !deleted.has(note.id));
   state.files = state.files.filter(isVisibleLibraryFile);
   localStorage.setItem(stateKey, JSON.stringify(state));
+  queueCloudStateSave();
 }
 
 function withRecoveredFeedback(seed, stored, seedKey) {
@@ -2452,6 +2459,7 @@ function loadPaperFeedback() {
 
 function savePaperFeedback() {
   localStorage.setItem(feedbackKey, JSON.stringify(paperFeedback));
+  queueCloudStateSave();
 }
 
 function feedbackRecord(store, id) {
@@ -2490,6 +2498,22 @@ function loadIdeaFeedback() {
 
 function saveIdeaFeedback() {
   localStorage.setItem(ideaFeedbackKey, JSON.stringify(ideaFeedback));
+  queueCloudStateSave();
+}
+
+function loadDeletedNoteIds() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(deletedNoteKey) || "[]");
+    return Array.isArray(parsed) ? parsed.map((id) => String(id || "")).filter(Boolean) : [];
+  } catch (error) {
+    console.warn(error);
+    return [];
+  }
+}
+
+function saveDeletedNoteIds() {
+  localStorage.setItem(deletedNoteKey, JSON.stringify([...new Set(deletedNoteIds)].slice(0, 5000)));
+  queueCloudStateSave();
 }
 
 function ideaFeedbackValue(id) {
@@ -2526,6 +2550,7 @@ function objectRecord(value) {
 
 function saveSuggestionState() {
   localStorage.setItem(suggestionStateKey, JSON.stringify(suggestionState));
+  queueCloudStateSave();
 }
 
 function loadAiFeed() {
@@ -2574,6 +2599,204 @@ function hashId(text) {
 
 function saveAiFeed() {
   localStorage.setItem(aiFeedKey, JSON.stringify(aiFeed));
+  queueCloudStateSave();
+}
+
+function cloudStateBase() {
+  if (sync.status === "local" && sync.base) return sync.base;
+  return configuredApiBase();
+}
+
+function cloudStatePayload() {
+  const deleted = [...new Set(deletedNoteIds)].slice(0, 5000);
+  return {
+    notes: userNotes(state.notes).filter((note) => !deleted.includes(note.id)),
+    deletedNoteIds: deleted,
+    paperFeedback,
+    ideaFeedback,
+    suggestionState,
+    aiFeed: normalizeAiFeed({
+      ...aiFeed,
+      status: aiFeed.status === "loading" ? "idle" : aiFeed.status,
+    }),
+  };
+}
+
+function queueCloudStateSave() {
+  if (suppressCloudStateSave) return;
+  const base = cloudStateBase();
+  if (!base) return;
+  window.clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = window.setTimeout(() => pushCloudState(), 250);
+}
+
+async function pushCloudState({ force = false } = {}) {
+  const base = cloudStateBase();
+  if (!base) return false;
+  const payload = cloudStatePayload();
+  const signature = JSON.stringify(payload);
+  if (!force && signature === lastCloudStateSignature) return true;
+  try {
+    await postJson(`${base}/api/app-state`, { state: payload });
+    lastCloudStateSignature = signature;
+    return true;
+  } catch (error) {
+    console.warn(error);
+    return false;
+  }
+}
+
+function normalizeCloudAppState(record) {
+  const cloud = objectRecord(record);
+  return {
+    notes: Array.isArray(cloud.notes) ? cloud.notes.map(normalizeNoteRecord).filter(Boolean) : [],
+    deletedNoteIds: Array.isArray(cloud.deletedNoteIds) ? cloud.deletedNoteIds.map((id) => String(id || "")).filter(Boolean) : [],
+    paperFeedback: objectRecord(cloud.paperFeedback),
+    ideaFeedback: objectRecord(cloud.ideaFeedback),
+    suggestionState: normalizeSuggestionState(cloud.suggestionState),
+    aiFeed: normalizeAiFeed(cloud.aiFeed),
+  };
+}
+
+function normalizeNoteRecord(note) {
+  const record = objectRecord(note);
+  const text = String(record.text || "").trim();
+  if (!text) return null;
+  return {
+    id: String(record.id || createId()),
+    text,
+    createdAt: record.createdAt || record.updatedAt || new Date().toISOString(),
+    updatedAt: record.updatedAt || record.createdAt || "",
+  };
+}
+
+function noteTime(note) {
+  return Math.max(feedbackTime(note?.updatedAt), feedbackTime(note?.createdAt));
+}
+
+function mergeNotes(remoteNotes, localNotes, deletedIds) {
+  const deleted = new Set(deletedIds);
+  const map = new Map();
+  [...remoteNotes, ...localNotes].forEach((note) => {
+    const clean = normalizeNoteRecord(note);
+    if (!clean || deleted.has(clean.id)) return;
+    const existing = map.get(clean.id);
+    if (!existing || noteTime(clean) >= noteTime(existing)) map.set(clean.id, clean);
+  });
+  return [...map.values()].sort((a, b) => noteTime(b) - noteTime(a));
+}
+
+function feedbackRecordTime(record) {
+  return feedbackTime(normalizeFeedbackRecord(record).updatedAt);
+}
+
+function mergeFeedbackStore(remoteStore, localStore) {
+  const merged = {};
+  const ids = new Set([...Object.keys(objectRecord(remoteStore)), ...Object.keys(objectRecord(localStore))]);
+  ids.forEach((id) => {
+    const remote = remoteStore[id];
+    const local = localStore[id];
+    if (remote === undefined) {
+      merged[id] = local;
+      return;
+    }
+    if (local === undefined) {
+      merged[id] = remote;
+      return;
+    }
+    merged[id] = feedbackRecordTime(local) > feedbackRecordTime(remote) ? local : remote;
+  });
+  return merged;
+}
+
+function skipRecordTime(record) {
+  return feedbackTime(objectRecord(record).updatedAt);
+}
+
+function mergeSkipStore(remoteStore, localStore) {
+  const merged = {};
+  const ids = new Set([...Object.keys(objectRecord(remoteStore)), ...Object.keys(objectRecord(localStore))]);
+  ids.forEach((id) => {
+    const remote = remoteStore[id];
+    const local = localStore[id];
+    if (remote === undefined) {
+      merged[id] = local;
+      return;
+    }
+    if (local === undefined) {
+      merged[id] = remote;
+      return;
+    }
+    merged[id] = skipRecordTime(local) > skipRecordTime(remote) ? local : remote;
+  });
+  return merged;
+}
+
+function mergeCustomIdeas(remoteStore, localStore) {
+  return { ...objectRecord(remoteStore), ...objectRecord(localStore) };
+}
+
+function mergeSuggestionStates(remoteState, localState) {
+  const remote = normalizeSuggestionState(remoteState);
+  const local = normalizeSuggestionState(localState);
+  return {
+    refreshCount: Math.max(remote.refreshCount || 0, local.refreshCount || 0),
+    refreshedAt: feedbackTime(local.refreshedAt) > feedbackTime(remote.refreshedAt) ? local.refreshedAt : remote.refreshedAt,
+    skippedIdeas: mergeSkipStore(remote.skippedIdeas, local.skippedIdeas),
+    skippedPapers: mergeSkipStore(remote.skippedPapers, local.skippedPapers),
+    customIdeas: mergeCustomIdeas(remote.customIdeas, local.customIdeas),
+  };
+}
+
+function mergeAiFeeds(remoteFeed, localFeed) {
+  const remote = normalizeAiFeed(remoteFeed);
+  const local = normalizeAiFeed(localFeed);
+  if (local.status === "loading") return local;
+  return feedbackTime(local.updatedAt) > feedbackTime(remote.updatedAt) ? local : remote;
+}
+
+function applyCloudState(next) {
+  suppressCloudStateSave = true;
+  state.notes = next.notes;
+  deletedNoteIds = next.deletedNoteIds;
+  paperFeedback = next.paperFeedback;
+  ideaFeedback = next.ideaFeedback;
+  suggestionState = next.suggestionState;
+  aiFeed = next.aiFeed;
+  localStorage.setItem(stateKey, JSON.stringify(state));
+  localStorage.setItem(deletedNoteKey, JSON.stringify(deletedNoteIds));
+  localStorage.setItem(feedbackKey, JSON.stringify(paperFeedback));
+  localStorage.setItem(ideaFeedbackKey, JSON.stringify(ideaFeedback));
+  localStorage.setItem(suggestionStateKey, JSON.stringify(suggestionState));
+  localStorage.setItem(aiFeedKey, JSON.stringify(aiFeed));
+  suppressCloudStateSave = false;
+}
+
+async function refreshCloudState() {
+  const base = cloudStateBase();
+  if (!base) return;
+  try {
+    const response = await fetch(`${base}/api/app-state`, { cache: "no-store" });
+    if (!response.ok) return;
+    const json = await response.json();
+    const remote = normalizeCloudAppState(json.state || {});
+    const deleted = [...new Set([...(remote.deletedNoteIds || []), ...deletedNoteIds])];
+    const merged = {
+      notes: mergeNotes(remote.notes, userNotes(state.notes), deleted),
+      deletedNoteIds: deleted,
+      paperFeedback: mergeFeedbackStore(remote.paperFeedback, paperFeedback),
+      ideaFeedback: mergeFeedbackStore(remote.ideaFeedback, ideaFeedback),
+      suggestionState: mergeSuggestionStates(remote.suggestionState, suggestionState),
+      aiFeed: mergeAiFeeds(remote.aiFeed, aiFeed),
+    };
+    const remoteSignature = JSON.stringify(remote);
+    applyCloudState(merged);
+    const mergedSignature = JSON.stringify(cloudStatePayload());
+    lastCloudStateSignature = remoteSignature;
+    if (mergedSignature !== remoteSignature) await pushCloudState({ force: true });
+  } catch (error) {
+    console.warn(error);
+  }
 }
 
 function el(tag, className, text) {
@@ -2716,7 +2939,7 @@ function createStatusPill(text, className) {
 }
 
 function syncLabel() {
-  if (sync.status === "local") return "local sync";
+  if (sync.status === "local") return "cloud sync";
   if (sync.status === "browser") return "browser vault";
   return "checking";
 }
@@ -3096,6 +3319,16 @@ function suggestionSort(a, b) {
   return bScore - aScore;
 }
 
+function activeSkipRecord(store, id) {
+  const record = objectRecord(store?.[id]);
+  if (!record.updatedAt || record.cleared || record.count === 0) return null;
+  return record;
+}
+
+function activeSkipIds(store) {
+  return Object.keys(objectRecord(store)).filter((id) => activeSkipRecord(store, id));
+}
+
 function usefulIdeaItems() {
   const scored = allIdeaCandidates()
     .map((idea) => scoreIdeaForProject(idea))
@@ -3119,7 +3352,7 @@ function scoreIdeaForProject(idea) {
   score += keywordScore;
   if (!hasGuidanceContext() && !idea.core && feedback !== "useful") return null;
 
-  const skippedAt = suggestionState.skippedIdeas[idea.id]?.updatedAt || "";
+  const skippedAt = activeSkipRecord(suggestionState.skippedIdeas, idea.id)?.updatedAt || "";
   return {
     id: idea.id,
     idea: { ...idea, feedback, skippedAt },
@@ -3348,7 +3581,7 @@ function scorePaperForProject(paper) {
   if (!bestReason && wordOverlap) bestReason = "Matches notes";
   if (!bestReason) bestReason = "Reference";
 
-  const skippedAt = suggestionState.skippedPapers[paper.id]?.updatedAt || "";
+  const skippedAt = activeSkipRecord(suggestionState.skippedPapers, paper.id)?.updatedAt || "";
   return { id: paper.id, paper, score, reason: bestReason, feedback, skippedAt };
 }
 
@@ -3883,8 +4116,8 @@ function aiFeedPayload() {
         const paper = paperLookup.get(id);
         return { id, title: paper ? paperDisplayTitle(paper) : id, reason: normalizeFeedbackRecord(record).reason || "" };
       }),
-    skippedIdeas: Object.keys(suggestionState.skippedIdeas || {}).map((id) => ({ id, text: ideaLookup.get(id)?.text || id })),
-    skippedPapers: Object.keys(suggestionState.skippedPapers || {}).map((id) => {
+    skippedIdeas: activeSkipIds(suggestionState.skippedIdeas).map((id) => ({ id, text: ideaLookup.get(id)?.text || id })),
+    skippedPapers: activeSkipIds(suggestionState.skippedPapers).map((id) => {
       const paper = paperLookup.get(id);
       return { id, title: paper ? paperDisplayTitle(paper) : id };
     }),
@@ -3940,9 +4173,10 @@ async function requestAiFeed({ force = false } = {}) {
 
 function skipIdea(id) {
   if (!id) return;
+  const existing = activeSkipRecord(suggestionState.skippedIdeas, id);
   suggestionState.skippedIdeas[id] = {
     updatedAt: new Date().toISOString(),
-    count: (suggestionState.skippedIdeas[id]?.count || 0) + 1,
+    count: (existing?.count || 0) + 1,
   };
   saveSuggestionState();
   render();
@@ -3952,9 +4186,10 @@ function skipIdea(id) {
 
 function skipPaper(id) {
   if (!id) return;
+  const existing = activeSkipRecord(suggestionState.skippedPapers, id);
   suggestionState.skippedPapers[id] = {
     updatedAt: new Date().toISOString(),
-    count: (suggestionState.skippedPapers[id]?.count || 0) + 1,
+    count: (existing?.count || 0) + 1,
   };
   saveSuggestionState();
   render();
@@ -3965,7 +4200,7 @@ function skipPaper(id) {
 function clearSuggestionSkip(kind, id) {
   const skipped = kind === "paper" ? suggestionState.skippedPapers : suggestionState.skippedIdeas;
   if (!skipped[id]) return;
-  delete skipped[id];
+  skipped[id] = { updatedAt: new Date().toISOString(), count: 0, cleared: true };
   saveSuggestionState();
 }
 
@@ -3973,7 +4208,7 @@ function setPaperFeedback(id, value) {
   if (!id || !["useful", "not-useful"].includes(value)) return;
   const wasActive = paperFeedbackValue(id) === value;
   if (wasActive) {
-    delete paperFeedback[id];
+    paperFeedback[id] = { value: "", updatedAt: new Date().toISOString() };
   } else {
     const reason = value === "not-useful" ? choosePaperRejectReason(id) : "";
     if (value === "not-useful" && !reason) return;
@@ -4002,7 +4237,7 @@ function setIdeaFeedback(id, value) {
   const wasActive = ideaFeedbackValue(id) === value;
   const idea = findIdeaCandidate(id);
   if (wasActive) {
-    delete ideaFeedback[id];
+    ideaFeedback[id] = { value: "", updatedAt: new Date().toISOString() };
   } else {
     if (value === "useful") rememberCustomIdea(idea);
     ideaFeedback[id] = { value, updatedAt: new Date().toISOString() };
@@ -4047,8 +4282,8 @@ async function deleteFile(id) {
   }
 
   state.files = state.files.filter((item) => item.id !== id);
-  delete paperFeedback[id];
-  delete suggestionState.skippedPapers[id];
+  paperFeedback[id] = { value: "", updatedAt: new Date().toISOString() };
+  suggestionState.skippedPapers[id] = { updatedAt: new Date().toISOString(), count: 0, cleared: true };
   savePaperFeedback();
   saveSuggestionState();
   saveState();
@@ -4061,7 +4296,9 @@ function deleteNote(id) {
   const note = state.notes.find((item) => item.id === id);
   if (!note) return;
   if (!window.confirm("Delete this note?")) return;
+  deletedNoteIds = [...new Set([note.id, ...deletedNoteIds])];
   state.notes = state.notes.filter((item) => item.id !== id);
+  saveDeletedNoteIds();
   saveState();
   render();
   scheduleAiFeedRefresh();
@@ -4112,6 +4349,7 @@ async function detectSync() {
         aiConfigured: Boolean(json.aiConfigured),
         aiModel: json.aiModel || "",
       };
+      await refreshCloudState();
       await refreshSyncFiles();
       scheduleAiFeedRefresh();
       render();
