@@ -2393,12 +2393,11 @@ let pendingFiles = [];
 let toastTimer = 0;
 let aiRefreshTimer = 0;
 let cloudSaveTimer = 0;
-let tipRotationTimer = 0;
 let tipWindowIndex = 0;
 let suppressCloudStateSave = false;
 let lastCloudStateSignature = "";
 const previewUrls = new Map();
-const visibleTipCount = 3;
+const visibleTipCount = 9;
 
 function loadState() {
   try {
@@ -2913,7 +2912,6 @@ function render() {
   root.replaceChildren(createShell());
   bind();
   hydrateBrowserPreviews();
-  manageTipRotation();
 }
 
 function createShell() {
@@ -3227,29 +3225,82 @@ function latestNoteText() {
 }
 
 function contextHelpIdeaCandidates() {
-  const latest = latestNoteText().toLowerCase();
+  const notesText = recentConcernText();
   const tips = [];
-  const add = (id, text, reason, keywords = []) => tips.push({ id: `help-${id}`, text, reason, keywords, source: "helper", core: true });
+  const add = (id, text, reason, keywords = [], signals = keywords) => {
+    if (helpTipAddressed(id, signals, text)) return;
+    tips.push({ id: `help-${id}`, text, reason, keywords, source: "helper", core: true });
+  };
 
-  if (/where|buy|order|get|source|supplier|shipping|off[- ]?the[- ]?shelf|component/.test(latest)) {
-    add("magnet-supplier", "Browse small NdFeB blocks at K&J Magnetics: https://www.kjmagnetics.com", "supplier", ["buy", "magnet", "ndfeb"]);
-    add("electronics-supplier", "Use Digi-Key (https://www.digikey.com) or Mouser (https://www.mouser.com) for magnet wire and driver parts.", "electronics", ["buy", "coil", "driver"]);
-    add("steel-supplier", "Use McMaster for low-carbon steel shim, small bars, screws, and repeatable fixture hardware: https://www.mcmaster.com", "hardware", ["steel", "yoke", "fixture"]);
-    add("shopping-search", "Search: small NdFeB block magnet, low-carbon steel shim, enamel magnet wire, MOSFET driver.", "search terms", ["shopping", "prototype"]);
+  if (/where|buy|order|get|source|supplier|shipping|off[- ]?the[- ]?shelf|component/.test(notesText)) {
+    add("magnet-supplier", "Browse small NdFeB blocks at K&J Magnetics: https://www.kjmagnetics.com", "supplier", ["buy", "magnet", "ndfeb"], ["k&j", "kjmagnetics", "ndfeb blocks"]);
+    add("electronics-supplier", "Use Digi-Key (https://www.digikey.com) or Mouser (https://www.mouser.com) for magnet wire and driver parts.", "electronics", ["buy", "coil", "driver"], ["digikey", "digi-key", "mouser", "magnet wire"]);
+    add("steel-supplier", "Use McMaster for low-carbon steel shim, small bars, screws, and repeatable fixture hardware: https://www.mcmaster.com", "hardware", ["steel", "yoke", "fixture"], ["mcmaster", "low-carbon steel", "steel shim"]);
+    add("shopping-search", "Search: small NdFeB block magnet, low-carbon steel shim, enamel magnet wire, MOSFET driver.", "search terms", ["shopping", "prototype"], ["search", "small ndfeb", "mosfet driver"]);
   }
 
-  if (/how|what is|make|build|no idea|don't know|dont know|idk|epm|electropermanent/.test(latest)) {
-    add("epm-basic", "An EPM is a permanent magnet path that a coil pulse switches between hold and release.", "basic EPM", ["epm", "basic"]);
-    add("epm-parts", "First bench parts: hard magnet, soft steel return path, coil wire, keeper, switch, and power source.", "parts", ["epm", "components"]);
-    add("bench-first", "Do the first EPM outside the Sarrus cell so you can see magnetic switching clearly.", "first build", ["bench", "prototype"]);
+  if (/how|what is|make|build|no idea|don't know|dont know|idk|epm|electropermanent/.test(notesText)) {
+    add("epm-basic", "An EPM is a permanent magnet path that a coil pulse switches between hold and release.", "basic EPM", ["epm", "basic"], ["epm is", "permanent magnet path", "coil pulse"]);
+    add("epm-parts", "First bench parts: hard magnet, soft steel return path, coil wire, keeper, switch, and power source.", "parts", ["epm", "components"], ["hard magnet", "soft steel", "keeper", "coil wire"]);
+    add("bench-first", "Do the first EPM outside the Sarrus cell so you can see magnetic switching clearly.", "first build", ["bench", "prototype"], ["bench first", "outside the sarrus", "magnetic switching"]);
   }
 
-  if (/heat|hot|temperature|burn|current|pulse/.test(latest)) {
-    add("heat-touch", "Start with short manual pulses and stop if the coil gets warm faster than expected.", "heat caution", ["heat", "pulse"]);
-    add("current-watch", "Watch current and coil temperature before caring about the printed cell motion.", "basic measurement", ["current", "temperature"]);
+  if (/heat|hot|temperature|burn|current|pulse/.test(notesText)) {
+    add("heat-touch", "Start with short manual pulses and stop if the coil gets warm faster than expected.", "heat caution", ["heat", "pulse"], ["short manual pulse", "coil gets warm"]);
+    add("current-watch", "Watch current and coil temperature before caring about the printed cell motion.", "basic measurement", ["current", "temperature"], ["current", "coil temperature"]);
+  }
+
+  if (/paper|papers|literature|reference|source|read/.test(notesText)) {
+    add("paper-figure-filter", "Pick papers by useful figures first: apparatus photo, force curve, coil layout, or material stack.", "paper filter", ["paper", "figure"], ["apparatus photo", "force curve", "coil layout"]);
+    add("paper-question", "For each paper, ask one question: what exact part of my next build changes?", "reading filter", ["paper", "build"], ["next build changes", "paper question"]);
+  }
+
+  if (/integrat|sarrus|cell|lateral|expand|mechanism|cad|geometry|actuat/.test(notesText)) {
+    add("detachable-cassette", "Make the first EPM a detachable cassette before trying to print it into the Sarrus cell.", "integration path", ["sarrus", "cassette"], ["detachable cassette", "print it into the sarrus"]);
+    add("motion-first", "Prove one visible width change before optimizing the magnetic circuit.", "motion proof", ["lateral", "width"], ["visible width change", "motion proof"]);
+  }
+
+  if (/print|printed|monolithic|material|iron|steel|magnet material|composite/.test(notesText)) {
+    add("inserted-before-printed", "Use inserted steel and magnets first; treat printable magnetic material as the second milestone.", "material risk", ["printed", "material"], ["inserted steel", "second milestone"]);
+    add("material-split", "Separate the build into three materials: hard magnet, soft magnetic path, and normal printed structure.", "material map", ["material", "magnet"], ["hard magnet", "soft magnetic path", "printed structure"]);
+  }
+
+  if (/test|measure|measurement|proof|failure|fail|works|work|prototype/.test(notesText)) {
+    add("first-proof", "The first proof is simple: pulse it, see the keeper switch, and record the before/after state.", "proof", ["test", "prototype"], ["keeper switch", "before/after state"]);
+    add("failure-list", "Keep a tiny failure list: weak hold, no release, heating, slipping, or broken geometry.", "debugging", ["failure", "test"], ["failure list", "weak hold", "no release"]);
   }
 
   return tips;
+}
+
+function recentConcernText() {
+  return userNotes(state.notes)
+    .slice(0, 12)
+    .map((note) => note.text)
+    .join(" ")
+    .toLowerCase();
+}
+
+function approvedConcernText() {
+  return Object.entries(ideaFeedback)
+    .filter(([, record]) => normalizeFeedbackRecord(record).value === "useful")
+    .map(([id]) => {
+      const custom = objectRecord(suggestionState.customIdeas?.[id]);
+      const staticIdea = [...ideaGuideRules, ...dynamicIdeaTemplates].find((idea) => idea.id === id);
+      return `${id} ${custom.text || ""} ${staticIdea?.text || ""} ${(custom.keywords || staticIdea?.keywords || []).join(" ")}`;
+    })
+    .join(" ")
+    .toLowerCase();
+}
+
+function helpTipAddressed(id, signals, text) {
+  if (ideaFeedbackValue(`help-${id}`) === "useful") return true;
+  const approved = approvedConcernText();
+  if (!approved) return false;
+  return [...signals, ...importantWords(text).slice(0, 4)]
+    .map((signal) => String(signal || "").toLowerCase().trim())
+    .filter((signal) => signal.length >= 4)
+    .some((signal) => approved.includes(signal));
 }
 
 function approvalDrivenIdeaCandidates() {
@@ -4073,18 +4124,6 @@ function bind() {
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(render, 140);
   };
-}
-
-function manageTipRotation() {
-  window.clearInterval(tipRotationTimer);
-  const count = usefulIdeaItems().length;
-  if (count <= visibleTipCount) return;
-  tipRotationTimer = window.setInterval(() => {
-    const active = document.activeElement;
-    if (active?.matches?.("textarea, input") || active?.closest?.(".composer")) return;
-    tipWindowIndex = (tipWindowIndex + visibleTipCount) % count;
-    render();
-  }, 9500);
 }
 
 function nextTipWindow() {
