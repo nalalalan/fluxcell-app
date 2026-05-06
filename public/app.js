@@ -2393,9 +2393,12 @@ let pendingFiles = [];
 let toastTimer = 0;
 let aiRefreshTimer = 0;
 let cloudSaveTimer = 0;
+let tipRotationTimer = 0;
+let tipWindowIndex = 0;
 let suppressCloudStateSave = false;
 let lastCloudStateSignature = "";
 const previewUrls = new Map();
+const visibleTipCount = 3;
 
 function loadState() {
   try {
@@ -2910,15 +2913,17 @@ function render() {
   root.replaceChildren(createShell());
   bind();
   hydrateBrowserPreviews();
+  manageTipRotation();
 }
 
 function createShell() {
   const shell = el("main", "app-shell");
-  shell.append(createTopbar(), createWorkspace());
-  const notes = createNotesSection();
-  if (notes) shell.append(notes);
+  shell.append(createTopbar());
   const focusLibrary = createFocusLibrary();
   if (focusLibrary) shell.append(focusLibrary);
+  shell.append(createWorkspace());
+  const notes = createNotesSection();
+  if (notes) shell.append(notes);
   shell.append(createLibrary());
   return shell;
 }
@@ -3570,32 +3575,62 @@ function createFocusLibrary() {
   const papers = focusPaperItems();
   if (!approvedIdeas.length && !approvedPapers.length && !ideas.length && !papers.length) return null;
 
-  const section = el("section", "focus-library useful-library");
+  const section = el("section", "focus-library useful-library top-feed");
   const head = el("div", "section-head section-head-row");
-  head.append(el("h2", "", "Feed"), createRefreshSuggestionsButton());
+  head.append(el("h2", "", "Suggestions"), createFeedControls(ideas.length));
   section.append(head);
 
   const layout = el("div", "useful-layout");
-  const approvedBank = createApprovedBank(approvedIdeas, approvedPapers);
-  if (approvedBank) layout.append(approvedBank);
   if (ideas.length) {
     const ideaBlock = el("section", "useful-block");
-    ideaBlock.append(el("p", "section-label", `Helpful tips (${ideas.length})`));
-    const ideaGrid = el("div", "ideas-grid");
-    ideas.forEach((idea) => ideaGrid.append(createIdeaCard(idea)));
+    const visibleIdeas = visibleTipItems(ideas);
+    ideaBlock.append(el("p", "section-label", tipFeedLabel(ideas.length)));
+    const ideaGrid = el("div", "ideas-grid tip-grid");
+    visibleIdeas.forEach((idea) => ideaGrid.append(createIdeaCard(idea)));
     ideaBlock.append(ideaGrid);
     layout.append(ideaBlock);
   }
-  if (papers.length) {
-    const paperBlock = el("section", "useful-block");
-    paperBlock.append(el("p", "section-label", `Suggested papers (${papers.length})`));
-    const grid = el("div", "focus-grid");
-    papers.forEach((item, index) => grid.append(createFocusCard(item, index)));
-    paperBlock.append(grid);
-    layout.append(paperBlock);
-  }
+  const approvedBank = createApprovedBank(approvedIdeas, approvedPapers);
+  if (approvedBank) layout.append(approvedBank);
+  const paperDrawer = createSuggestedPaperDrawer(papers);
+  if (paperDrawer) layout.append(paperDrawer);
   section.append(layout);
   return section;
+}
+
+function visibleTipItems(ideas) {
+  if (ideas.length <= visibleTipCount) return ideas;
+  const start = ((tipWindowIndex % ideas.length) + ideas.length) % ideas.length;
+  return Array.from({ length: visibleTipCount }, (_, offset) => ideas[(start + offset) % ideas.length]);
+}
+
+function tipFeedLabel(total) {
+  return "Helpful tips";
+}
+
+function createFeedControls(total) {
+  const controls = el("div", "feed-controls");
+  controls.append(createRefreshSuggestionsButton());
+  if (total > visibleTipCount) {
+    const next = el("button", "refresh-button feed-next");
+    next.type = "button";
+    next.dataset.action = "next-tips";
+    next.title = "Show next tips";
+    next.append(icon("skip"), document.createTextNode("Next"));
+    controls.append(next);
+  }
+  return controls;
+}
+
+function createSuggestedPaperDrawer(papers) {
+  if (!papers.length) return null;
+  const drawer = document.createElement("details");
+  drawer.className = "archive-drawer paper-suggestion-drawer";
+  drawer.append(el("summary", "archive-summary", `Suggested papers (${papers.length})`));
+  const grid = el("div", "focus-grid archive-grid");
+  papers.slice(0, 8).forEach((item, index) => grid.append(createFocusCard(item, index)));
+  drawer.append(grid);
+  return drawer;
 }
 
 function createApprovedBank(approvedIdeas, approvedPapers) {
@@ -3996,6 +4031,9 @@ function bind() {
   root.querySelectorAll("[data-action='refresh-suggestions']").forEach((button) => {
     button.addEventListener("click", refreshSuggestions);
   });
+  root.querySelectorAll("[data-action='next-tips']").forEach((button) => {
+    button.addEventListener("click", nextTipWindow);
+  });
   root.querySelectorAll("[data-action='open-file']").forEach((button) => {
     button.addEventListener("click", () => openFile(button.dataset.id));
   });
@@ -4035,6 +4073,25 @@ function bind() {
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(render, 140);
   };
+}
+
+function manageTipRotation() {
+  window.clearInterval(tipRotationTimer);
+  const count = usefulIdeaItems().length;
+  if (count <= visibleTipCount) return;
+  tipRotationTimer = window.setInterval(() => {
+    const active = document.activeElement;
+    if (active?.matches?.("textarea, input") || active?.closest?.(".composer")) return;
+    tipWindowIndex = (tipWindowIndex + visibleTipCount) % count;
+    render();
+  }, 9500);
+}
+
+function nextTipWindow() {
+  const count = usefulIdeaItems().length;
+  if (!count) return;
+  tipWindowIndex = (tipWindowIndex + visibleTipCount) % count;
+  render();
 }
 
 function stageFiles(files) {
