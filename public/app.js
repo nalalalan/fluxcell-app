@@ -3080,10 +3080,110 @@ function sentenceCaseBullet(text) {
   return String(text || "").replace(/^[a-z]/, (letter) => letter.toUpperCase());
 }
 
+const projectStageDefinitions = [
+  {
+    id: "start",
+    label: "first physical prototype",
+    summary: "Make one crude tabletop EPM, not a polished cell.",
+    patterns: [/start|starter|just need|too detailed|crazy detailed|overwhelm|tired|no idea|lost|confus|basic|beginner|prototype/],
+  },
+  {
+    id: "sourcing",
+    label: "parts sourcing",
+    summary: "Get a tiny starter kit with fast shipping before optimizing anything.",
+    patterns: [/buy|order|source|supplier|shipping|off[- ]?the[- ]?shelf|component|where to|digikey|digi-key|mouser|mcmaster|amazon|kj magnetics|k&j/],
+  },
+  {
+    id: "bench",
+    label: "bench EPM build",
+    summary: "Assemble a loose magnet, steel path, coil, keeper, and switchable pulse.",
+    patterns: [/bench|epm|electropermanent|coil|wind|magnet|keeper|steel|yoke|hold|release|pulse|switch|power source|wire/],
+  },
+  {
+    id: "measurement",
+    label: "measurement and debugging",
+    summary: "Find what failed with the smallest visible measurement.",
+    patterns: [/measure|test|force|gap|current|temperature|heat|hot|failure|fail|weak|slip|twist|trace|video|before|after|debug/],
+  },
+  {
+    id: "cell-integration",
+    label: "Sarrus cell integration",
+    summary: "Move only the working bench mechanism into one laterally expanding cell.",
+    patterns: [/sarrus|cell|lateral|expand|width|stroke|linkage|mechanism|actuat|cassette|geometry|hinge/],
+  },
+  {
+    id: "printing",
+    label: "printed integration",
+    summary: "Separate the printable structure from the magnetic material risk.",
+    patterns: [/print|printed|monolithic|material|iron|resin|filament|composite|embedded|multimaterial|pocket|insert|core/],
+  },
+  {
+    id: "papers",
+    label: "paper triage",
+    summary: "Read only papers that change the next build decision.",
+    patterns: [/paper|papers|literature|reference|read|article|journal|figure|apparatus|citation|cite|support/],
+  },
+];
+
+const projectStageTipBank = {
+  start: [
+    ["start-one-task", "Pick one task today: order parts or wind the first coil.", "start here", ["start", "parts", "coil"], ["order parts", "wind first coil"]],
+    ["ugly-tabletop", "Make the first switch ugly on the table before designing a fixture.", "first build", ["prototype", "tabletop"], ["ugly", "table", "fixture"]],
+    ["bench-before-cell", "Ignore the Sarrus cell until a loose EPM can hold and release.", "first build", ["bench", "epm"], ["loose epm", "hold and release"]],
+    ["buy-minimum-kit", "Buy only the starter pile: small magnets, steel pieces, magnet wire, switch, and power source.", "shopping", ["buy", "parts"], ["starter pile", "small magnets", "magnet wire"]],
+    ["cardboard-fixture", "Tape the magnet, steel, and coil to cardboard before designing a printed fixture.", "quick rig", ["fixture", "prototype"], ["cardboard", "tape", "printed fixture"]],
+    ["first-video-win", "Today counts if you get one video where a keeper changes state after a pulse.", "small win", ["video", "keeper"], ["video", "keeper changes state"]],
+    ["no-paper-right-now", "Do not read more papers right now; make the crude magnetic switch first.", "start here", ["start", "prototype"], ["do not read", "crude magnetic switch"]],
+    ["warm-coil-stop", "Use short pulses, and stop as soon as the coil feels warm.", "basic safety", ["pulse", "heat"], ["short pulses", "coil feels warm"]],
+    ["phone-test", "Use your phone camera as the first measurement: before pulse, after pulse, release.", "easy test", ["video", "test"], ["phone camera", "before pulse", "after pulse"]],
+  ],
+  sourcing: [
+    ["starter-kit", "Order a tiny kit first: small NdFeB blocks, magnet wire, steel pieces, switch, and power source.", "starter kit", ["buy", "parts"], ["starter kit", "magnet wire", "steel pieces"]],
+    ["magnet-shop", "Browse K&J Magnetics for small block magnets before hunting exotic parts: https://www.kjmagnetics.com", "magnets", ["buy", "magnet"], ["k&j", "kjmagnetics", "block magnets"]],
+    ["electronics-shop", "Use Digi-Key or Mouser for magnet wire, switches, MOSFETs, and basic driver parts.", "electronics", ["digikey", "mouser", "driver"], ["digi-key", "mouser", "magnet wire"]],
+    ["hardware-shop", "Use McMaster for steel shim, screws, rods, and quick fixture hardware: https://www.mcmaster.com", "hardware", ["mcmaster", "steel"], ["mcmaster", "steel shim", "fixture hardware"]],
+    ["avoid-perfect-cart", "Do not build the perfect cart; buy enough to make one crude switch this week.", "scope", ["buy", "start"], ["perfect cart", "crude switch"]],
+  ],
+  bench: [
+    ["loose-loop", "Build the loose magnetic loop first: magnet, steel return path, keeper, coil, pulse.", "bench build", ["bench", "epm"], ["magnetic loop", "keeper", "coil"]],
+    ["dry-fit", "Dry-fit the magnet and steel path by hand before winding anything.", "setup", ["magnet", "steel"], ["dry-fit", "steel path"]],
+    ["one-change", "Change only one bench thing at a time: gap, coil position, keeper shape, or magnet size.", "debugging", ["bench", "test"], ["one thing", "gap", "coil position"]],
+    ["hold-release-only", "The bench goal is only hold and release; lateral motion can wait.", "scope", ["hold", "release"], ["hold and release", "lateral motion"]],
+    ["pulse-note", "After each pulse, write only what changed: held, released, warmed, slipped, or did nothing.", "lab note", ["pulse", "note"], ["held", "released", "warmed"]],
+  ],
+  measurement: [
+    ["visible-before-number", "Film the before and after state before adding force numbers.", "debugging", ["video", "test"], ["before", "after", "force"]],
+    ["tiny-failure-list", "Use one failure list: weak hold, no release, heating, slipping, broken geometry.", "failure", ["failure", "debug"], ["weak hold", "no release", "heating"]],
+    ["warmth-check", "If the coil warms quickly, shorten the pulse before changing the mechanism.", "heat", ["heat", "pulse"], ["coil warms", "shorten pulse"]],
+    ["gap-first", "If it barely holds, reduce the air gap before redesigning the whole actuator.", "gap", ["gap", "hold"], ["air gap", "barely holds"]],
+    ["one-photo-per-test", "Save one photo or clip per test so the feed remembers what actually happened.", "evidence", ["photo", "video"], ["one photo", "what happened"]],
+  ],
+  "cell-integration": [
+    ["transplant-last", "Only move into the Sarrus cell after the loose EPM switches cleanly.", "integration", ["sarrus", "bench"], ["loose epm", "switches cleanly"]],
+    ["one-cell-only", "Use one Sarrus cell first; arrays can wait until the actuator works.", "scope", ["sarrus", "cell"], ["one sarrus cell", "arrays can wait"]],
+    ["line-of-action", "Sketch where the keeper motion becomes lateral width change before designing the fixture.", "motion", ["lateral", "keeper"], ["keeper motion", "width change"]],
+    ["removable-first", "Make the first cell actuator removable so a failed magnet does not waste the printed cell.", "fixture", ["cell", "actuator"], ["removable", "failed magnet"]],
+    ["visible-stroke", "The first integrated win is visible width change from one pulse.", "proof", ["stroke", "pulse"], ["visible width change", "one pulse"]],
+  ],
+  printing: [
+    ["insert-before-print", "Use inserted steel and magnets before trying printable magnetic material.", "material risk", ["printed", "insert"], ["inserted steel", "printable magnetic"]],
+    ["print-pockets", "Print clean pockets for bought parts before printing active magnetic material.", "fixture", ["printed", "pockets"], ["clean pockets", "bought parts"]],
+    ["coupon-first", "Make material coupons separately from the Sarrus cell.", "coupon", ["material", "print"], ["material coupons", "sarrus cell"]],
+    ["three-materials", "Keep the stack simple: hard magnet, soft magnetic path, normal printed structure.", "material map", ["material", "magnet"], ["hard magnet", "soft magnetic path"]],
+    ["monolithic-later", "Treat monolithic printing as the prize, not the first build constraint.", "scope", ["monolithic", "start"], ["monolithic", "first build"]],
+  ],
+  papers: [
+    ["one-paper-one-decision", "Read one paper only until it changes one build decision.", "reading", ["paper", "build"], ["one paper", "build decision"]],
+    ["figure-filter", "Keep papers with apparatus photos, coil layouts, force curves, or material stacks.", "paper filter", ["paper", "figure"], ["apparatus photo", "coil layout", "force curve"]],
+    ["skip-review-mode", "Skip papers that only make the project feel broader.", "scope", ["paper", "skip"], ["broader", "skip papers"]],
+    ["extract-parts", "For useful papers, extract the exact part list or geometry to try next.", "paper to build", ["paper", "parts"], ["part list", "geometry"]],
+    ["credibility-first", "Prefer papers from labs that actually built and measured a working device.", "quality", ["paper", "credible"], ["built and measured", "working device"]],
+    ["support-claim", "Turn the claim into one exact citation sentence before searching.", "paper support", ["paper", "support"], ["citation sentence", "searching"]],
+  ],
+};
+
 function generateLocalProjectState() {
-  if (startModeActive()) {
-    return "Make one crude tabletop EPM. Buy only starter parts. Win today with one hold-release video.";
-  }
+  const stage = projectStageProfile();
   const approvedIdeas = approvedIdeaItems();
   const approvedPapers = approvedPaperItems();
   const topics = activeProjectTopics(currentProjectText());
@@ -3097,7 +3197,62 @@ function generateLocalProjectState() {
   const signalText = summaryTerms.length ? joinNatural(summaryTerms) : topicText;
   const preference = signalText ? `Signals: ${signalText}.` : "";
   const approvedSignal = recentIdeas.length ? `Recent approvals: ${joinNatural([...new Set(recentIdeas)])}.` : "";
-  return `Scope: one laterally expanding Sarrus cell with integrated EPM actuation. ${preference} ${approvedSignal} Filter for buildable one-cell proof, measured magnetic circuits, pulse/heat data, and papers with apparatus figures.`;
+  const supportTopic = paperSupportTopic();
+  if (supportTopic) {
+    return `Stage: paper support. Find papers for "${supportTopic}". Prefer papers with built devices, apparatus photos, and measurements.`;
+  }
+  if (stage.id === "start") {
+    return `Stage: ${stage.label}. ${stage.summary} Next: order parts or wind one coil.`;
+  }
+  return `Stage: ${stage.label}. ${stage.summary} ${preference} ${approvedSignal}`;
+}
+
+function projectStageProfile() {
+  const latest = latestNoteText().toLowerCase();
+  const recent = recentConcernText();
+  const preference = stagePreferenceText();
+  const fileText = state.files
+    .filter(isVisibleLibraryFile)
+    .slice(0, 18)
+    .map((file) => `${file.name || ""} ${file.paperTitle || ""}`)
+    .join(" ")
+    .toLowerCase();
+
+  const scored = projectStageDefinitions.map((stage) => {
+    let score = stagePatternScore(latest, stage.patterns, 12)
+      + stagePatternScore(recent, stage.patterns, 3)
+      + stagePatternScore(preference, stage.patterns, 1.5)
+      + stagePatternScore(fileText, stage.patterns, 1);
+    if (stage.id === "start" && /too detailed|crazy detailed|overwhelm|tired|no idea|lost|just need.*start|start.*prototyp/.test(latest)) score += 45;
+    if (stage.id === "sourcing" && /where.*buy|what kind.*component|off[- ]?the[- ]?shelf|quick shipping|order|supplier/.test(latest)) score += 45;
+    if (stage.id === "bench" && /make|build|bench|wind|coil|keeper|hold|release|epm/.test(latest)) score += 20;
+    if (stage.id === "papers" && /paper|papers|read|literature|citation|cite|support/.test(latest) && !/do not read|don't read|dont read/.test(latest)) score += paperSupportTopic() ? 55 : 28;
+    return { ...stage, score };
+  }).sort((a, b) => b.score - a.score);
+
+  const stage = scored[0];
+  if (!stage || stage.score <= 0) {
+    return projectStageDefinitions.find((item) => item.id === "start");
+  }
+  return stage;
+}
+
+function stagePreferenceText() {
+  const approvedIdeaText = Object.entries(ideaFeedback)
+    .filter(([, record]) => normalizeFeedbackRecord(record).value === "useful")
+    .map(([id]) => {
+      const custom = objectRecord(suggestionState.customIdeas?.[id]);
+      const staticIdea = [...ideaGuideRules, ...dynamicIdeaTemplates].find((idea) => idea.id === id);
+      return `${id} ${custom.text || ""} ${staticIdea?.text || ""} ${(custom.keywords || staticIdea?.keywords || []).join(" ")}`;
+    });
+  const approvedPaperText = state.files
+    .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file) && paperFeedbackValue(file.id) === "useful")
+    .map(paperSearchText);
+  return [...approvedIdeaText, ...approvedPaperText].join(" ").toLowerCase();
+}
+
+function stagePatternScore(text, patterns, weight) {
+  return patterns.reduce((total, pattern) => total + (pattern.test(text) ? weight : 0), 0);
 }
 
 function currentProjectText() {
@@ -3229,6 +3384,8 @@ function latestNoteText() {
 
 function contextHelpIdeaCandidates() {
   const notesText = recentConcernText();
+  const stage = projectStageProfile();
+  const supportTopic = paperSupportTopic();
   const startMode = startModeActive();
   const tips = [];
   const add = (id, text, reason, keywords = [], signals = keywords, options = {}) => {
@@ -3240,19 +3397,25 @@ function contextHelpIdeaCandidates() {
     add(id, text, reason, keywords, signals, { keepFresh: true });
   };
 
-  if (startMode) {
-    addStart("start-one-task", "Pick one task today: order parts or wind the first coil.", "start here", ["start", "parts", "coil"], ["order parts", "wind first coil"]);
-    addStart("ugly-tabletop", "Make the first switch ugly on the table before putting anything in CAD.", "first build", ["prototype", "tabletop"], ["ugly", "table", "before cad"]);
-    addStart("bench-before-cell", "Ignore the Sarrus cell until a loose EPM can hold and release.", "first build", ["bench", "epm"], ["loose epm", "hold and release"]);
-    addStart("buy-minimum-kit", "Buy only the starter pile: small magnets, steel pieces, magnet wire, switch, and power source.", "shopping", ["buy", "parts"], ["starter pile", "small magnets", "magnet wire"]);
-    addStart("cardboard-fixture", "Tape the magnet, steel, and coil to cardboard before designing a printed fixture.", "quick rig", ["fixture", "prototype"], ["cardboard", "tape", "printed fixture"]);
-    addStart("first-video-win", "Today counts if you get one video where a keeper changes state after a pulse.", "small win", ["video", "keeper"], ["video", "keeper changes state"]);
-    addStart("no-paper-right-now", "Do not read more papers right now; make the crude magnetic switch first.", "start here", ["start", "prototype"], ["do not read", "crude magnetic switch"]);
-    addStart("warm-coil-stop", "Use short pulses, and stop as soon as the coil feels warm.", "basic safety", ["pulse", "heat"], ["short pulses", "coil feels warm"]);
-    addStart("phone-test", "Use your phone camera as the first measurement: before pulse, after pulse, release.", "easy test", ["video", "test"], ["phone camera", "before pulse", "after pulse"]);
+  if (supportTopic) {
+    const topic = sentenceCaseBullet(supportTopic);
+    addStart(`support-scholar-${slugify(supportTopic)}`, `Open [Google Scholar](${scholarSearchUrl(`${supportTopic} electropermanent magnet soft robot`)}) for this support claim.`, "paper search", ["paper", "support", ...importantWords(supportTopic).slice(0, 3)], ["google scholar", supportTopic]);
+    addStart(`support-semantic-${slugify(supportTopic)}`, `Open [Semantic Scholar](${semanticScholarSearchUrl(`${supportTopic} actuator magnetic latch soft robotics`)}) for this support claim.`, "paper search", ["paper", "support", ...importantWords(supportTopic).slice(0, 3)], ["semantic scholar", supportTopic]);
+    addStart(`support-upload-${slugify(supportTopic)}`, `Upload any promising PDF; keep it only if one figure supports "${supportTopic}".`, "paper filter", ["paper", "figure", ...importantWords(supportTopic).slice(0, 3)], ["upload", supportTopic, "one figure"]);
+    addStart(`support-sentence-${slugify(supportTopic)}`, `Write the citation sentence first: "${topic} because..."`, "paper support", ["citation", "support", ...importantWords(supportTopic).slice(0, 3)], ["citation sentence", supportTopic]);
+    addStart(`support-avoid-broad-${slugify(supportTopic)}`, `Reject papers that mention "${supportTopic}" but do not show a built or measured device.`, "quality", ["paper", "quality", ...importantWords(supportTopic).slice(0, 3)], ["built", "measured", supportTopic]);
   }
 
-  if (startMode || /where|buy|order|get|source|supplier|shipping|off[- ]?the[- ]?shelf|component/.test(notesText)) {
+  (projectStageTipBank[stage.id] || projectStageTipBank.start).forEach(([id, text, reason, keywords, signals]) => {
+    if (stage.id === "start") addStart(id, text, reason, keywords, signals);
+    else add(id, text, reason, keywords, signals, { keepFresh: stage.id === "papers" || stage.id === "sourcing" });
+  });
+
+  if (stage.id !== "start" && startMode) {
+    projectStageTipBank.start.slice(0, 3).forEach(([id, text, reason, keywords, signals]) => addStart(id, text, reason, keywords, signals));
+  }
+
+  if (stage.id === "sourcing" || startMode || /where|buy|order|get|source|supplier|shipping|off[- ]?the[- ]?shelf|component/.test(notesText)) {
     add("magnet-supplier", "Browse small NdFeB blocks at K&J Magnetics: https://www.kjmagnetics.com", "supplier", ["buy", "magnet", "ndfeb"], ["k&j", "kjmagnetics", "ndfeb blocks"]);
     add("electronics-supplier", "Use Digi-Key (https://www.digikey.com) or Mouser (https://www.mouser.com) for magnet wire and driver parts.", "electronics", ["buy", "coil", "driver"], ["digikey", "digi-key", "mouser", "magnet wire"]);
     add("steel-supplier", "Use McMaster for low-carbon steel shim, small bars, screws, and repeatable fixture hardware: https://www.mcmaster.com", "hardware", ["steel", "yoke", "fixture"], ["mcmaster", "low-carbon steel", "steel shim"]);
@@ -3304,14 +3467,45 @@ function recentConcernText() {
 }
 
 function startModeActive() {
+  if (paperSupportTopic()) return false;
   return /(?:\bstart\b|starter|prototyp|crazy detailed|too detailed|overwhelm|tired|no idea|what i'?m doing|lost|confus|just need|basic|beginner|where to buy|what kind of off[- ]?the[- ]?shelf|what kind of component)/i.test(recentConcernText());
+}
+
+function paperSupportTopic() {
+  const text = latestNoteText()
+    .replace(/\s+/g, " ")
+    .trim();
+  const patterns = [
+    /(?:looking for|find|need|want)\s+(?:papers?|references?|citations?|sources?)\s+(?:to\s+)?support(?:ing)?\s+(.+)/i,
+    /(?:papers?|references?|citations?|sources?)\s+(?:to\s+)?support(?:ing)?\s+(.+)/i,
+    /(?:support|cite)\s+(?:the\s+)?(?:claim|idea|argument)\s+(?:that\s+)?(.+)/i,
+    /(?:literature|papers?)\s+(?:for|on|about)\s+(.+)/i,
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (!match?.[1]) continue;
+    return match[1]
+      .replace(/[?.!]+$/, "")
+      .replace(/^(that|how|whether)\s+/i, "")
+      .trim()
+      .slice(0, 120);
+  }
+  return "";
+}
+
+function scholarSearchUrl(query) {
+  return `https://scholar.google.com/scholar?q=${encodeURIComponent(query)}`;
+}
+
+function semanticScholarSearchUrl(query) {
+  return `https://www.semanticscholar.org/search?q=${encodeURIComponent(query)}&sort=relevance`;
 }
 
 function startModeTipText(text) {
   const value = String(text || "").toLowerCase();
-  const practical = /order|buy|browse|search|wind|coil|table|bench|today|first|crude|ugly|video|keeper|pulse|magnet|steel|wire|cardboard|tape|short|warm|power source|switch|parts|starter|phone/.test(value);
+  const practical = /order|buy|browse|search|wind|coil|table|bench|today|first|crude|ugly|video|keeper|pulse|magnet|steel|wire|cardboard|tape|short|warm|power source|switch|parts|starter|phone|epm|hold|release|fixture/.test(value);
   const antiPaperAction = /^do not read more papers right now/.test(value);
-  const abstract = !antiPaperAction && /paper|literature|failure tree|detachable cassette|monolithic|metric|cad|figure filter|material proof|printed into|split printed|apparatus|threshold|consecutive|optimiz|map how|magnetic closure|protocol|fixed interval|e\.g\.|\b\d+|declare|success criteria|calibrated|logging|ratio|sweep/.test(value);
+  const abstract = !antiPaperAction && /paper|literature|failure tree|detachable cassette|monolithic|metric|cad|figure filter|material proof|printed into|split printed|apparatus|threshold|consecutive|optimiz|map how|magnetic closure|protocol|fixed interval|e\.g\.|\b\d+|declare|success criteria|calibrated|logging|ratio|sweep|force|width|synchronized|trace/.test(value);
   return practical && !abstract;
 }
 
@@ -3577,7 +3771,9 @@ function ideaTextSignature(text) {
 function scoreIdeaForProject(idea) {
   const feedback = ideaFeedbackValue(idea.id);
   if (feedback === "not-useful") return null;
+  const stage = projectStageProfile();
   if (feedback !== "useful" && startModeActive() && !startModeTipText(idea.text)) return null;
+  if (feedback !== "useful" && !stageRelevantIdea(stage.id, idea)) return null;
   if (feedback !== "useful" && isOverTechnicalSuggestion(idea)) return null;
 
   const keywordScore = contextKeywordScore(idea.keywords);
@@ -3585,6 +3781,7 @@ function scoreIdeaForProject(idea) {
   score += idea.core ? 8 : 0;
   score += idea.source === "helper" ? 220 : 0;
   score += idea.source === "ai" ? 18 : 0;
+  score += stageKeywordScore(stage.id, idea) * 4;
   score += keywordScore;
   if (!hasGuidanceContext() && !idea.core && feedback !== "useful") return null;
 
@@ -3596,6 +3793,28 @@ function scoreIdeaForProject(idea) {
     feedback,
     skippedAt,
   };
+}
+
+function stageRelevantIdea(stageId, idea) {
+  if (idea?.source === "helper") return true;
+  const text = `${idea?.text || ""} ${idea?.reason || ""} ${(idea?.keywords || []).join(" ")}`.toLowerCase();
+  const supportTopic = paperSupportTopic();
+  if (supportTopic) return /paper|scholar|citation|cite|source|reference|figure|apparatus|measurement|built|device/.test(text);
+  if (stageId === "start") return startModeTipText(text);
+  if (stageId === "sourcing") return /buy|order|source|supplier|component|part|magnet|wire|steel|switch|power|shipping|mcmaster|mouser|digikey|digi-key|amazon/.test(text);
+  if (stageId === "bench") return /bench|epm|coil|magnet|keeper|steel|hold|release|pulse|switch|wire|table|loop/.test(text);
+  if (stageId === "measurement") return /measure|test|debug|failure|force|gap|current|heat|temperature|video|photo|trace|before|after/.test(text);
+  if (stageId === "cell-integration") return /sarrus|cell|lateral|width|stroke|keeper|mechanism|fixture|integrat|actuat/.test(text);
+  if (stageId === "printing") return /print|printed|monolithic|material|insert|pocket|coupon|steel|magnet|core|structure/.test(text);
+  if (stageId === "papers") return /paper|scholar|citation|cite|source|reference|figure|apparatus|built|measured|device/.test(text);
+  return true;
+}
+
+function stageKeywordScore(stageId, idea) {
+  const text = `${idea?.text || ""} ${idea?.reason || ""} ${(idea?.keywords || []).join(" ")}`.toLowerCase();
+  const stage = projectStageDefinitions.find((item) => item.id === stageId);
+  if (!stage) return 0;
+  return stage.patterns.reduce((score, pattern) => score + (pattern.test(text) ? 1 : 0), 0);
 }
 
 function isOverTechnicalSuggestion(idea) {
@@ -3691,7 +3910,9 @@ function visibleTipItems(ideas) {
 }
 
 function tipFeedLabel(total) {
-  return startModeActive() ? "Start here" : "Helpful tips";
+  if (paperSupportTopic()) return "Paper support";
+  const stage = projectStageProfile();
+  return stage.id === "start" ? "Start here" : stage.label;
 }
 
 function createFeedControls(total) {
@@ -3823,6 +4044,7 @@ function scorePaperForProject(paper) {
   if (feedback === "not-useful") return null;
 
   const search = paperSearchText(paper).toLowerCase();
+  const supportTopic = paperSupportTopic();
   let score = feedback === "useful" ? 100 : 0;
   let bestReason = feedback === "useful" ? "Marked useful" : "";
   let bestReasonScore = 0;
@@ -3843,6 +4065,16 @@ function scorePaperForProject(paper) {
     .slice(0, 14)
     .reduce((sum, [, weight]) => sum + weight * 0.2, 0);
   score += wordOverlap;
+  if (supportTopic) {
+    const supportWords = importantWords(supportTopic);
+    const supportOverlap = supportWords.filter((word) => search.includes(word));
+    const supportScore = supportOverlap.length * 18;
+    score += supportScore;
+    if (supportScore > bestReasonScore) {
+      bestReason = `May support: ${supportTopic}`;
+      bestReasonScore = supportScore;
+    }
+  }
   score -= rejectionPenalty(search);
   const aiRank = aiPaperRank(paper.id);
   if (aiRank >= 0) {
@@ -3930,6 +4162,28 @@ function createIdeaCard(idea) {
 
 function appendLinkedText(node, text) {
   const value = String(text || "");
+  const markdownPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  let markdownCursor = 0;
+  let matchedMarkdown = false;
+  for (const match of value.matchAll(markdownPattern)) {
+    matchedMarkdown = true;
+    if (match.index > markdownCursor) appendRawLinkedText(node, value.slice(markdownCursor, match.index));
+    const link = document.createElement("a");
+    link.href = match[2];
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = match[1];
+    node.append(link);
+    markdownCursor = match.index + match[0].length;
+  }
+  if (matchedMarkdown) {
+    if (markdownCursor < value.length) appendRawLinkedText(node, value.slice(markdownCursor));
+    return;
+  }
+  appendRawLinkedText(node, value);
+}
+
+function appendRawLinkedText(node, value) {
   const urlPattern = /https?:\/\/[^\s)]+/g;
   let cursor = 0;
   for (const match of value.matchAll(urlPattern)) {
@@ -4397,9 +4651,16 @@ function aiFeedPayload() {
   const ideaLookup = new Map(allIdeaCandidates().map((idea) => [idea.id, idea]));
   const paperLookup = new Map(state.files.filter((file) => isVisibleLibraryFile(file) && isPaperFile(file)).map((file) => [file.id, file]));
   const notes = userNotes(state.notes);
+  const stage = projectStageProfile();
   return {
     focus: `${focus.title} ${focus.current}`,
     summary: generateLocalProjectState(),
+    stage: {
+      id: stage.id,
+      label: stage.label,
+      summary: stage.summary,
+    },
+    paperSupportTopic: paperSupportTopic(),
     refreshCount: suggestionState.refreshCount || 0,
     latestNote: notes[0]?.text || "",
     notes: notes.slice(0, 32).map((note) => ({ text: note.text, createdAt: note.createdAt })),
