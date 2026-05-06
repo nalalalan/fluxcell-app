@@ -3081,6 +3081,9 @@ function sentenceCaseBullet(text) {
 }
 
 function generateLocalProjectState() {
+  if (startModeActive()) {
+    return "Make one crude tabletop EPM. Buy only starter parts. Win today with one hold-release video.";
+  }
   const approvedIdeas = approvedIdeaItems();
   const approvedPapers = approvedPaperItems();
   const topics = activeProjectTopics(currentProjectText());
@@ -3226,20 +3229,37 @@ function latestNoteText() {
 
 function contextHelpIdeaCandidates() {
   const notesText = recentConcernText();
+  const startMode = startModeActive();
   const tips = [];
-  const add = (id, text, reason, keywords = [], signals = keywords) => {
-    if (helpTipAddressed(id, signals, text)) return;
+  const add = (id, text, reason, keywords = [], signals = keywords, options = {}) => {
+    if (ideaFeedbackValue(`help-${id}`) === "useful") return;
+    if (!options.keepFresh && helpTipAddressed(id, signals, text)) return;
     tips.push({ id: `help-${id}`, text, reason, keywords, source: "helper", core: true });
   };
+  const addStart = (id, text, reason, keywords = [], signals = keywords) => {
+    add(id, text, reason, keywords, signals, { keepFresh: true });
+  };
 
-  if (/where|buy|order|get|source|supplier|shipping|off[- ]?the[- ]?shelf|component/.test(notesText)) {
+  if (startMode) {
+    addStart("start-one-task", "Pick one task today: order parts or wind the first coil.", "start here", ["start", "parts", "coil"], ["order parts", "wind first coil"]);
+    addStart("ugly-tabletop", "Make the first switch ugly on the table before putting anything in CAD.", "first build", ["prototype", "tabletop"], ["ugly", "table", "before cad"]);
+    addStart("bench-before-cell", "Ignore the Sarrus cell until a loose EPM can hold and release.", "first build", ["bench", "epm"], ["loose epm", "hold and release"]);
+    addStart("buy-minimum-kit", "Buy only the starter pile: small magnets, steel pieces, magnet wire, switch, and power source.", "shopping", ["buy", "parts"], ["starter pile", "small magnets", "magnet wire"]);
+    addStart("cardboard-fixture", "Tape the magnet, steel, and coil to cardboard before designing a printed fixture.", "quick rig", ["fixture", "prototype"], ["cardboard", "tape", "printed fixture"]);
+    addStart("first-video-win", "Today counts if you get one video where a keeper changes state after a pulse.", "small win", ["video", "keeper"], ["video", "keeper changes state"]);
+    addStart("no-paper-right-now", "Do not read more papers right now; make the crude magnetic switch first.", "start here", ["start", "prototype"], ["do not read", "crude magnetic switch"]);
+    addStart("warm-coil-stop", "Use short pulses, and stop as soon as the coil feels warm.", "basic safety", ["pulse", "heat"], ["short pulses", "coil feels warm"]);
+    addStart("phone-test", "Use your phone camera as the first measurement: before pulse, after pulse, release.", "easy test", ["video", "test"], ["phone camera", "before pulse", "after pulse"]);
+  }
+
+  if (startMode || /where|buy|order|get|source|supplier|shipping|off[- ]?the[- ]?shelf|component/.test(notesText)) {
     add("magnet-supplier", "Browse small NdFeB blocks at K&J Magnetics: https://www.kjmagnetics.com", "supplier", ["buy", "magnet", "ndfeb"], ["k&j", "kjmagnetics", "ndfeb blocks"]);
     add("electronics-supplier", "Use Digi-Key (https://www.digikey.com) or Mouser (https://www.mouser.com) for magnet wire and driver parts.", "electronics", ["buy", "coil", "driver"], ["digikey", "digi-key", "mouser", "magnet wire"]);
     add("steel-supplier", "Use McMaster for low-carbon steel shim, small bars, screws, and repeatable fixture hardware: https://www.mcmaster.com", "hardware", ["steel", "yoke", "fixture"], ["mcmaster", "low-carbon steel", "steel shim"]);
     add("shopping-search", "Search: small NdFeB block magnet, low-carbon steel shim, enamel magnet wire, MOSFET driver.", "search terms", ["shopping", "prototype"], ["search", "small ndfeb", "mosfet driver"]);
   }
 
-  if (/how|what is|make|build|no idea|don't know|dont know|idk|epm|electropermanent/.test(notesText)) {
+  if (startMode || /how|what is|make|build|no idea|don't know|dont know|idk|epm|electropermanent/.test(notesText)) {
     add("epm-basic", "An EPM is a permanent magnet path that a coil pulse switches between hold and release.", "basic EPM", ["epm", "basic"], ["epm is", "permanent magnet path", "coil pulse"]);
     add("epm-parts", "First bench parts: hard magnet, soft steel return path, coil wire, keeper, switch, and power source.", "parts", ["epm", "components"], ["hard magnet", "soft steel", "keeper", "coil wire"]);
     add("bench-first", "Do the first EPM outside the Sarrus cell so you can see magnetic switching clearly.", "first build", ["bench", "prototype"], ["bench first", "outside the sarrus", "magnetic switching"]);
@@ -3250,24 +3270,26 @@ function contextHelpIdeaCandidates() {
     add("current-watch", "Watch current and coil temperature before caring about the printed cell motion.", "basic measurement", ["current", "temperature"], ["current", "coil temperature"]);
   }
 
-  if (/paper|papers|literature|reference|source|read/.test(notesText)) {
+  if (!startMode && /paper|papers|literature|reference|source|read/.test(notesText)) {
     add("paper-figure-filter", "Pick papers by useful figures first: apparatus photo, force curve, coil layout, or material stack.", "paper filter", ["paper", "figure"], ["apparatus photo", "force curve", "coil layout"]);
     add("paper-question", "For each paper, ask one question: what exact part of my next build changes?", "reading filter", ["paper", "build"], ["next build changes", "paper question"]);
   }
 
-  if (/integrat|sarrus|cell|lateral|expand|mechanism|cad|geometry|actuat/.test(notesText)) {
+  if (!startMode && /integrat|sarrus|cell|lateral|expand|mechanism|cad|geometry|actuat/.test(notesText)) {
     add("detachable-cassette", "Make the first EPM a detachable cassette before trying to print it into the Sarrus cell.", "integration path", ["sarrus", "cassette"], ["detachable cassette", "print it into the sarrus"]);
     add("motion-first", "Prove one visible width change before optimizing the magnetic circuit.", "motion proof", ["lateral", "width"], ["visible width change", "motion proof"]);
   }
 
-  if (/print|printed|monolithic|material|iron|steel|magnet material|composite/.test(notesText)) {
+  if (!startMode && /print|printed|monolithic|material|iron|steel|magnet material|composite/.test(notesText)) {
     add("inserted-before-printed", "Use inserted steel and magnets first; treat printable magnetic material as the second milestone.", "material risk", ["printed", "material"], ["inserted steel", "second milestone"]);
     add("material-split", "Separate the build into three materials: hard magnet, soft magnetic path, and normal printed structure.", "material map", ["material", "magnet"], ["hard magnet", "soft magnetic path", "printed structure"]);
   }
 
-  if (/test|measure|measurement|proof|failure|fail|works|work|prototype/.test(notesText)) {
+  if (startMode || /test|measure|measurement|proof|failure|fail|works|work|prototype/.test(notesText)) {
     add("first-proof", "The first proof is simple: pulse it, see the keeper switch, and record the before/after state.", "proof", ["test", "prototype"], ["keeper switch", "before/after state"]);
-    add("failure-list", "Keep a tiny failure list: weak hold, no release, heating, slipping, or broken geometry.", "debugging", ["failure", "test"], ["failure list", "weak hold", "no release"]);
+    if (!startMode) {
+      add("failure-list", "Keep a tiny failure list: weak hold, no release, heating, slipping, or broken geometry.", "debugging", ["failure", "test"], ["failure list", "weak hold", "no release"]);
+    }
   }
 
   return tips;
@@ -3279,6 +3301,18 @@ function recentConcernText() {
     .map((note) => note.text)
     .join(" ")
     .toLowerCase();
+}
+
+function startModeActive() {
+  return /(?:\bstart\b|starter|prototyp|crazy detailed|too detailed|overwhelm|tired|no idea|what i'?m doing|lost|confus|just need|basic|beginner|where to buy|what kind of off[- ]?the[- ]?shelf|what kind of component)/i.test(recentConcernText());
+}
+
+function startModeTipText(text) {
+  const value = String(text || "").toLowerCase();
+  const practical = /order|buy|browse|search|wind|coil|table|bench|today|first|crude|ugly|video|keeper|pulse|magnet|steel|wire|cardboard|tape|short|warm|power source|switch|parts|starter|phone/.test(value);
+  const antiPaperAction = /^do not read more papers right now/.test(value);
+  const abstract = !antiPaperAction && /paper|literature|failure tree|detachable cassette|monolithic|metric|cad|figure filter|material proof|printed into|split printed|apparatus|threshold|consecutive|optimiz|map how|magnetic closure|protocol|fixed interval|e\.g\.|\b\d+|declare|success criteria|calibrated|logging|ratio|sweep/.test(value);
+  return practical && !abstract;
 }
 
 function approvedConcernText() {
@@ -3543,6 +3577,7 @@ function ideaTextSignature(text) {
 function scoreIdeaForProject(idea) {
   const feedback = ideaFeedbackValue(idea.id);
   if (feedback === "not-useful") return null;
+  if (feedback !== "useful" && startModeActive() && !startModeTipText(idea.text)) return null;
   if (feedback !== "useful" && isOverTechnicalSuggestion(idea)) return null;
 
   const keywordScore = contextKeywordScore(idea.keywords);
@@ -3656,7 +3691,7 @@ function visibleTipItems(ideas) {
 }
 
 function tipFeedLabel(total) {
-  return "Helpful tips";
+  return startModeActive() ? "Start here" : "Helpful tips";
 }
 
 function createFeedControls(total) {
