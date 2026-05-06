@@ -3005,7 +3005,11 @@ function createPendingList() {
 
 function createProjectStatePanel() {
   const panel = el("div", "state-card");
-  panel.append(el("p", "state-note", generateProjectState()));
+  const list = el("ul", "state-list");
+  projectStateBullets().forEach((item) => {
+    list.append(el("li", "", item));
+  });
+  panel.append(list);
   return panel;
 }
 
@@ -3015,6 +3019,56 @@ function generateProjectState() {
     return `${aiFeed.summary}${suffix}`;
   }
   return generateLocalProjectState();
+}
+
+function projectStateBullets() {
+  const text = generateProjectState().replace(/\bUpdating\.\s*$/i, "").trim();
+  const bullets = summaryToBullets(text);
+  if (aiFeed.status === "loading") bullets.push("Updating feed.");
+  return bullets.slice(0, 4);
+}
+
+function summaryToBullets(text) {
+  const cleaned = String(text || "")
+    .replace(/\s+/g, " ")
+    .replace(/:\s+(?=(prove|show|measure|test|validate)\b)/gi, ". ")
+    .replace(/;\s+(?=[A-Z])/g, ". ")
+    .replace(/\s+(Prioritize|Require|Acceptance is|Favor|Keep|Use|Measure|Record|Test|Compare)\b/g, ". $1")
+    .trim();
+  const parts = cleaned
+    .split(/(?<=[.!?])\s+/)
+    .map((part) => part.replace(/[.!?]+$/, "").trim())
+    .filter(Boolean);
+
+  const seen = new Set();
+  const bullets = [];
+  parts.forEach((part) => {
+    const bullet = trimBullet(part);
+    const key = bullet.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    if (/^(Keep feeding|Approved bank|Generated from)/i.test(bullet)) return;
+    if (!bullet || seen.has(key)) return;
+    seen.add(key);
+    bullets.push(bullet);
+  });
+
+  return bullets.length ? bullets : [trimBullet(focus.current)];
+}
+
+function trimBullet(text, max = 104) {
+  const clean = String(text || "")
+    .replace(/^Focus the next iterations on\s+/i, "")
+    .replace(/^Selection profile:\s*/i, "")
+    .replace(/^Acceptance is\s+/i, "Acceptance: ")
+    .trim();
+  if (clean.length <= max) return sentenceCaseBullet(clean);
+  const slice = clean.slice(0, max);
+  const breakAt = Math.max(slice.lastIndexOf(","), slice.lastIndexOf(";"), slice.lastIndexOf(" and "));
+  const clipped = breakAt > 64 ? slice.slice(0, breakAt) : slice.replace(/\s+\S*$/, "");
+  return sentenceCaseBullet(`${clipped.trim()}...`);
+}
+
+function sentenceCaseBullet(text) {
+  return String(text || "").replace(/^[a-z]/, (letter) => letter.toUpperCase());
 }
 
 function generateLocalProjectState() {
@@ -3028,9 +3082,10 @@ function generateLocalProjectState() {
   }
   const recentIdeas = approvedIdeas.slice(0, 3).map((idea) => idea.reason).filter(Boolean);
   const summaryTerms = terms.filter((term) => !["cell", "sarrus", "linkage", "paper"].includes(term)).slice(0, 6);
-  const preference = summaryTerms.length ? ` You keep circling ${joinNatural(summaryTerms)}.` : "";
-  const approvedSignal = recentIdeas.length ? ` Recent approvals point toward ${joinNatural([...new Set(recentIdeas)])}.` : "";
-  return `Selection profile: ${topicText} for a laterally expanding Sarrus cell with EPM actuation inside the printed architecture.${preference}${approvedSignal} Keep feeding it approvals and rejections; the feed should bias toward buildable one-cell proof, measured magnetic circuits, clean pulse/heat data, and papers with figures that change the next experiment. Approved bank: ${approvedIdeas.length} ideas, ${approvedPapers.length} papers.`;
+  const signalText = summaryTerms.length ? joinNatural(summaryTerms) : topicText;
+  const preference = signalText ? `Signals: ${signalText}.` : "";
+  const approvedSignal = recentIdeas.length ? `Recent approvals: ${joinNatural([...new Set(recentIdeas)])}.` : "";
+  return `Scope: one laterally expanding Sarrus cell with integrated EPM actuation. ${preference} ${approvedSignal} Filter for buildable one-cell proof, measured magnetic circuits, pulse/heat data, and papers with apparatus figures.`;
 }
 
 function currentProjectText() {
