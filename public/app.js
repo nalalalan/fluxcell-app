@@ -3110,6 +3110,8 @@ function createFocusLibrary() {
   section.append(head);
 
   const layout = el("div", "useful-layout");
+  const approvedBank = createApprovedBank(approvedIdeas, approvedPapers);
+  if (approvedBank) layout.append(approvedBank);
   if (ideas.length) {
     const ideaBlock = el("section", "useful-block");
     ideaBlock.append(el("p", "section-label", `Suggested notes (${ideas.length})`));
@@ -3126,8 +3128,6 @@ function createFocusLibrary() {
     paperBlock.append(grid);
     layout.append(paperBlock);
   }
-  const approvedBank = createApprovedBank(approvedIdeas, approvedPapers);
-  if (approvedBank) layout.append(approvedBank);
   section.append(layout);
   return section;
 }

@@ -465,6 +465,12 @@ h1 {
 
 .approved-drawer {
   margin-top: 2px;
+  border-color: rgba(230, 179, 77, .32);
+  background: rgba(230, 179, 77, .035);
+}
+
+.approved-drawer .archive-summary {
+  color: var(--ink);
 }
 
 .approved-bank-body,
