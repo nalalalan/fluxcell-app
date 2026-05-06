@@ -2578,15 +2578,23 @@ function normalizeAiFeed(record) {
 
 function normalizeAiIdea(idea) {
   if (!idea || typeof idea !== "object") return null;
-  const text = String(idea.text || "").replace(/\s+/g, " ").trim().slice(0, 520);
+  const text = shortTipText(idea.text);
   if (!text) return null;
   return {
     id: String(idea.id || `ai-${hashId(text)}`).replace(/\s+/g, "-").slice(0, 120),
     text,
-    reason: String(idea.reason || "AI suggestion").replace(/\s+/g, " ").trim().slice(0, 90),
-    keywords: Array.isArray(idea.keywords) ? idea.keywords.map((keyword) => String(keyword || "").trim()).filter(Boolean).slice(0, 8) : [],
+    reason: String(idea.reason || "tip").replace(/\s+/g, " ").trim().slice(0, 60),
+    keywords: Array.isArray(idea.keywords) ? idea.keywords.map((keyword) => String(keyword || "").trim()).filter(Boolean).slice(0, 5) : [],
     source: "ai",
   };
+}
+
+function shortTipText(text, max = 180) {
+  const clean = String(text || "").replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const slice = clean.slice(0, max);
+  const breakAt = Math.max(slice.lastIndexOf("."), slice.lastIndexOf(";"), slice.lastIndexOf(","));
+  return (breakAt > 70 ? slice.slice(0, breakAt) : slice.replace(/\s+\S*$/, "")).trim();
 }
 
 function hashId(text) {
@@ -3177,7 +3185,7 @@ function activeProjectTopics(text) {
 
 function allIdeaCandidates() {
   const seen = new Set();
-  return [...ideaGuideRules, ...dynamicIdeaTemplates, ...storedCustomIdeas(), ...aiIdeaCandidates(), ...approvalDrivenIdeaCandidates()].filter((idea) => {
+  return [...contextHelpIdeaCandidates(), ...aiIdeaCandidates(), ...storedCustomIdeas(), ...ideaGuideRules, ...dynamicIdeaTemplates, ...approvalDrivenIdeaCandidates()].filter((idea) => {
     if (!idea?.id || seen.has(idea.id)) return false;
     seen.add(idea.id);
     return true;
@@ -3193,7 +3201,7 @@ function aiIdeaCandidates() {
 }
 
 function findIdeaCandidate(id) {
-  return [...ideaGuideRules, ...dynamicIdeaTemplates, ...storedCustomIdeas(), ...aiIdeaCandidates(), ...approvalDrivenIdeaCandidates()]
+  return [...contextHelpIdeaCandidates(), ...aiIdeaCandidates(), ...storedCustomIdeas(), ...ideaGuideRules, ...dynamicIdeaTemplates, ...approvalDrivenIdeaCandidates()]
     .find((idea) => idea.id === id);
 }
 
@@ -3201,12 +3209,42 @@ function rememberCustomIdea(idea) {
   if (!idea || !idea.id || !idea.text) return;
   suggestionState.customIdeas[idea.id] = {
     id: idea.id,
-    text: idea.text,
-    reason: idea.reason || "AI suggestion",
+    text: shortTipText(idea.text),
+    reason: idea.reason || "tip",
     keywords: idea.keywords || [],
     source: idea.source || "custom",
   };
   saveSuggestionState();
+}
+
+function latestNoteText() {
+  return userNotes(state.notes)[0]?.text || "";
+}
+
+function contextHelpIdeaCandidates() {
+  const latest = latestNoteText().toLowerCase();
+  const tips = [];
+  const add = (id, text, reason, keywords = []) => tips.push({ id: `help-${id}`, text, reason, keywords, source: "helper", core: true });
+
+  if (/where|buy|order|get|source|supplier|shipping|off[- ]?the[- ]?shelf|component/.test(latest)) {
+    add("magnet-supplier", "Browse small NdFeB blocks at K&J Magnetics: https://www.kjmagnetics.com", "supplier", ["buy", "magnet", "ndfeb"]);
+    add("electronics-supplier", "Use Digi-Key (https://www.digikey.com) or Mouser (https://www.mouser.com) for magnet wire and driver parts.", "electronics", ["buy", "coil", "driver"]);
+    add("steel-supplier", "Use McMaster for low-carbon steel shim, small bars, screws, and repeatable fixture hardware: https://www.mcmaster.com", "hardware", ["steel", "yoke", "fixture"]);
+    add("shopping-search", "Search: small NdFeB block magnet, low-carbon steel shim, enamel magnet wire, MOSFET driver.", "search terms", ["shopping", "prototype"]);
+  }
+
+  if (/how|what is|make|build|no idea|don't know|dont know|idk|epm|electropermanent/.test(latest)) {
+    add("epm-basic", "An EPM is a permanent magnet path that a coil pulse switches between hold and release.", "basic EPM", ["epm", "basic"]);
+    add("epm-parts", "First bench parts: hard magnet, soft steel return path, coil wire, keeper, switch, and power source.", "parts", ["epm", "components"]);
+    add("bench-first", "Do the first EPM outside the Sarrus cell so you can see magnetic switching clearly.", "first build", ["bench", "prototype"]);
+  }
+
+  if (/heat|hot|temperature|burn|current|pulse/.test(latest)) {
+    add("heat-touch", "Start with short manual pulses and stop if the coil gets warm faster than expected.", "heat caution", ["heat", "pulse"]);
+    add("current-watch", "Watch current and coil temperature before caring about the printed cell motion.", "basic measurement", ["current", "temperature"]);
+  }
+
+  return tips;
 }
 
 function approvalDrivenIdeaCandidates() {
@@ -3449,10 +3487,12 @@ function ideaTextSignature(text) {
 function scoreIdeaForProject(idea) {
   const feedback = ideaFeedbackValue(idea.id);
   if (feedback === "not-useful") return null;
+  if (feedback !== "useful" && isOverTechnicalSuggestion(idea)) return null;
 
   const keywordScore = contextKeywordScore(idea.keywords);
   let score = feedback === "useful" ? 100 : 0;
   score += idea.core ? 8 : 0;
+  score += idea.source === "helper" ? 220 : 0;
   score += idea.source === "ai" ? 18 : 0;
   score += keywordScore;
   if (!hasGuidanceContext() && !idea.core && feedback !== "useful") return null;
@@ -3465,6 +3505,13 @@ function scoreIdeaForProject(idea) {
     feedback,
     skippedAt,
   };
+}
+
+function isOverTechnicalSuggestion(idea) {
+  const text = String(idea?.text || "");
+  if (idea?.source === "helper") return false;
+  if (text.length > 190) return true;
+  return /[≥≤±]|(?:\b\d+(?:\.\d+)?\s*(?:ms|s|sec|seconds|°c|c\b|cycles|%|mm|awg|psi)\b)|\b\d+\s*consecutive\b/i.test(text);
 }
 
 function approvedIdeaItems() {
@@ -3533,7 +3580,7 @@ function createFocusLibrary() {
   if (approvedBank) layout.append(approvedBank);
   if (ideas.length) {
     const ideaBlock = el("section", "useful-block");
-    ideaBlock.append(el("p", "section-label", `Suggested notes (${ideas.length})`));
+    ideaBlock.append(el("p", "section-label", `Helpful tips (${ideas.length})`));
     const ideaGrid = el("div", "ideas-grid");
     ideas.forEach((idea) => ideaGrid.append(createIdeaCard(idea)));
     ideaBlock.append(ideaGrid);
@@ -3744,7 +3791,10 @@ function createIdeaCard(idea) {
   const feedback = ideaFeedbackValue(idea.id);
   const card = el("article", `item-card idea-card${feedback === "useful" ? " paper-kept" : ""}`);
   const body = el("div", "item-body");
-  body.append(el("p", "item-title", idea.text), el("p", "item-meta", idea.reason));
+  const title = el("p", "item-title");
+  appendLinkedText(title, idea.text);
+  body.append(title);
+  if (feedback === "useful" && idea.reason) body.append(el("p", "item-meta", idea.reason));
   const actionItems = [
     { action: "idea-feedback", id: idea.id, value: "useful", title: "Useful", iconName: "check", className: "feedback-useful", active: feedback === "useful" },
   ];
@@ -3755,6 +3805,26 @@ function createIdeaCard(idea) {
   const actions = createActions(actionItems);
   card.append(body, actions);
   return card;
+}
+
+function appendLinkedText(node, text) {
+  const value = String(text || "");
+  const urlPattern = /https?:\/\/[^\s)]+/g;
+  let cursor = 0;
+  for (const match of value.matchAll(urlPattern)) {
+    if (match.index > cursor) node.append(document.createTextNode(value.slice(cursor, match.index)));
+    const href = match[0].replace(/[.,;]+$/, "");
+    const trailing = match[0].slice(href.length);
+    const link = document.createElement("a");
+    link.href = href;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = href.replace(/^https?:\/\/(?:www\.)?/, "");
+    node.append(link);
+    if (trailing) node.append(document.createTextNode(trailing));
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < value.length) node.append(document.createTextNode(value.slice(cursor)));
 }
 
 function createFocusCard(file, index) {
@@ -4195,11 +4265,13 @@ function aiFeedPayload() {
   const approvedPapers = approvedPaperItems();
   const ideaLookup = new Map(allIdeaCandidates().map((idea) => [idea.id, idea]));
   const paperLookup = new Map(state.files.filter((file) => isVisibleLibraryFile(file) && isPaperFile(file)).map((file) => [file.id, file]));
+  const notes = userNotes(state.notes);
   return {
     focus: `${focus.title} ${focus.current}`,
     summary: generateLocalProjectState(),
     refreshCount: suggestionState.refreshCount || 0,
-    notes: userNotes(state.notes).slice(0, 32).map((note) => ({ text: note.text, createdAt: note.createdAt })),
+    latestNote: notes[0]?.text || "",
+    notes: notes.slice(0, 32).map((note) => ({ text: note.text, createdAt: note.createdAt })),
     approvedIdeas: approvedIdeas.map((idea) => ({
       id: idea.id,
       text: idea.text,
