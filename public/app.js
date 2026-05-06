@@ -12,6 +12,9 @@ const aiFeedKey = "fluxcell.ai.feed.v1";
 const apiBaseKey = "fluxcell.api.base.v1";
 const aiApiBaseKey = "fluxcell.ai.api.base.v1";
 const seedPackKey = "fluxcell.seed-pack.v1";
+const recoveredIdeaSeedKey = "fluxcell.recovered-idea-feedback.seed.v1";
+const recoveredPaperSeedKey = "fluxcell.recovered-paper-feedback.seed.v1";
+const recoveredFeedbackSeedVersion = "2026-05-05-fluxcell-approved-bank-recovery";
 const baseSeedPackVersion = "2026-05-04-fluxcell";
 const integratedSeedPackVersion = "2026-05-04-fluxcell-integrated-epm";
 const monolithicSeedPackVersion = "2026-05-04-fluxcell-monolithic-cell";
@@ -54,6 +57,76 @@ const monolithicAtlasWallSeedPackVersion = "2026-05-05-fluxcell-monolithic-atlas
 const seedPackVersion = "2026-05-05-fluxcell-bridge-coupling-wall";
 const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, actuatorCandidatesWallSeedPackVersion, magneticCircuitWallSeedPackVersion, integratedCellWallSeedPackVersion, proofObjectWallSeedPackVersion, absorbablePlaybookWallSeedPackVersion, nextBuildProtocolWallSeedPackVersion, sprintBoardWallSeedPackVersion, monolithicAtlasWallSeedPackVersion, seedPackVersion];
 const compatibleSyncApps = new Set(["FluxCell"]);
+const recoveredFeedbackSeed = {
+  ideas: {
+    "short-gap-long-stroke": "not-useful",
+    "pulse-table": "not-useful",
+    "null-cell": "not-useful",
+    "force-gap-first": "not-useful",
+    "bistable-switch": "useful",
+    "coil-out-of-hinge": "useful",
+    "insert-now-print-last": "useful",
+    "one-cell-cassette": "useful",
+    "paper-to-number": { value: "not-useful", updatedAt: "2026-05-05T06:29:06.032Z" },
+    "minimum-beautiful-proof": { value: "useful", updatedAt: "2026-05-05T06:44:32.849Z" },
+    "zero-power-hold-demo": { value: "useful", updatedAt: "2026-05-05T06:44:46.946Z" },
+    "driver-polarity-table": { value: "not-useful", updatedAt: "2026-05-05T06:45:02.938Z" },
+    "array-later": { value: "useful", updatedAt: "2026-05-05T06:45:09.901Z" },
+    "rocker-or-wedge": { value: "useful", updatedAt: "2026-05-05T06:45:35.239Z" },
+    "width-and-current-trace": { value: "useful", updatedAt: "2026-05-05T06:45:43.756Z" },
+    "cell-width-fixture": { value: "useful", updatedAt: "2026-05-05T06:45:48.261Z" },
+    "core-material-ablation": { value: "useful", updatedAt: "2026-05-05T06:46:10.598Z" },
+    "dummy-magnet-control": { value: "not-useful", updatedAt: "2026-05-05T15:45:22.963Z" },
+    "snap-threshold-first": { value: "not-useful", updatedAt: "2026-05-05T15:45:29.510Z" },
+    "state-table": { value: "not-useful", updatedAt: "2026-05-05T15:45:32.832Z" },
+    "monolithic-word-discipline": { value: "useful", updatedAt: "2026-05-05T15:45:41.985Z" },
+    "symmetric-node-pairs": { value: "not-useful", updatedAt: "2026-05-05T15:45:48.072Z" },
+    "paper-number-extract": { value: "not-useful", updatedAt: "2026-05-05T15:46:08.371Z" },
+    "force-per-energy": { value: "not-useful", updatedAt: "2026-05-05T15:46:16.703Z" },
+    "thermal-ceiling": { value: "not-useful", updatedAt: "2026-05-05T15:46:20.212Z" },
+    "coil-resistance-before-pulse": { value: "not-useful", updatedAt: "2026-05-05T15:46:24.229Z" },
+    "one-variable-fixture": { value: "not-useful", updatedAt: "2026-05-05T15:46:28.193Z" },
+    "low-strain-wire-route": { value: "useful", updatedAt: "2026-05-05T15:46:47.500Z" },
+    "failure-photo-bank": { value: "useful", updatedAt: "2026-05-05T15:47:00.143Z" },
+    "mechanical-advantage-before-current": { value: "useful", updatedAt: "2026-05-05T15:47:07.181Z" },
+    "cell-section-cutaway": { value: "useful", updatedAt: "2026-05-05T15:47:37.027Z" },
+    "pause-print-cartridge": { value: "useful", updatedAt: "2026-05-05T15:47:44.333Z" },
+    "bench-before-cell": { value: "useful", updatedAt: "2026-05-05T15:47:56.876Z" },
+    "keeper-gap-as-feature": { value: "not-useful", updatedAt: "2026-05-05T15:48:45.620Z" },
+    "object-trace-section": { value: "not-useful", updatedAt: "2026-05-05T15:48:49.286Z" },
+    "cutaway-figure": { value: "not-useful", updatedAt: "2026-05-05T15:49:10.309Z" },
+    "paper-cluster": { value: "useful", updatedAt: "2026-05-05T15:49:16.070Z" },
+    "keeper-overlap-sweep": { value: "not-useful", updatedAt: "2026-05-05T15:49:21.580Z" },
+    "paper-credibility-filter": { value: "useful", updatedAt: "2026-05-05T15:49:26.818Z" },
+    "figure-first-literature": { value: "useful", updatedAt: "2026-05-05T15:49:41.128Z" },
+    "printability-stack": { value: "useful", updatedAt: "2026-05-05T15:49:51.376Z" },
+    "approved-thread": { value: "not-useful", updatedAt: "2026-05-05T15:49:54.398Z" },
+    "single-cell-actuation-loop": { value: "useful", updatedAt: "2026-05-05T15:50:11.668Z" },
+    "flux-leakage-check": { value: "useful", updatedAt: "2026-05-05T15:50:15.577Z" },
+    "force-per-volume": { value: "not-useful", updatedAt: "2026-05-05T15:50:17.287Z" },
+    "coupon-force-matrix": { value: "not-useful", updatedAt: "2026-05-05T15:50:18.123Z" },
+  },
+  papers: {
+    "e42af69a-c598-4318-a9b1-ec7f5f1e3e64": "not-useful",
+    "fb3f55cc-c58d-415f-8dbf-a0eb9f74c586": "not-useful",
+    "00f55368-c5d7-45fe-80ef-7f7cd82576f3": "not-useful",
+    "a36ce518-e3f2-402f-a57b-546ab16bc7da": "not-useful",
+    "0863f6c6-0b89-4e3b-bc64-9273ffb161d0": "not-useful",
+    "3c2efd37-0b79-4b3c-a4a1-0c9f7da589cb": "useful",
+    "372f18ea-c2b9-4a8f-820e-c842a2c10c3b": "useful",
+    "326ff33f-cb04-421e-be24-d60f9eb3b39d": "not-useful",
+    "9441a731-c853-4939-9f01-1ba1879f97e7": "useful",
+    "2c3a5d61-40c1-4cff-93cc-f85b8434f6df": { value: "useful", updatedAt: "2026-05-05T06:46:38.847Z" },
+    "20aa8da7-79c0-4e91-a73e-a69af856166e": { value: "useful", updatedAt: "2026-05-05T06:46:53.475Z" },
+    "ebca3830-2451-4dfb-922b-0879a8976431": { value: "useful", updatedAt: "2026-05-05T06:47:04.004Z" },
+    "0804fe73-c31d-4581-97ce-428ac2222c1e": { value: "not-useful", updatedAt: "2026-05-05T06:47:38.363Z", reason: "relevance" },
+    "2d885d19-1f74-44c3-9bd4-0c4abcf07451": { value: "not-useful", updatedAt: "2026-05-05T06:47:55.708Z", reason: "relevance" },
+    "ece34636-1045-45eb-a08f-0f7be4d740bc": { value: "useful", updatedAt: "2026-05-05T06:48:04.947Z" },
+    "eb0ab632-c895-436a-9dae-356243ef7256": { value: "not-useful", updatedAt: "2026-05-05T06:48:19.744Z", reason: "quality" },
+    "3cfd0288-5017-4906-b040-6dcf3aaa6c41": { value: "useful", updatedAt: "2026-05-05T06:48:40.996Z" },
+    "f12ef9ad-6162-4c25-b5d1-dc8daaa8c842": { value: "not-useful", updatedAt: "2026-05-05T06:48:55.381Z", reason: "relevance" },
+  },
+};
 
 const focus = {
   domain: "fluxcell.aolabs.io",
@@ -2359,13 +2432,21 @@ function saveState() {
   localStorage.setItem(stateKey, JSON.stringify(state));
 }
 
+function withRecoveredFeedback(seed, stored, seedKey) {
+  const storedFeedback = stored && typeof stored === "object" && !Array.isArray(stored) ? stored : {};
+  if (localStorage.getItem(seedKey) === recoveredFeedbackSeedVersion) return storedFeedback;
+  const merged = { ...seed, ...storedFeedback };
+  localStorage.setItem(seedKey, recoveredFeedbackSeedVersion);
+  return merged;
+}
+
 function loadPaperFeedback() {
   try {
     const parsed = JSON.parse(localStorage.getItem(feedbackKey) || "{}");
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    return withRecoveredFeedback(recoveredFeedbackSeed.papers, parsed, recoveredPaperSeedKey);
   } catch (error) {
     console.warn(error);
-    return {};
+    return { ...recoveredFeedbackSeed.papers };
   }
 }
 
@@ -2400,10 +2481,10 @@ function paperRejectReason(id) {
 function loadIdeaFeedback() {
   try {
     const parsed = JSON.parse(localStorage.getItem(ideaFeedbackKey) || "{}");
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    return withRecoveredFeedback(recoveredFeedbackSeed.ideas, parsed, recoveredIdeaSeedKey);
   } catch (error) {
     console.warn(error);
-    return {};
+    return { ...recoveredFeedbackSeed.ideas };
   }
 }
 
