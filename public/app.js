@@ -3082,6 +3082,12 @@ function sentenceCaseBullet(text) {
 
 const projectStageDefinitions = [
   {
+    id: "reset",
+    label: "focus reset",
+    summary: "Take a clean reset, then return with one tiny physical FluxCell action.",
+    patterns: [/violin|practice|music|rather|avoid|avoiding|distract|distracted|not feeling|don't wanna|dont wanna|do not wanna|burnout|burned out|reset/],
+  },
+  {
     id: "start",
     label: "first physical prototype",
     summary: "Make one crude tabletop EPM, not a polished cell.",
@@ -3126,6 +3132,17 @@ const projectStageDefinitions = [
 ];
 
 const projectStageTipBank = {
+  reset: [
+    ["reset-clean-break", "Practice violin as a clean reset, then return for one tiny FluxCell action.", "reset", ["violin", "reset", "action"], ["violin", "clean reset", "tiny action"]],
+    ["reset-reentry-note", "Before leaving, write the next FluxCell action in one plain sentence.", "re-entry", ["note", "action"], ["next fluxcell action", "one sentence"]],
+    ["reset-no-reading", "When you come back, do not read; touch a part, cart, coil, or sketch.", "re-entry", ["start", "parts"], ["do not read", "part", "coil"]],
+    ["reset-five-minutes", "If you only have five minutes, add one starter component to the parts cart.", "tiny action", ["buy", "parts"], ["five minutes", "parts cart"]],
+    ["reset-next-object", "Decide the next physical object before the break: magnet loop, coil, keeper, or fixture.", "object", ["object", "bench"], ["magnet loop", "coil", "keeper", "fixture"]],
+    ["reset-not-verdict", "The violin impulse is a break signal, not evidence that the project is failing.", "reset", ["focus", "project"], ["break signal", "project"]],
+    ["reset-one-loop", "Close one tiny loop today: one note, one ordered part, or one crude pulse test.", "small win", ["note", "part", "test"], ["one note", "ordered part", "pulse test"]],
+    ["reset-table-ready", "Leave the bench ready for the next move before switching contexts.", "setup", ["bench", "next"], ["bench ready", "switching contexts"]],
+    ["reset-small-proof", "Keep the research alive with the smallest visible proof, not the perfect plan.", "scope", ["proof", "start"], ["smallest visible proof", "perfect plan"]],
+  ],
   start: [
     ["start-one-task", "Pick one task today: order parts or wind the first coil.", "start here", ["start", "parts", "coil"], ["order parts", "wind first coil"]],
     ["ugly-tabletop", "Make the first switch ugly on the table before designing a fixture.", "first build", ["prototype", "tabletop"], ["ugly", "table", "fixture"]],
@@ -3201,6 +3218,9 @@ function generateLocalProjectState() {
   if (supportTopic) {
     return `Stage: paper support. Find papers for "${supportTopic}". Prefer papers with built devices, apparatus photos, and measurements.`;
   }
+  if (stage.id === "reset") {
+    return `Stage: ${stage.label}. ${stage.summary} Next: leave one re-entry action before the break.`;
+  }
   if (stage.id === "start") {
     return `Stage: ${stage.label}. ${stage.summary} Next: order parts or wind one coil.`;
   }
@@ -3223,6 +3243,7 @@ function projectStageProfile() {
       + stagePatternScore(recent, stage.patterns, 3)
       + stagePatternScore(preference, stage.patterns, 1.5)
       + stagePatternScore(fileText, stage.patterns, 1);
+    if (stage.id === "reset" && /violin|practice|music|rather|avoid|distract|not feeling|don't wanna|dont wanna|burnout|reset/.test(latest)) score += 70;
     if (stage.id === "start" && /too detailed|crazy detailed|overwhelm|tired|no idea|lost|just need.*start|start.*prototyp/.test(latest)) score += 45;
     if (stage.id === "sourcing" && /where.*buy|what kind.*component|off[- ]?the[- ]?shelf|quick shipping|order|supplier/.test(latest)) score += 45;
     if (stage.id === "bench" && /make|build|bench|wind|coil|keeper|hold|release|epm/.test(latest)) score += 20;
@@ -3408,7 +3429,7 @@ function contextHelpIdeaCandidates() {
 
   (projectStageTipBank[stage.id] || projectStageTipBank.start).forEach(([id, text, reason, keywords, signals]) => {
     if (stage.id === "start") addStart(id, text, reason, keywords, signals);
-    else add(id, text, reason, keywords, signals, { keepFresh: stage.id === "papers" || stage.id === "sourcing" });
+    else add(id, text, reason, keywords, signals, { keepFresh: stage.id === "papers" || stage.id === "sourcing" || stage.id === "reset" });
   });
 
   if (stage.id !== "start" && startMode) {
@@ -3468,7 +3489,12 @@ function recentConcernText() {
 
 function startModeActive() {
   if (paperSupportTopic()) return false;
+  if (resetModeActive()) return false;
   return /(?:\bstart\b|starter|prototyp|crazy detailed|too detailed|overwhelm|tired|no idea|what i'?m doing|lost|confus|just need|basic|beginner|where to buy|what kind of off[- ]?the[- ]?shelf|what kind of component)/i.test(recentConcernText());
+}
+
+function resetModeActive() {
+  return /(?:violin|practice|music|rather|avoid|avoiding|distract|distracted|not feeling|don't wanna|dont wanna|do not wanna|burnout|burned out|reset)/i.test(latestNoteText());
 }
 
 function paperSupportTopic() {
@@ -3802,6 +3828,7 @@ function stageRelevantIdea(stageId, idea) {
   if (supportTopic) return /paper|scholar|citation|cite|source|reference|figure|apparatus|measurement|built|device/.test(text);
   if (stageId === "start") return startModeTipText(text);
   if (stageId === "sourcing") return /buy|order|source|supplier|component|part|magnet|wire|steel|switch|power|shipping|mcmaster|mouser|digikey|digi-key|amazon/.test(text);
+  if (stageId === "reset") return /reset|break|return|re-entry|reentry|next action|one note|ordered part|pulse test|bench ready|smallest visible proof|violin|five minutes|parts cart|switching contexts/.test(text);
   if (stageId === "bench") return /bench|epm|coil|magnet|keeper|steel|hold|release|pulse|switch|wire|table|loop/.test(text);
   if (stageId === "measurement") return /measure|test|debug|failure|force|gap|current|heat|temperature|video|photo|trace|before|after/.test(text);
   if (stageId === "cell-integration") return /sarrus|cell|lateral|width|stroke|keeper|mechanism|fixture|integrat|actuat/.test(text);
