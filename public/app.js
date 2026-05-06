@@ -3112,6 +3112,12 @@ const projectStageDefinitions = [
     patterns: [/violin|practice|music|rather|avoid|avoiding|distract|distracted|not feeling|don't wanna|dont wanna|do not wanna|burnout|burned out|reset/],
   },
   {
+    id: "routine",
+    label: "prototype routine",
+    summary: "Protect writing momentum while creating a tiny printer-adjacent prototype loop.",
+    patterns: [/writing.*prototyp|switch.*states|switching contexts?|context switch|current routine|fit.*routine|iterations?.*printer|printer.*routine|next to a 3d printer|3d printer|print queue|iteration loop|prototype.*routine/],
+  },
+  {
     id: "start",
     label: "first physical prototype",
     summary: "Make one crude tabletop EPM, not a polished cell.",
@@ -3211,6 +3217,17 @@ const projectStageTipBank = {
     ["reset-table-ready", "Leave the bench ready for the next move before switching contexts.", "setup", ["bench", "next"], ["bench ready", "switching contexts"]],
     ["reset-small-proof", "Keep the research alive with the smallest visible proof, not the perfect plan.", "scope", ["proof", "start"], ["smallest visible proof", "perfect plan"]],
   ],
+  routine: [
+    ["routine-short-block", "Treat prototyping as one short printer-adjacent block, not a full identity switch.", "routine fit", ["routine", "printer", "state"], ["printer-adjacent block", "identity switch"]],
+    ["routine-writing-intact", "Keep writing mode intact: change one printable thing, start it, then leave.", "writing transition", ["writing", "print"], ["writing mode", "one printable thing"]],
+    ["routine-batch-iterations", "Batch iterations: queue one small part, inspect it later, then decide the next change.", "iteration loop", ["iteration", "printer"], ["queue", "inspect", "next change"]],
+    ["routine-proof", "The first win is routine proof: one ugly print loop without derailing the day.", "routine proof", ["routine", "print"], ["ugly print loop", "derailing"]],
+    ["routine-printer-checklist", "Make a printer-side checklist: open file, change one variable, print, photograph result.", "checklist", ["printer", "iteration"], ["checklist", "one variable", "photograph"]],
+    ["routine-bench-when-crowded", "When routine is crowded, do bench EPM work; use the printer only for fixture shells.", "scope", ["bench", "printer"], ["routine crowded", "fixture shells"]],
+    ["routine-background-printer", "Use the printer like a background process; the real work is choosing the next tiny geometry.", "printer loop", ["printer", "geometry"], ["background process", "tiny geometry"]],
+    ["routine-shrink-part", "If a print needs babysitting, shrink the part until babysitting feels tolerable.", "iteration size", ["printer", "part"], ["babysitting", "shrink the part"]],
+    ["routine-exit-writing", "Exit writing by leaving one print-ready file, not by forcing a whole prototype day.", "transition", ["writing", "prototype"], ["print-ready file", "prototype day"]],
+  ],
   start: [
     ["start-one-task", "Pick one task today: order parts or wind the first coil.", "start here", ["start", "parts", "coil"], ["order parts", "wind first coil"]],
     ["ugly-tabletop", "Make the first switch ugly on the table before designing a fixture.", "first build", ["prototype", "tabletop"], ["ugly", "table", "fixture"]],
@@ -3301,6 +3318,9 @@ function generateLocalProjectState() {
   if (stage.id === "reset") {
     return `Stage: ${stage.label}. ${stage.summary} Next: leave one re-entry action before the break.`;
   }
+  if (stage.id === "routine") {
+    return `Stage: ${stage.label}. ${stage.summary} Next: make one print loop fit the day.`;
+  }
   if (stage.id === "start") {
     return `Stage: ${stage.label}. ${stage.summary} Next: order parts or wind one coil.`;
   }
@@ -3328,6 +3348,7 @@ function projectStageProfile() {
     if (stage.id === "play" && /slay|bestie|penis|lol|lmao|lmfao|random|silly|goofy|chaos/.test(latest)) score += 80;
     if (stage.id === "vision" && /disney|imagineering|imagineer|hired|hire|portfolio|r&d|success|cool stuff|dream job|magical/.test(latest)) score += 85;
     if (stage.id === "reset" && /violin|practice|music|rather|avoid|distract|not feeling|don't wanna|dont wanna|burnout|reset/.test(latest)) score += 70;
+    if (stage.id === "routine" && /writing.*prototyp|switch.*states|current routine|fit.*routine|iterations?.*printer|3d printer|prototype.*routine|context switch/.test(latest)) score += 95;
     if (stage.id === "start" && /too detailed|crazy detailed|overwhelm|tired|no idea|lost|just need.*start|start.*prototyp/.test(latest)) score += 45;
     if (stage.id === "sourcing" && /where.*buy|what kind.*component|off[- ]?the[- ]?shelf|quick shipping|order|supplier/.test(latest)) score += 45;
     if (stage.id === "bench" && /make|build|bench|wind|coil|keeper|hold|release|epm/.test(latest)) score += 20;
@@ -3492,6 +3513,7 @@ function contextHelpIdeaCandidates() {
   const stage = projectStageProfile();
   const supportTopic = paperSupportTopic();
   const startMode = startModeActive();
+  const routineMode = stage.id === "routine" || routineModeActive();
   const tips = [];
   const add = (id, text, reason, keywords = [], signals = keywords, options = {}) => {
     if (ideaFeedbackValue(`help-${id}`) === "useful") return;
@@ -3513,10 +3535,10 @@ function contextHelpIdeaCandidates() {
 
   (projectStageTipBank[stage.id] || projectStageTipBank.start).forEach(([id, text, reason, keywords, signals]) => {
     if (stage.id === "start") addStart(id, text, reason, keywords, signals);
-    else add(id, text, reason, keywords, signals, { keepFresh: ["papers", "sourcing", "reset", "body", "vent", "play", "vision"].includes(stage.id) });
+    else add(id, text, reason, keywords, signals, { keepFresh: ["papers", "sourcing", "reset", "routine", "body", "vent", "play", "vision"].includes(stage.id) });
   });
 
-  if (stage.id !== "start" && startMode) {
+  if (stage.id !== "start" && !routineMode && startMode) {
     projectStageTipBank.start.slice(0, 3).forEach(([id, text, reason, keywords, signals]) => addStart(id, text, reason, keywords, signals));
   }
 
@@ -3527,7 +3549,7 @@ function contextHelpIdeaCandidates() {
     add("shopping-search", "Search: small NdFeB block magnet, low-carbon steel shim, enamel magnet wire, MOSFET driver.", "search terms", ["shopping", "prototype"], ["search", "small ndfeb", "mosfet driver"]);
   }
 
-  if (startMode || /how|what is|make|build|no idea|don't know|dont know|idk|epm|electropermanent/.test(notesText)) {
+  if (!routineMode && (startMode || /how|what is|make|build|no idea|don't know|dont know|idk|epm|electropermanent/.test(notesText))) {
     add("epm-basic", "An EPM is a permanent magnet path that a coil pulse switches between hold and release.", "basic EPM", ["epm", "basic"], ["epm is", "permanent magnet path", "coil pulse"]);
     add("epm-parts", "First bench parts: hard magnet, soft steel return path, coil wire, keeper, switch, and power source.", "parts", ["epm", "components"], ["hard magnet", "soft steel", "keeper", "coil wire"]);
     add("bench-first", "Do the first EPM outside the Sarrus cell so you can see magnetic switching clearly.", "first build", ["bench", "prototype"], ["bench first", "outside the sarrus", "magnetic switching"]);
@@ -3548,12 +3570,12 @@ function contextHelpIdeaCandidates() {
     add("motion-first", "Prove one visible width change before optimizing the magnetic circuit.", "motion proof", ["lateral", "width"], ["visible width change", "motion proof"]);
   }
 
-  if (!startMode && /print|printed|monolithic|material|iron|steel|magnet material|composite/.test(notesText)) {
+  if (!routineMode && !startMode && /print|printed|monolithic|material|iron|steel|magnet material|composite/.test(notesText)) {
     add("inserted-before-printed", "Use inserted steel and magnets first; treat printable magnetic material as the second milestone.", "material risk", ["printed", "material"], ["inserted steel", "second milestone"]);
     add("material-split", "Separate the build into three materials: hard magnet, soft magnetic path, and normal printed structure.", "material map", ["material", "magnet"], ["hard magnet", "soft magnetic path", "printed structure"]);
   }
 
-  if (startMode || /test|measure|measurement|proof|failure|fail|works|work|prototype/.test(notesText)) {
+  if (!routineMode && (startMode || /test|measure|measurement|proof|failure|fail|works|work|prototype/.test(notesText))) {
     add("first-proof", "The first proof is simple: pulse it, see the keeper switch, and record the before/after state.", "proof", ["test", "prototype"], ["keeper switch", "before/after state"]);
     if (!startMode) {
       add("failure-list", "Keep a tiny failure list: weak hold, no release, heating, slipping, or broken geometry.", "debugging", ["failure", "test"], ["failure list", "weak hold", "no release"]);
@@ -3573,9 +3595,14 @@ function recentConcernText() {
 
 function startModeActive() {
   if (paperSupportTopic()) return false;
+  if (routineModeActive()) return false;
   if (rawThoughtModeActive()) return false;
   if (resetModeActive()) return false;
   return /(?:\bstart\b|starter|prototyp|crazy detailed|too detailed|overwhelm|tired|no idea|what i'?m doing|lost|confus|just need|basic|beginner|where to buy|what kind of off[- ]?the[- ]?shelf|what kind of component)/i.test(recentConcernText());
+}
+
+function routineModeActive() {
+  return /(?:writing.*prototyp|switch.*states|switching contexts?|context switch|current routine|fit.*routine|iterations?.*printer|printer.*routine|next to a 3d printer|3d printer|print queue|iteration loop|prototype.*routine)/i.test(latestNoteText());
 }
 
 function rawThoughtModeActive() {
@@ -3922,6 +3949,7 @@ function stageRelevantIdea(stageId, idea) {
   if (stageId === "play") return /chaotic|goofy|random|nonsense|weird note|human context|tile title|physical touch|bench|object|smile|noise/.test(text);
   if (stageId === "vision") return /disney|imagineering|portfolio|reel|demo|magical|delight|delightful|artifact|video|non-expert|showcase|wow|career/.test(text);
   if (stageId === "reset") return /reset|break|return|re-entry|reentry|next action|one note|ordered part|pulse test|bench ready|smallest visible proof|violin|five minutes|parts cart|switching contexts/.test(text);
+  if (stageId === "routine") return /routine|writing|printer|print-ready|prototype day|state|context|iteration|queue|inspect|checklist|babysitting|background process|tiny geometry|fixture shell/.test(text);
   if (stageId === "bench") return /bench|epm|coil|magnet|keeper|steel|hold|release|pulse|switch|wire|table|loop/.test(text);
   if (stageId === "measurement") return /measure|test|debug|failure|force|gap|current|heat|temperature|video|photo|trace|before|after/.test(text);
   if (stageId === "cell-integration") return /sarrus|cell|lateral|width|stroke|keeper|mechanism|fixture|integrat|actuat/.test(text);
