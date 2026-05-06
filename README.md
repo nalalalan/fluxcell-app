@@ -14,19 +14,17 @@ For the public page at `fluxcell.aolabs.io` to sync with this computer, run the 
 
 ```bash
 $env:PORT="3010"
-$env:FLUXCELL_STORAGE_DIR="C:\Users\phama\Documents\research\PhD Chapter 2\Forge Files"
+$env:FLUXCELL_STORAGE_DIR="C:\Users\phama\Documents\research\PhD Chapter 2\FluxCell Files"
 $env:FLUXCELL_DELETE_PASSWORD="<set locally>"
 $env:OPENAI_API_KEY="<set locally>"
 npm start
 ```
 
-The server still accepts the old `FORGE_*` variables so existing local scripts keep working.
-
 ## Data
 
 Notes are stored in the browser with `localStorage`.
 
-Files are saved to the browser vault unless the local sync server is running. With local sync running, uploads save into `FLUXCELL_STORAGE_DIR`. If the existing Forge index is present, the server keeps using it so current files remain visible.
+Files are saved to the browser vault unless the local sync server is running. With local sync running, uploads save into `FLUXCELL_STORAGE_DIR`.
 
 Deletion from the local sync folder requires `FLUXCELL_DELETE_PASSWORD`. Do not commit that password into this repo.
 

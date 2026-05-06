@@ -2,10 +2,8 @@ const root = document.getElementById("app");
 
 const appName = "FluxCell";
 const stateKey = "fluxcell.lab.v1";
-const legacyStateKey = "forge.calm.v1";
 const ownerKey = "fluxcell.owner.delete.hash.v1";
-const legacyOwnerKey = "forge.owner.delete.hash.v1";
-const dbName = "forge-file-vault";
+const dbName = "fluxcell-file-vault";
 const fileStore = "files";
 const feedbackKey = "fluxcell.paper.feedback.v1";
 const ideaFeedbackKey = "fluxcell.idea.feedback.v1";
@@ -55,7 +53,7 @@ const sprintBoardWallSeedPackVersion = "2026-05-05-fluxcell-sprint-board-wall";
 const monolithicAtlasWallSeedPackVersion = "2026-05-05-fluxcell-monolithic-atlas-wall";
 const seedPackVersion = "2026-05-05-fluxcell-bridge-coupling-wall";
 const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, actuatorCandidatesWallSeedPackVersion, magneticCircuitWallSeedPackVersion, integratedCellWallSeedPackVersion, proofObjectWallSeedPackVersion, absorbablePlaybookWallSeedPackVersion, nextBuildProtocolWallSeedPackVersion, sprintBoardWallSeedPackVersion, monolithicAtlasWallSeedPackVersion, seedPackVersion];
-const compatibleSyncApps = new Set(["FluxCell", "Forge"]);
+const compatibleSyncApps = new Set(["FluxCell"]);
 
 const focus = {
   domain: "fluxcell.aolabs.io",
@@ -2322,15 +2320,13 @@ let aiRefreshTimer = 0;
 const previewUrls = new Map();
 
 function loadState() {
-  for (const key of [stateKey, legacyStateKey]) {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(key) || "null");
-      if (parsed && Array.isArray(parsed.notes) && Array.isArray(parsed.files)) {
-        return finalizeLoadedState({ notes: parsed.notes, files: parsed.files });
-      }
-    } catch (error) {
-      console.warn(error);
+  try {
+    const parsed = JSON.parse(localStorage.getItem(stateKey) || "null");
+    if (parsed && Array.isArray(parsed.notes) && Array.isArray(parsed.files)) {
+      return finalizeLoadedState({ notes: parsed.notes, files: parsed.files });
     }
+  } catch (error) {
+    console.warn(error);
   }
   return finalizeLoadedState({ notes: [], files: [] });
 }
@@ -3992,7 +3988,7 @@ function deleteNote(id) {
 }
 
 async function browserDeleteAllowed(password) {
-  const existing = localStorage.getItem(ownerKey) || localStorage.getItem(legacyOwnerKey);
+  const existing = localStorage.getItem(ownerKey);
   const hashed = await hashText(password);
   if (!existing) {
     localStorage.setItem(ownerKey, hashed);

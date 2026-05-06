@@ -8,20 +8,14 @@ const { execFile } = require("node:child_process");
 
 const port = Number(process.env.PORT || 3000);
 const publicDir = path.join(__dirname, "public");
-const legacyStorageRoot = path.join(os.homedir(), "Documents", "research", "PhD Chapter 2", "Forge Files");
 const focusedStorageRoot = path.join(os.homedir(), "Documents", "research", "PhD Chapter 2", "FluxCell Files");
-const configuredStorageRoot = process.env.FLUXCELL_STORAGE_DIR || process.env.FORGE_STORAGE_DIR;
-const storageRoot = path.resolve(
-  configuredStorageRoot || (fs.existsSync(legacyStorageRoot) ? legacyStorageRoot : focusedStorageRoot)
-);
-const deletePassword = process.env.FLUXCELL_DELETE_PASSWORD || process.env.FORGE_DELETE_PASSWORD || "";
-const maxUploadBytes = Number(process.env.FLUXCELL_MAX_UPLOAD_MB || process.env.FORGE_MAX_UPLOAD_MB || 100) * 1024 * 1024;
+const configuredStorageRoot = process.env.FLUXCELL_STORAGE_DIR;
+const storageRoot = path.resolve(configuredStorageRoot || focusedStorageRoot);
+const deletePassword = process.env.FLUXCELL_DELETE_PASSWORD || "";
+const maxUploadBytes = Number(process.env.FLUXCELL_MAX_UPLOAD_MB || 100) * 1024 * 1024;
 const openAiModel = process.env.FLUXCELL_OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-5-mini";
-const legacyIndexPath = path.join(storageRoot, ".forge-files.json");
 const focusedIndexPath = path.join(storageRoot, ".fluxcell-files.json");
-const indexPath = fs.existsSync(legacyIndexPath) && !fs.existsSync(focusedIndexPath)
-  ? legacyIndexPath
-  : focusedIndexPath;
+const indexPath = focusedIndexPath;
 const paperPreviewRoot = path.join(storageRoot, ".fluxcell-paper-previews");
 const paperPreviewVersion = 5;
 
@@ -75,7 +69,7 @@ function isInside(root, filePath) {
 
 function safeName(name) {
   const base = path.basename(String(name || "fluxcell-file"));
-  return base.replace(/[<>:"/\\|?*\u0000-\u001f]+/g, "-").replace(/\s+/g, " ").trim().slice(0, 140) || "forge-file";
+  return base.replace(/[<>:"/\\|?*\u0000-\u001f]+/g, "-").replace(/\s+/g, " ").trim().slice(0, 140) || "fluxcell-file";
 }
 
 function dataUrlToBuffer(dataUrl) {
