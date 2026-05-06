@@ -3159,77 +3159,80 @@ function rememberCustomIdea(idea) {
 function approvalDrivenIdeaCandidates() {
   const terms = preferenceTerms(24)
     .filter((term) => !["cell", "sarrus", "linkage", "paper"].includes(term))
-    .slice(0, 18);
-  const templates = [
+    .slice(0, 16);
+  const first = (fallback, matcher = () => true) => terms.find(matcher) || fallback;
+  const magnetic = first("magnetic circuit", (term) => /flux|gap|keeper|yoke|force|magnetic|core/.test(term));
+  const electrical = first("pulse current", (term) => /coil|pulse|current|heat|temperature|energy|driver/.test(term));
+  const mechanism = first("lateral width change", (term) => /width|lateral|one cell|hold|release|bistable|stroke|expand/.test(term));
+  const material = first("printed material stack", (term) => /print|printed|monolithic|material|steel|iron|core|insert/.test(term));
+  const proof = first("one-cell proof", (term) => /one cell|proof|fixture|trace|metric|figure|paper/.test(term));
+
+  return [
     {
-      id: "one-cell-test",
+      id: `adaptive-one-cell-test-${slugify(proof)}`,
+      text: `Turn ${proof} into one bench run with apparatus, one measured number, and a pass/fail threshold.`,
       reason: "next test",
-      make: (term) => `Turn ${term} into a one-cell experiment with apparatus, one number, and pass/fail.`,
-      keywords: ["experiment", "one cell", "apparatus", "measurement"],
+      keywords: [proof, "experiment", "apparatus", "measurement", "threshold"],
+      core: true,
     },
     {
-      id: "paper-hunt",
+      id: `adaptive-paper-hunt-${slugify(magnetic)}`,
+      text: `Find one strong paper figure for ${magnetic}: geometry, measurement setup, and the number worth reproducing.`,
       reason: "paper hunt",
-      make: (term) => `Find a paper where ${term} is shown as a figure, table, or apparatus photo.`,
-      keywords: ["paper", "figure", "table", "apparatus"],
+      keywords: [magnetic, "paper", "figure", "apparatus", "number"],
+      core: true,
     },
     {
-      id: "fixture",
+      id: `adaptive-fixture-${slugify(magnetic)}`,
+      text: `Make the next fixture isolate ${magnetic}; every other dimension should stay locked.`,
       reason: "fixture",
-      make: (term) => `Make a fixture where ${term} is the only changed variable.`,
-      keywords: ["fixture", "variable", "repeatable", "test"],
+      keywords: [magnetic, "fixture", "variable", "repeatable", "test"],
+      core: true,
     },
     {
-      id: "sarrus-coupling",
+      id: `adaptive-sarrus-coupling-${slugify(mechanism)}`,
+      text: `Map how the magnetic closure becomes ${mechanism} in the Sarrus cell, then remove any part that only looks active.`,
       reason: "cell coupling",
-      make: (term) => `Ask how ${term} creates lateral width change in the Sarrus cell, not just magnetic attraction.`,
-      keywords: ["sarrus", "lateral", "width", "coupling"],
+      keywords: [mechanism, "sarrus", "lateral", "width", "coupling"],
+      core: true,
     },
     {
-      id: "trace",
+      id: `adaptive-trace-${slugify(electrical)}`,
+      text: `Record ${electrical}, force, and width in one synchronized clip so the tile is evidence, not a reminder.`,
       reason: "evidence",
-      make: (term) => `Attach ${term} to a trace: current, temperature, force, width, or state.`,
-      keywords: ["trace", "current", "temperature", "force", "width"],
+      keywords: [electrical, "trace", "current", "temperature", "force", "width"],
     },
     {
-      id: "failure",
-      reason: "failure mode",
-      make: (term) => `List the failure mode for ${term}: weak hold, no release, heating, slip, twist, or fracture.`,
+      id: "adaptive-failure-tree",
+      text: "Keep one failure tree for the actuator: weak hold, no release, heating, slip, twist, fracture.",
+      reason: "failure map",
       keywords: ["failure", "hold", "release", "heat", "slip", "twist"],
     },
     {
-      id: "monolithic-route",
+      id: `adaptive-monolithic-route-${slugify(material)}`,
+      text: `Split ${material} into two tracks: inserted-core proof now, printed magnetic material proof later.`,
       reason: "print route",
-      make: (term) => `Separate the inserted-core version of ${term} from the monolithically printed version.`,
-      keywords: ["monolithic", "insert", "printed", "core", "route"],
+      keywords: [material, "monolithic", "insert", "printed", "core", "route"],
     },
     {
-      id: "decision-figure",
+      id: `adaptive-decision-figure-${slugify(magnetic)}`,
+      text: `Only keep a ${magnetic} paper if one figure can change the next CAD, fixture, or measurement decision.`,
       reason: "figure filter",
-      make: (term) => `Only keep a ${term} paper if one figure changes the next build decision.`,
-      keywords: ["paper", "figure", "decision", "build"],
+      keywords: [magnetic, "paper", "figure", "decision", "build"],
     },
     {
-      id: "metric",
+      id: `adaptive-metric-${slugify(proof)}`,
+      text: `Give ${proof} one metric: force per volume, displacement per joule, or hold force per heat rise.`,
       reason: "metric",
-      make: (term) => `Give ${term} a metric: force per volume, displacement per energy, or hold per heat rise.`,
-      keywords: ["metric", "force", "volume", "energy", "heat"],
+      keywords: [proof, "metric", "force", "volume", "energy", "heat"],
     },
     {
-      id: "beautiful-object",
+      id: `adaptive-beautiful-object-${slugify(mechanism)}`,
+      text: `Make ${mechanism} visible in the object with a clean cutaway, a clear silhouette, and one measured motion.`,
       reason: "showcase object",
-      make: (term) => `Make ${term} visible in the object: section cut, clean silhouette, and one measured motion.`,
-      keywords: ["object", "section", "visible", "motion", "measurement"],
+      keywords: [mechanism, "object", "section", "visible", "motion", "measurement"],
     },
   ];
-
-  return terms.flatMap((term, termIndex) => templates.map((template, templateIndex) => ({
-    id: `adaptive-${template.id}-${slugify(term)}`,
-    text: template.make(term),
-    reason: template.reason,
-    keywords: [term, ...template.keywords],
-    core: termIndex < 4 && templateIndex < 4,
-  })));
 }
 
 function preferenceTerms(limit = 12) {
@@ -3335,10 +3338,59 @@ function usefulIdeaItems() {
     .filter(Boolean)
     .sort(suggestionSort);
 
-  return scored
-    .filter((entry) => entry.feedback !== "useful")
+  return diversifyIdeaEntries(scored.filter((entry) => entry.feedback !== "useful"))
     .slice(0, 24)
     .map((entry) => entry.idea);
+}
+
+function diversifyIdeaEntries(entries) {
+  const picked = [];
+  const pickedIds = new Set();
+  const familyCounts = new Map();
+  const signatures = new Set();
+
+  const tryPick = (entry, mode) => {
+    if (!entry?.id || pickedIds.has(entry.id)) return false;
+    const family = ideaFamily(entry.idea);
+    const signature = ideaTextSignature(entry.idea?.text);
+    if (mode !== "fill" && signatures.has(signature)) return false;
+    if (mode === "strict" && (familyCounts.get(family) || 0) >= 2) return false;
+    picked.push(entry);
+    pickedIds.add(entry.id);
+    signatures.add(signature);
+    familyCounts.set(family, (familyCounts.get(family) || 0) + 1);
+    return true;
+  };
+
+  entries.forEach((entry) => tryPick(entry, "strict"));
+  entries.forEach((entry) => tryPick(entry, "relaxed"));
+  entries.forEach((entry) => tryPick(entry, "fill"));
+  return picked;
+}
+
+function ideaFamily(idea) {
+  const reason = String(idea?.reason || "").toLowerCase().trim();
+  if (reason) return reason;
+  return String(idea?.id || "").replace(/^adaptive-/, "").split("-").slice(0, 2).join("-");
+}
+
+function ideaTextSignature(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/list the failure mode for [^:]+:/g, "list the failure mode:")
+    .replace(/separate the inserted-core version of .+? from/g, "separate the inserted-core version from")
+    .replace(/attach .+? to a trace/g, "attach variable to a trace")
+    .replace(/ask how .+? creates/g, "ask how variable creates")
+    .replace(/turn .+? into/g, "turn variable into")
+    .replace(/find a paper where .+? is/g, "find a paper where variable is")
+    .replace(/make a fixture where .+? is/g, "make a fixture where variable is")
+    .replace(/give .+? a metric/g, "give variable a metric")
+    .replace(/only keep a .+? paper/g, "only keep a variable paper")
+    .replace(/demonstrate zero-power hold.+/g, "demonstrate zero-power hold")
+    .replace(/build a bench epm.+?record force vs gap.+/g, "build bench epm force gap rig")
+    .replace(/make a bench epm coupon.+?air-gap.+/g, "build bench epm force gap rig")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function scoreIdeaForProject(idea) {
