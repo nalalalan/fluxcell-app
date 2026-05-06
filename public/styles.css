@@ -551,6 +551,16 @@ h1 {
   font-weight: 720;
 }
 
+.item-title a {
+  color: var(--cyan);
+  text-decoration: none;
+}
+
+.item-title a:hover,
+.item-title a:focus-visible {
+  text-decoration: underline;
+}
+
 .file-card {
   display: grid;
   grid-template-rows: 190px auto;

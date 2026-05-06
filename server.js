@@ -626,6 +626,7 @@ function compactAiPayload(payload) {
     focus: compactString(payload.focus, 700),
     summary: compactString(payload.summary, 900),
     refreshCount: Number(payload.refreshCount || 0),
+    latestNote: compactString(payload.latestNote, 700),
     notes: compactArray(payload.notes, 24, (note) => compactString(note?.text, 500)),
     approvedIdeas: compactArray(payload.approvedIdeas, 36, (idea) => ({
       id: compactString(idea?.id, 120),
@@ -663,12 +664,12 @@ const aiFeedSchema = {
     properties: {
       summary: {
         type: "string",
-        maxLength: 900,
-        description: "A dense but readable project preference profile in 80 to 150 words.",
+        maxLength: 500,
+        description: "A calm project-state profile in 3 or 4 short bullet-like clauses.",
       },
       notes: {
         type: "array",
-        minItems: 10,
+        minItems: 12,
         maxItems: 18,
         items: {
           type: "object",
@@ -676,12 +677,12 @@ const aiFeedSchema = {
           required: ["id", "text", "reason", "keywords"],
           properties: {
             id: { type: "string" },
-            text: { type: "string", maxLength: 520 },
-            reason: { type: "string", maxLength: 120 },
+            text: { type: "string", maxLength: 180 },
+            reason: { type: "string", maxLength: 70 },
             keywords: {
               type: "array",
-              minItems: 3,
-              maxItems: 8,
+              minItems: 2,
+              maxItems: 5,
               items: { type: "string", maxLength: 60 },
             },
           },
@@ -700,15 +701,19 @@ const aiFeedSchema = {
 
 function aiSystemPrompt() {
   return [
-    "You are the private research feed engine for FluxCell.",
+    "You are the private practical helper feed for FluxCell.",
     "The project is 3D printed electropermanent magnet actuation integrated into laterally expanding Sarrus-linkage-based cells.",
     "The user is shaping taste by approving, rejecting, and skipping notes and papers.",
-    "Generate concise, technically useful suggested notes and rank existing paper candidates.",
-    "Prefer concrete experiment design, magnetic circuit variables, actuator-cell coupling, measurement plans, paper figures that change a build, credibility, and near-term one-cell proof.",
-    "Do not write motivational slogans. Do not be vague. Do not over-explain.",
-    "Each suggested note must be complete, not clipped, and useful as a saved research note.",
-    "Keep each suggested note to one or two complete sentences.",
-    "Suggested notes can be similar to approved notes, but should extend or sharpen the direction.",
+    "Treat latestNote as the main problem to help with right now.",
+    "Suggested notes are helpful tips, tiny explanations, shopping routes, search terms, source links, or next tiny actions.",
+    "If latestNote asks where to buy or what components to get, give supplier/site suggestions and search phrases.",
+    "If latestNote says the user does not know how something works, explain the beginner version before proposing a test.",
+    "Keep each suggested note to one short complete sentence, usually 8 to 22 words.",
+    "Use plain language. Avoid review-paper tone, dense engineering language, and long multi-clause cards.",
+    "Do not invent exact numbers, thresholds, temperatures, cycle counts, material grades, or dimensions unless they are explicitly present in the provided context.",
+    "Prefer words like small, short, low, simple, first, bench, and off-the-shelf over fake precision.",
+    "A good card should feel like: 'K&J Magnetics is a good first place to browse small NdFeB blocks: https://www.kjmagnetics.com'.",
+    "Another good card: 'An EPM is basically a permanent magnet plus a coil that flips part of the magnetic path.'",
     "Rejected content should be avoided, especially if it looks low credibility, low quality, or irrelevant.",
     "Return JSON only in the requested schema.",
   ].join(" ");
@@ -729,20 +734,20 @@ function responseOutputText(response) {
 function normalizeAiResult(result, candidatePaperIds) {
   const paperIdSet = new Set(candidatePaperIds);
   const notes = compactArray(result.notes, 18, (note, index) => {
-    const text = compactString(note?.text, 520);
+    const text = compactString(note?.text, 180);
     if (!text) return null;
     return {
       id: `ai-${compactString(note.id, 80) || crypto.createHash("sha1").update(text).digest("hex").slice(0, 12)}-${index}`,
       text,
-      reason: compactString(note?.reason, 120) || "AI suggestion",
-      keywords: compactArray(note?.keywords, 8, (keyword) => compactString(keyword, 60)),
+      reason: compactString(note?.reason, 70) || "tip",
+      keywords: compactArray(note?.keywords, 5, (keyword) => compactString(keyword, 60)),
       source: "ai",
     };
   });
   return {
     mode: "ai",
     model: openAiModel,
-    summary: compactString(result.summary, 900),
+    summary: compactString(result.summary, 500),
     notes,
     paperIds: compactArray(result.paperIds, 18, (id) => compactString(id, 120)).filter((id) => paperIdSet.has(id)),
     updatedAt: new Date().toISOString(),
