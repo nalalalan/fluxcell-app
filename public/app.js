@@ -2947,7 +2947,7 @@ function createTopbar() {
   const home = el("a", "ao-home");
   home.href = "https://aolabs.io/";
   home.setAttribute("aria-label", "AO Labs");
-  home.innerHTML = '<img src="https://aolabs.io/favicon.svg" alt="">';
+  home.innerHTML = '<img src="https://aolabs.io/favicon.svg?v=20260507-suite2" alt="">';
   right.append(status, home);
 
   topbar.append(brand, right);
@@ -3237,7 +3237,7 @@ const projectStageTipBank = {
     ["vision-reel", "Build for the reel: clean background, visible scale, one sentence explanation.", "showcase", ["video", "reel"], ["clean background", "visible scale"]],
     ["vision-cool-and-true", "The object needs both: cool enough to remember, measured enough to trust.", "north star", ["cool", "measure"], ["cool", "measured"]],
     ["vision-one-wow", "Choose one wow moment first; the rest of the prototype supports it.", "scope", ["wow", "prototype"], ["wow moment", "supports it"]],
-    ["vision-today-step", "Today’s Imagineering move is tiny: make the next physical interaction more visible.", "today", ["visible", "interaction"], ["physical interaction", "visible"]],
+    ["vision-today-step", "Todayâ€™s Imagineering move is tiny: make the next physical interaction more visible.", "today", ["visible", "interaction"], ["physical interaction", "visible"]],
   ],
   reset: [
     ["reset-clean-break", "Practice violin as a clean reset, then return for one tiny FluxCell action.", "reset", ["violin", "reset", "action"], ["violin", "clean reset", "tiny action"]],
@@ -4032,7 +4032,7 @@ function isOverTechnicalSuggestion(idea) {
   const text = String(idea?.text || "");
   if (idea?.source === "helper") return false;
   if (text.length > 190) return true;
-  return /[≥≤±]|(?:\b\d+(?:\.\d+)?\s*(?:ms|s|sec|seconds|°c|c\b|cycles|%|mm|awg|psi)\b)|\b\d+\s*consecutive\b/i.test(text);
+  return /[â‰¥â‰¤Â±]|(?:\b\d+(?:\.\d+)?\s*(?:ms|s|sec|seconds|Â°c|c\b|cycles|%|mm|awg|psi)\b)|\b\d+\s*consecutive\b/i.test(text);
 }
 
 function approvedIdeaItems() {
