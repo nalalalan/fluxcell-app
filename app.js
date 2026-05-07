@@ -2943,7 +2943,14 @@ function createTopbar() {
   status.append(createStatusPill(`${fileCount} files`, "stat"));
   status.append(createStatusPill(`${noteCount} notes`, "stat"));
 
-  topbar.append(brand, status);
+  const right = el("div", "topbar-right");
+  const home = el("a", "ao-home");
+  home.href = "https://aolabs.io/";
+  home.setAttribute("aria-label", "AO Labs");
+  home.innerHTML = '<img src="https://aolabs.io/favicon.svg" alt="">';
+  right.append(status, home);
+
+  topbar.append(brand, right);
   return topbar;
 }
 

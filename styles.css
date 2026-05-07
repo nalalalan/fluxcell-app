@@ -85,6 +85,31 @@ a {
   gap: 7px;
 }
 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ao-home {
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .045);
+}
+
+.ao-home img {
+  width: 21px;
+  height: 21px;
+  display: block;
+}
+
 .sync,
 .stat {
   display: inline-flex;
