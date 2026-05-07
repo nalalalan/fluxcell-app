@@ -188,6 +188,7 @@ function cleanAiFeed(record) {
     status: feed.status === "loading" ? "idle" : String(feed.status || "idle").slice(0, 40),
     mode: String(feed.mode || "").slice(0, 40),
     model: String(feed.model || "").slice(0, 80),
+    priority: String(feed.priority || "").replace(/\s+/g, " ").trim().slice(0, 260),
     summary: String(feed.summary || "").replace(/\s+/g, " ").trim().slice(0, 1200),
     ideas: Array.isArray(feed.ideas) ? feed.ideas.map((idea) => objectRecord(idea)).slice(0, 80) : [],
     paperIds: Array.isArray(feed.paperIds) ? feed.paperIds.map((id) => String(id || "")).filter(Boolean).slice(0, 120) : [],
@@ -624,6 +625,7 @@ function compactArray(items, maxItems, mapper) {
 function compactAiPayload(payload) {
   return {
     focus: compactString(payload.focus, 700),
+    priority: compactString(payload.priority, 260),
     summary: compactString(payload.summary, 900),
     stage: {
       id: compactString(payload.stage?.id, 80),
@@ -666,8 +668,13 @@ const aiFeedSchema = {
   schema: {
     type: "object",
     additionalProperties: false,
-    required: ["summary", "notes", "paperIds"],
+    required: ["priority", "summary", "notes", "paperIds"],
     properties: {
+      priority: {
+        type: "string",
+        maxLength: 220,
+        description: "The single most useful top-of-page thing to read now. Immediate project-advancing action or constraint.",
+      },
       summary: {
         type: "string",
         maxLength: 500,
@@ -711,6 +718,9 @@ function aiSystemPrompt() {
     "The project is 3D printed electropermanent magnet actuation integrated into laterally expanding Sarrus-linkage-based cells.",
     "The user is shaping taste by approving, rejecting, and skipping notes and papers.",
     "The client provides a current project stage. Treat that stage as the strongest context unless latestNote clearly changes it.",
+    "Return priority as the one thing that should sit at the very top of the page. If the user reads only that line, the project should move forward.",
+    "Priority must consider latestNote, approved items, rejected items, skipped items, current stage, and available project files. It should be more important than any individual note card.",
+    "Priority must be direct visible language: one immediate action or constraint, no second-person coaching, no motivational framing, no fake precision.",
     "Treat latestNote and open questions in notes as the main problems to help with right now.",
     "Suggested notes are helpful tips, tiny explanations, shopping routes, search terms, source links, or next tiny actions that directly answer those concerns.",
     "For each stage, give the fastest useful action for that exact stage: body reset means handle hunger/tiredness then return with one tiny move; rough mood means lower the bar to one reversible step; chaos capture means absorb the random note and route back to one concrete object; north star means turn ambition into a portfolio-visible artifact; focus reset means take a clean break and leave one re-entry action; prototype routine means protect writing momentum while making one tiny printer-adjacent iteration loop; orientation means reduce friction; sourcing means parts and suppliers; bench means crude EPM switching; measurement means one visible diagnostic; cell integration means transplant the working bench mechanism; printing means isolate material risk; papers means citations that support the stated claim.",
@@ -766,6 +776,7 @@ function normalizeAiResult(result, candidatePaperIds) {
   return {
     mode: "ai",
     model: openAiModel,
+    priority: compactString(result.priority, 220),
     summary: compactString(result.summary, 500),
     notes,
     paperIds: compactArray(result.paperIds, 18, (id) => compactString(id, 120)).filter((id) => paperIdSet.has(id)),

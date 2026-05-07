@@ -2570,6 +2570,7 @@ function normalizeAiFeed(record) {
     status: feed.status || "idle",
     mode: feed.mode || "",
     model: feed.model || "",
+    priority: String(feed.priority || ""),
     summary: String(feed.summary || ""),
     ideas: Array.isArray(feed.ideas) ? feed.ideas.map(normalizeAiIdea).filter(Boolean) : [],
     paperIds: Array.isArray(feed.paperIds) ? feed.paperIds.map((id) => String(id || "")).filter(Boolean) : [],
@@ -2917,6 +2918,7 @@ function render() {
 function createShell() {
   const shell = el("main", "app-shell");
   shell.append(createTopbar());
+  shell.append(createPriorityPanel());
   const focusLibrary = createFocusLibrary();
   if (focusLibrary) shell.append(focusLibrary);
   shell.append(createWorkspace());
@@ -2947,6 +2949,30 @@ function createTopbar() {
 
 function createStatusPill(text, className) {
   return el("span", className, text);
+}
+
+function createPriorityPanel() {
+  const section = el("section", "priority-panel");
+  const card = el("article", "priority-card");
+  const text = el("p", "priority-text");
+  appendLinkedText(text, currentPriorityLine());
+  card.append(el("p", "section-label priority-label", "Current"), text, el("p", "priority-meta", priorityMetaLine()));
+  section.append(card);
+  return section;
+}
+
+function currentPriorityLine() {
+  if (aiFeed.mode === "ai" && aiFeed.priority) {
+    return shortTipText(aiFeed.priority, 220);
+  }
+  return generateLocalPriorityLine();
+}
+
+function priorityMetaLine() {
+  const stage = projectStageProfile();
+  const source = aiFeed.mode === "ai" && aiFeed.priority ? "AI feed" : "local state";
+  const noteCount = userNotes(state.notes).length;
+  return `${stage.label} - ${noteCount} notes - ${source}`;
 }
 
 function syncLabel() {
@@ -3325,6 +3351,36 @@ function generateLocalProjectState() {
     return `Stage: ${stage.label}. ${stage.summary} Next: order parts or wind one coil.`;
   }
   return `Stage: ${stage.label}. ${stage.summary} ${preference} ${approvedSignal}`;
+}
+
+function generateLocalPriorityLine() {
+  const supportTopic = paperSupportTopic();
+  if (supportTopic) {
+    return `Write the citation sentence first, then keep only papers with a built device or apparatus figure for ${supportTopic}.`;
+  }
+
+  const stage = projectStageProfile();
+  const stagePriority = {
+    body: "Handle food, water, or sleep first; leave one small FluxCell re-entry action before stepping away.",
+    vent: "Name the blocker in five words, then make one reversible project move instead of expanding the plan.",
+    play: "Keep the random note, then route back to one object: magnet, coil, keeper, or fixture.",
+    vision: "Make the portfolio proof small: one clean clip of bench EPM hold, pulse, release, and zero-current state.",
+    reset: "Before the break, leave one re-entry line: FluxCell bench EPM, one coil, one keeper, one short pulse.",
+    routine: "One printer-adjacent loop: order starter EPM parts, sketch one tiny holder, queue one small overnight print, return to writing.",
+    start: "Start with the loose bench EPM: small NdFeB magnets, enamel wire, mild steel keeper, switch, short pulse.",
+    sourcing: "Buy only the starter pile: small NdFeB blocks, enamel wire, mild steel keeper, switch, pulseable power source.",
+    bench: "Assemble the loose magnetic loop before cell CAD: magnet, steel return path, keeper, coil, one short pulse.",
+    measurement: "Record one hold-release clip with the magnetic path, keeper state, pulse, and visible gap change.",
+    "cell-integration": "Keep the Sarrus cell out until the loose EPM switches cleanly; sketch keeper closure to lateral width.",
+    printing: "Print a holder or pocket only; use bought steel and magnets for the magnetic circuit now.",
+    papers: "Read one paper only until one apparatus figure changes the bench EPM parts list.",
+  };
+
+  const text = stagePriority[stage.id];
+  if (text) return text;
+  const idea = usefulIdeaItems()[0];
+  if (idea?.text) return shortTipText(idea.text, 220);
+  return "Prove the smallest physical loop first: loose EPM hold, pulse, release, then one saved clip.";
 }
 
 function projectStageProfile() {
@@ -4802,6 +4858,7 @@ function aiFeedPayload() {
   const stage = projectStageProfile();
   return {
     focus: `${focus.title} ${focus.current}`,
+    priority: generateLocalPriorityLine(),
     summary: generateLocalProjectState(),
     stage: {
       id: stage.id,
@@ -4868,6 +4925,7 @@ async function requestAiFeed({ force = false } = {}) {
       status: "idle",
       mode: response.mode,
       model: response.model,
+      priority: response.priority,
       summary: response.summary,
       ideas: response.notes,
       paperIds: response.paperIds,

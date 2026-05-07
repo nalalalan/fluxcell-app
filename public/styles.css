@@ -125,6 +125,7 @@ a {
 
 .capture-panel,
 .state-panel,
+.priority-panel,
 .notes-library,
 .focus-library,
 .library {
@@ -306,7 +307,7 @@ h1 {
 }
 
 .state-card {
-  min-height: 196px;
+  min-height: 0;
   border: 1px solid var(--line);
   border-radius: 7px;
   padding: 18px;
@@ -362,6 +363,46 @@ h1 {
   border-top: 1px solid var(--line);
   padding-top: 24px;
   margin-top: 18px;
+}
+
+.priority-panel {
+  padding: 12px 0 4px;
+}
+
+.priority-card {
+  border: 1px solid rgba(104, 214, 200, .32);
+  border-radius: 7px;
+  padding: 16px 18px 17px;
+  background:
+    linear-gradient(155deg, rgba(104, 214, 200, .09), rgba(255, 250, 240, .045) 54%, rgba(230, 179, 77, .055));
+  box-shadow: var(--shadow);
+}
+
+.priority-label {
+  margin-bottom: 10px;
+  color: var(--cyan);
+}
+
+.priority-text {
+  max-width: 980px;
+  color: var(--ink);
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.16;
+  overflow-wrap: anywhere;
+}
+
+.priority-text a {
+  color: var(--cyan);
+  text-decoration: none;
+}
+
+.priority-meta {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 790;
+  line-height: 1.25;
 }
 
 .focus-library {
@@ -838,6 +879,19 @@ svg {
 
   .workspace {
     padding-top: 28px;
+  }
+
+  .priority-panel {
+    padding-top: 10px;
+  }
+
+  .priority-card {
+    padding: 14px;
+  }
+
+  .priority-text {
+    font-size: 21px;
+    line-height: 1.18;
   }
 
   h1 {
