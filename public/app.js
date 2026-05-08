@@ -2969,7 +2969,7 @@ function createPriorityPanel() {
 }
 
 function currentPriorityLine() {
-  if (aiFeed.mode === "ai" && aiFeed.priority) {
+  if (aiFeedPriorityIsCurrent()) {
     return shortTipText(aiFeed.priority, 220);
   }
   return generateLocalPriorityLine();
@@ -2977,9 +2977,17 @@ function currentPriorityLine() {
 
 function priorityMetaLine() {
   const stage = projectStageProfile();
-  const source = aiFeed.mode === "ai" && aiFeed.priority ? "AI feed" : "local state";
+  const source = aiFeedPriorityIsCurrent() ? "AI feed" : "local state";
   const noteCount = userNotes(state.notes).length;
   return `${stage.label} - ${noteCount} notes - ${source}`;
+}
+
+function aiFeedPriorityIsCurrent() {
+  if (aiFeed.mode !== "ai" || !aiFeed.priority) return false;
+  const latest = userNotes(state.notes)[0];
+  const latestTime = noteTime(latest);
+  if (!latestTime) return true;
+  return feedbackTime(aiFeed.updatedAt) >= latestTime;
 }
 
 function syncLabel() {
@@ -3121,10 +3129,22 @@ const projectStageDefinitions = [
     patterns: [/hungry|hunger|food|eat|snack|ice cream|thirst|water|sleepy|exhausted|tired as fuck|tired af|need sleep/],
   },
   {
+    id: "activation",
+    label: "activation",
+    summary: "Make the entry point exciting enough to touch, not another obligation.",
+    patterns: [/adhd|autism|autistic|hard to start|start working|executive|excited|exciting|unique weird brain|compatible with my.*brain|weird brain|can't start|cant start/],
+  },
+  {
     id: "vent",
     label: "rough mood",
     summary: "Let the ugly thought exist, then lower the project to one reversible move.",
     patterns: [/fuck my life|fml|fuck|shit|lazy+|so lazy|hate this|everything sucks|miserable|bad mood|can't do this|cant do this|done with this/],
+  },
+  {
+    id: "delegate",
+    label: "delegation",
+    summary: "Move code, driver, and H-bridge uncertainty into Codex-owned artifacts.",
+    patterns: [/ai generation|codex|chatgpt|all code|handled by ai|h-?bridge|hbridge|don't wanna learn|dont wanna learn|no idea how to use|code handled/],
   },
   {
     id: "play",
@@ -3206,6 +3226,15 @@ const projectStageTipBank = {
     ["body-no-hero-mode", "No hero mode while hungry; make the next action smaller.", "scope", ["hungry", "small"], ["hungry", "smaller"]],
     ["body-return-object", "Return to one object on the bench, not the whole research plan.", "object", ["bench", "object"], ["one object", "research plan"]],
   ],
+  activation: [
+    ["activation-demo-first", "Make the next artifact a tiny visible demo, not an electronics lesson.", "activation", ["demo", "exciting", "electronics"], ["visible demo", "electronics lesson"]],
+    ["activation-codex-options", "Codex should generate three bench-demo options; Alan picks only the one that feels exciting.", "choice", ["codex", "options", "exciting"], ["three bench-demo options", "feels exciting"]],
+    ["activation-open-only", "Entry step: open one generated diagram; building remains optional until the object feels worth touching.", "entry", ["start", "diagram", "touch"], ["open one generated diagram", "worth touching"]],
+    ["activation-sensory-proof", "Use visible motion as the hook: pulse, click, hold, release, short clip.", "motion", ["visible", "motion", "clip"], ["pulse", "click", "hold", "release"]],
+    ["activation-no-chore-list", "No chore list; convert the next move into one artifact with a clear visual payoff.", "friction", ["friction", "artifact", "visual"], ["no chore list", "visual payoff"]],
+    ["activation-decision-offload", "Offload decisions to Codex: parts, wiring, code, and safety notes become one reviewable packet.", "delegation", ["codex", "parts", "code"], ["parts", "wiring", "code", "safety notes"]],
+    ["activation-reentry-object", "Leave one physical object visible: magnet pair, steel keeper, coil spool, or printed holder.", "re-entry", ["object", "visible", "bench"], ["physical object", "visible"]],
+  ],
   vent: [
     ["vent-lower-bar", "If the note is ugly, lower the bar: one visible proof, not project identity.", "reset", ["frustration", "proof"], ["ugly", "lower the bar"]],
     ["vent-reversible", "Do one reversible move: add a part link, write a test, or clean the bench.", "tiny action", ["frustration", "action"], ["reversible move", "part link", "test"]],
@@ -3216,6 +3245,15 @@ const projectStageTipBank = {
     ["vent-name-blocker", "Name the blocker in five words, then pick the smallest next move.", "blocker", ["blocker", "next"], ["five words", "smallest next move"]],
     ["vent-tools-away", "If frustration is high, step away from tools and leave a re-entry note.", "safety", ["frustration", "tools"], ["step away", "re-entry note"]],
     ["vent-proof-not-plan", "Make the next proof smaller instead of making the plan bigger.", "scope", ["proof", "plan"], ["proof smaller", "plan bigger"]],
+  ],
+  delegate: [
+    ["delegate-codex-owner", "Codex task: produce H-bridge wiring map, pulse script, parts list, and bench-test checklist.", "delegation", ["codex", "h-bridge", "code"], ["codex", "h-bridge", "pulse script"]],
+    ["delegate-no-study-plan", "No H-bridge study plan; require a generated artifact that can be checked before power touches hardware.", "boundary", ["h-bridge", "artifact", "safety"], ["no h-bridge study", "checked before power"]],
+    ["delegate-approval-point", "Alan approval point: one diagram, one command, one parts cart, one safe pulse test.", "approval", ["approval", "diagram", "parts"], ["one diagram", "one command", "parts cart"]],
+    ["delegate-ai-prompt", "Pasteable request: generate the simplest reversible H-bridge pulse plan for a bench EPM.", "prompt", ["ai", "h-bridge", "bench"], ["pasteable request", "pulse plan"]],
+    ["delegate-code-last", "Generated code comes after the wiring map and current limit are explicit.", "sequence", ["code", "wiring", "current"], ["code", "wiring map", "current limit"]],
+    ["delegate-one-button", "Target interface: one button for short pulse, one button for reverse pulse, no continuous coil power.", "interface", ["button", "pulse", "coil"], ["one button", "reverse pulse"]],
+    ["delegate-off-the-shelf-driver", "Prefer an off-the-shelf motor driver breakout over custom electronics for the first pulse.", "hardware", ["driver", "breakout", "electronics"], ["off-the-shelf", "motor driver breakout"]],
   ],
   play: [
     ["play-logged", "Chaotic thought logged; now name one concrete object: magnet, coil, keeper, or fixture.", "capture", ["random", "object"], ["chaotic thought", "concrete object"]],
@@ -3339,8 +3377,14 @@ function generateLocalProjectState() {
   if (stage.id === "body") {
     return `Stage: ${stage.label}. ${stage.summary} Next: handle the body cue, then one tiny move.`;
   }
+  if (stage.id === "activation") {
+    return `Stage: ${stage.label}. ${stage.summary} Next: make one visually exciting proof target and let Codex handle the setup.`;
+  }
   if (stage.id === "vent") {
     return `Stage: ${stage.label}. ${stage.summary} Next: one reversible step, not the whole project.`;
+  }
+  if (stage.id === "delegate") {
+    return `Stage: ${stage.label}. ${stage.summary} Next: Codex produces wiring, pulse code, parts, and a bench-test checklist.`;
   }
   if (stage.id === "play") {
     return `Stage: ${stage.label}. ${stage.summary} Next: log it, then touch one object.`;
@@ -3369,7 +3413,9 @@ function generateLocalPriorityLine() {
   const stage = projectStageProfile();
   const stagePriority = {
     body: "Handle food, water, or sleep first; leave one small FluxCell re-entry action before stepping away.",
+    activation: "Activation target: one visually exciting bench EPM demo that Codex designs end-to-end; Alan only picks the version worth touching.",
     vent: "Name the blocker in five words, then make one reversible project move instead of expanding the plan.",
+    delegate: "Codex owns H-bridge implementation: wiring map, pulse script, parts list, and one bench-test checklist; Alan only approves.",
     play: "Keep the random note, then route back to one object: magnet, coil, keeper, or fixture.",
     vision: "Make the portfolio proof small: one clean clip of bench EPM hold, pulse, release, and zero-current state.",
     reset: "Before the break, leave one re-entry line: FluxCell bench EPM, one coil, one keeper, one short pulse.",
@@ -3407,7 +3453,9 @@ function projectStageProfile() {
       + stagePatternScore(preference, stage.patterns, 1.5)
       + stagePatternScore(fileText, stage.patterns, 1);
     if (stage.id === "body" && /hungry|food|eat|snack|ice cream|tired as fuck|tired af|exhausted|sleepy/.test(latest)) score += 80;
+    if (stage.id === "activation" && /adhd|autism|autistic|hard to start|start working|executive|excited|exciting|unique weird brain|compatible with my.*brain|weird brain|can't start|cant start/.test(latest)) score += 140;
     if (stage.id === "vent" && /fuck my life|fml|fuck|shit|lazy+|hate this|everything sucks|miserable|can't do this|cant do this/.test(latest)) score += 80;
+    if (stage.id === "delegate" && /ai generation|codex|chatgpt|all code|handled by ai|h-?bridge|hbridge|don't wanna learn|dont wanna learn|no idea how to use|code handled/.test(latest)) score += 120;
     if (stage.id === "play" && /slay|bestie|penis|lol|lmao|lmfao|random|silly|goofy|chaos/.test(latest)) score += 80;
     if (stage.id === "vision" && /disney|imagineering|imagineer|hired|hire|portfolio|r&d|success|cool stuff|dream job|magical/.test(latest)) score += 85;
     if (stage.id === "reset" && /violin|practice|music|rather|avoid|distract|not feeling|don't wanna|dont wanna|burnout|reset/.test(latest)) score += 70;
@@ -3598,7 +3646,7 @@ function contextHelpIdeaCandidates() {
 
   (projectStageTipBank[stage.id] || projectStageTipBank.start).forEach(([id, text, reason, keywords, signals]) => {
     if (stage.id === "start") addStart(id, text, reason, keywords, signals);
-    else add(id, text, reason, keywords, signals, { keepFresh: ["papers", "sourcing", "reset", "routine", "body", "vent", "play", "vision"].includes(stage.id) });
+    else add(id, text, reason, keywords, signals, { keepFresh: ["papers", "sourcing", "reset", "routine", "body", "activation", "vent", "delegate", "play", "vision"].includes(stage.id) });
   });
 
   if (stage.id !== "start" && !routineMode && startMode) {
@@ -4008,7 +4056,9 @@ function stageRelevantIdea(stageId, idea) {
   if (stageId === "start") return startModeTipText(text);
   if (stageId === "sourcing") return /buy|order|source|supplier|component|part|magnet|wire|steel|switch|power|shipping|mcmaster|mouser|digikey|digi-key|amazon/.test(text);
   if (stageId === "body") return /eat|food|snack|water|hungry|ice cream|tired|sleep|depleted|low-energy|low energy|parts cart|one move|body/.test(text);
+  if (stageId === "activation") return /activation|exciting|demo|visible|motion|hook|diagram|touch|codex|option|choice|artifact|payoff|friction|adhd|autism|re-entry|reentry/.test(text);
   if (stageId === "vent") return /ugly|mood|frustration|reversible|blocker|tomorrow|honest note|prototype step|bad mood|proof smaller|step away/.test(text);
+  if (stageId === "delegate") return /codex|chatgpt|ai|h-bridge|hbridge|code|wiring|pulse|script|parts list|checklist|approval|driver|breakout|current limit|artifact/.test(text);
   if (stageId === "play") return /chaotic|goofy|random|nonsense|weird note|human context|tile title|physical touch|bench|object|smile|noise/.test(text);
   if (stageId === "vision") return /disney|imagineering|portfolio|reel|demo|magical|delight|delightful|artifact|video|non-expert|showcase|wow|career/.test(text);
   if (stageId === "reset") return /reset|break|return|re-entry|reentry|next action|one note|ordered part|pulse test|bench ready|smallest visible proof|violin|five minutes|parts cart|switching contexts/.test(text);
