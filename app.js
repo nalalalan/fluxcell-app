@@ -3086,11 +3086,47 @@ function createCodexOutputSection() {
 function codexOutputItems() {
   return [
     {
-      title: "H-bridge wiring map, pulse script, parts list, bench-test checklist",
-      detail: "Generated Markdown bundle.",
+      title: "H-bridge wiring, pulse code, parts, bench test",
+      detail: generatedWorkStateDetail(),
       href: `${cloudStateBase() || ""}/api/generated/hbridge-bundle.md`,
     },
   ];
+}
+
+function generatedWorkStateDetail() {
+  const signals = generatedWorkStateSignals();
+  const stateText = signals.length ? joinNatural(signals) : "one concrete FluxCell artifact before more decisions";
+  return `Built for current state: ${stateText}. ${generatedWorkOutcomeText()}`;
+}
+
+function generatedWorkStateSignals() {
+  const text = `${recentConcernText()} ${generateProjectState()} ${currentPriorityLine()}`.toLowerCase();
+  const signals = [];
+  const add = (signal, pattern) => {
+    if (signals.length >= 4 || signals.includes(signal)) return;
+    if (pattern.test(text)) signals.push(signal);
+  };
+  add("hard-to-start energy", /adhd|autis|hard to start|start working|executive|excited|weird brain|compatible with.*brain/);
+  add("low energy", /tired|lazy|no idea|don't wanna|dont wanna|overwhelm|confus|lost|hate this|stuck/);
+  add("H-bridge/code uncertainty", /h-?bridge|hbridge|wiring|driver|pulse script|arduino|code|codex|chatgpt|ai generation/);
+  add("parts and sourcing uncertainty", /parts|buy|order|digikey|mouser|supplier|off[- ]?the[- ]?shelf/);
+  add("one bench artifact", /bench|test|checklist|artifact|coupon|epm|keeper|coil/);
+  return signals.slice(0, 3);
+}
+
+function generatedWorkOutcomeText() {
+  const stage = projectStageProfile();
+  const outcome = {
+    delegate: "Codex turns that into wiring, pulse code, parts, and one bench test.",
+    activation: "Codex turns that into one bench-ready artifact.",
+    body: "Codex keeps the FluxCell move small while energy is the constraint.",
+    vent: "Codex turns frustration into one reversible artifact instead of more decisions.",
+    start: "Codex turns the vague starter step into one concrete bench file.",
+    sourcing: "Codex narrows buying to the parts needed for one safe pulse.",
+    bench: "Codex keeps the next move on the bench before cell CAD expands.",
+    routine: "Codex keeps it printer-adjacent and small enough to re-enter.",
+  };
+  return outcome[stage.id] || "Codex turns that into one artifact that can move FluxCell forward.";
 }
 
 function createCodexOutputCard(item) {
