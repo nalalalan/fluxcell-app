@@ -150,7 +150,6 @@ a {
 
 .capture-panel,
 .state-panel,
-.priority-panel,
 .notes-library,
 .focus-library,
 .library {
@@ -390,60 +389,20 @@ h1 {
   margin-top: 18px;
 }
 
-.priority-panel {
-  padding: 12px 0 4px;
-}
-
-.priority-card {
-  border: 1px solid rgba(104, 214, 200, .32);
-  border-radius: 7px;
-  padding: 16px 18px 17px;
-  background:
-    linear-gradient(155deg, rgba(104, 214, 200, .09), rgba(255, 250, 240, .045) 54%, rgba(230, 179, 77, .055));
-  box-shadow: var(--shadow);
-}
-
-.priority-label {
-  margin-bottom: 10px;
-  color: var(--cyan);
-}
-
-.priority-text {
-  max-width: 980px;
-  color: var(--ink);
-  font-size: 26px;
-  font-weight: 900;
-  line-height: 1.16;
-  overflow-wrap: anywhere;
-}
-
-.priority-text a {
-  color: var(--cyan);
-  text-decoration: none;
-}
-
-.priority-meta {
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 790;
-  line-height: 1.25;
-}
-
 .codex-output {
-  margin-top: 10px;
+  margin-top: 16px;
 }
 
 .codex-output-grid {
   display: grid;
-  grid-template-columns: 1.15fr 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
 }
 
 .codex-output-card {
   position: relative;
   min-width: 0;
-  min-height: 128px;
+  min-height: 112px;
   border: 1px solid rgba(104, 214, 200, .22);
   border-radius: 7px;
   background: rgba(255, 250, 240, .04);
@@ -456,10 +415,6 @@ h1 {
 
 .codex-output-card:not(:has(.output-link)) .item-body {
   padding-right: 16px;
-}
-
-.output-label {
-  color: var(--cyan);
 }
 
 .output-link {
@@ -499,7 +454,7 @@ h1 {
   border-top: 0;
   border-bottom: 1px solid var(--line);
   margin-top: 0;
-  padding-top: 18px;
+  padding-top: 16px;
   padding-bottom: 18px;
 }
 
@@ -966,19 +921,6 @@ svg {
 
   .workspace {
     padding-top: 28px;
-  }
-
-  .priority-panel {
-    padding-top: 10px;
-  }
-
-  .priority-card {
-    padding: 14px;
-  }
-
-  .priority-text {
-    font-size: 21px;
-    line-height: 1.18;
   }
 
   h1 {
