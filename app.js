@@ -503,7 +503,7 @@ const dynamicIdeaTemplates = [
   },
   {
     id: "approved-thread",
-    text: "Use the most recent approved items as the next search query, not the oldest idea bank.",
+    text: "Use the most recent kept items as the next search query, not the oldest idea bank.",
     reason: "dynamic direction",
     keywords: ["approved", "recent", "search", "query", "suggestion", "dynamic"],
   },
@@ -2570,8 +2570,8 @@ function normalizeAiFeed(record) {
     status: feed.status || "idle",
     mode: feed.mode || "",
     model: feed.model || "",
-    priority: String(feed.priority || ""),
-    summary: String(feed.summary || ""),
+    priority: shortTipText(privateSurfaceText(feed.priority), 220),
+    summary: shortTipText(privateSurfaceText(feed.summary), 500),
     ideas: Array.isArray(feed.ideas) ? feed.ideas.map(normalizeAiIdea).filter(Boolean) : [],
     paperIds: Array.isArray(feed.paperIds) ? feed.paperIds.map((id) => String(id || "")).filter(Boolean) : [],
     updatedAt: feed.updatedAt || "",
@@ -2581,12 +2581,12 @@ function normalizeAiFeed(record) {
 
 function normalizeAiIdea(idea) {
   if (!idea || typeof idea !== "object") return null;
-  const text = shortTipText(idea.text);
+  const text = shortTipText(privateSurfaceText(idea.text));
   if (!text) return null;
   return {
     id: String(idea.id || `ai-${hashId(text)}`).replace(/\s+/g, "-").slice(0, 120),
     text,
-    reason: String(idea.reason || "tip").replace(/\s+/g, " ").trim().slice(0, 60),
+    reason: shortTipText(privateSurfaceText(idea.reason || "tip"), 60),
     keywords: Array.isArray(idea.keywords) ? idea.keywords.map((keyword) => String(keyword || "").trim()).filter(Boolean).slice(0, 5) : [],
     source: "ai",
   };
@@ -2598,6 +2598,72 @@ function shortTipText(text, max = 180) {
   const slice = clean.slice(0, max);
   const breakAt = Math.max(slice.lastIndexOf("."), slice.lastIndexOf(";"), slice.lastIndexOf(","));
   return (breakAt > 70 ? slice.slice(0, breakAt) : slice.replace(/\s+\S*$/, "")).trim();
+}
+
+function privateSurfaceText(text) {
+  let clean = String(text || "").replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  const rules = [
+    [/\bAlan's approval point\b/gi, "Decision point"],
+    [/\bAlan approval point\b/gi, "Decision point"],
+    [/\bsingle generated deliverable for Alan to approve\b/gi, "single thing for me to use"],
+    [/\bsingle deliverable for Alan to approve\b/gi, "single thing for me to use"],
+    [/\bfor Alan to inspect and approve\b/gi, "for me to check"],
+    [/\bfor Alan to review and accept\b/gi, "for me to check"],
+    [/\bfor Alan to approve\b/gi, "for me to use"],
+    [/\bfor Alan to inspect\b/gi, "for me to check"],
+    [/\bfor Alan\b/gi, "for me"],
+    [/\bAlan will only need to review and accept\b/gi, "I only need to check"],
+    [/\bAlan will only need to review\b/gi, "I only need to check"],
+    [/\bAlan only needs to review and accept\b/gi, "I only need to check"],
+    [/\bAlan only needs to review\b/gi, "I only need to check"],
+    [/\bAlan only approves? the next artifact\b/gi, "I only pick the next artifact"],
+    [/\bAlan only approves?\b/gi, "I only pick"],
+    [/\bAlan picks only\b/gi, "I only pick"],
+    [/\bAlan picks\b/gi, "I pick"],
+    [/\bfor the user\b/gi, "for me"],
+    [/\bthe user's\b/gi, "my"],
+    [/\bthe user only needs to\b/gi, "I only need to"],
+    [/\bthe user only has to\b/gi, "I only need to"],
+    [/\bthe user needs to\b/gi, "I need to"],
+    [/\bthe user is\b/gi, "I am"],
+    [/\bthe user can\b/gi, "I can"],
+    [/\bthe user should\b/gi, "I should"],
+    [/\bthe user\b/gi, "I"],
+    [/\bAlan's\b/g, "my"],
+    [/\bAlan\b/g, "I"],
+  ];
+  rules.forEach(([pattern, replacement]) => {
+    clean = clean.replace(pattern, replacement);
+  });
+  return clean
+    .replace(/\bI approval point\b/gi, "Decision point")
+    .replace(/\bI only approves\b/gi, "I only pick")
+    .replace(/\bI only approve\b/gi, "I only pick")
+    .replace(/\bI only need to approve\b/gi, "I only need to check")
+    .replace(/\bone approval point\b/gi, "one decision point")
+    .replace(/\bapproval point\b/gi, "decision point")
+    .replace(/\bapproval\b/gi, "decision")
+    .replace(/\bto approve\b/gi, "to pick")
+    .replace(/\bapproves\b/gi, "picks")
+    .replace(/\bapprove\b/gi, "pick")
+    .replace(/\bapproved\b/gi, "kept")
+    .replace(/\bapproving\b/gi, "keeping")
+    .replace(/\bfor I\b/gi, "for me")
+    .replace(/\bI to\b/gi, "me to")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function prioritySurfaceText(text) {
+  let clean = privateSurfaceText(text);
+  clean = clean
+    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?(?:H-bridge\s+)?(?:artifact set|artifacts|artifact|bundle|H-bridge bundle)\s+now:?\s*/i, "My next usable H-bridge bundle: ")
+    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?/i, "My next usable H-bridge bundle: ")
+    .replace(/^Pick\s+(?:the\s+|one\s+)?(?:Codex-owned|Codex)\s+deliverable:?\s*/i, "My next usable H-bridge bundle: ")
+    .replace(/^Produce a complete H-bridge\s+/i, "My next usable H-bridge bundle: ");
+  if (clean) clean = clean.charAt(0).toUpperCase() + clean.slice(1);
+  return shortTipText(clean, 220);
 }
 
 function hashId(text) {
@@ -2970,9 +3036,9 @@ function createPriorityPanel() {
 
 function currentPriorityLine() {
   if (aiFeedPriorityIsCurrent()) {
-    return shortTipText(aiFeed.priority, 220);
+    return prioritySurfaceText(aiFeed.priority);
   }
-  return generateLocalPriorityLine();
+  return prioritySurfaceText(generateLocalPriorityLine());
 }
 
 function priorityMetaLine() {
@@ -3067,9 +3133,9 @@ function createProjectStatePanel() {
 
 function generateProjectState() {
   if (aiFeed.summary && aiFeed.mode === "ai") {
-    return aiFeed.summary;
+    return privateSurfaceText(aiFeed.summary);
   }
-  return generateLocalProjectState();
+  return privateSurfaceText(generateLocalProjectState());
 }
 
 function projectStateBullets() {
@@ -3095,7 +3161,7 @@ function summaryToBullets(text) {
   parts.forEach((part) => {
     const bullet = trimBullet(part);
     const key = bullet.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-    if (/^(Keep feeding|Approved bank|Generated from)/i.test(bullet)) return;
+    if (/^(Keep feeding|Kept bank|Approved bank|Generated from)/i.test(bullet)) return;
     if (!bullet || seen.has(key)) return;
     seen.add(key);
     bullets.push(bullet);
@@ -3228,7 +3294,7 @@ const projectStageTipBank = {
   ],
   activation: [
     ["activation-demo-first", "Make the next artifact a tiny visible demo, not an electronics lesson.", "activation", ["demo", "exciting", "electronics"], ["visible demo", "electronics lesson"]],
-    ["activation-codex-options", "Codex should generate three bench-demo options; Alan picks only the one that feels exciting.", "choice", ["codex", "options", "exciting"], ["three bench-demo options", "feels exciting"]],
+    ["activation-codex-options", "Codex should generate three bench-demo options; I only keep the one that feels exciting.", "choice", ["codex", "options", "exciting"], ["three bench-demo options", "feels exciting"]],
     ["activation-open-only", "Entry step: open one generated diagram; building remains optional until the object feels worth touching.", "entry", ["start", "diagram", "touch"], ["open one generated diagram", "worth touching"]],
     ["activation-sensory-proof", "Use visible motion as the hook: pulse, click, hold, release, short clip.", "motion", ["visible", "motion", "clip"], ["pulse", "click", "hold", "release"]],
     ["activation-no-chore-list", "No chore list; convert the next move into one artifact with a clear visual payoff.", "friction", ["friction", "artifact", "visual"], ["no chore list", "visual payoff"]],
@@ -3249,7 +3315,7 @@ const projectStageTipBank = {
   delegate: [
     ["delegate-codex-owner", "Codex task: produce H-bridge wiring map, pulse script, parts list, and bench-test checklist.", "delegation", ["codex", "h-bridge", "code"], ["codex", "h-bridge", "pulse script"]],
     ["delegate-no-study-plan", "No H-bridge study plan; require a generated artifact that can be checked before power touches hardware.", "boundary", ["h-bridge", "artifact", "safety"], ["no h-bridge study", "checked before power"]],
-    ["delegate-approval-point", "Alan approval point: one diagram, one command, one parts cart, one safe pulse test.", "approval", ["approval", "diagram", "parts"], ["one diagram", "one command", "parts cart"]],
+    ["delegate-approval-point", "Decision point: one diagram, one command, one parts cart, one safe pulse test.", "decision", ["decision", "diagram", "parts"], ["one diagram", "one command", "parts cart"]],
     ["delegate-ai-prompt", "Pasteable request: generate the simplest reversible H-bridge pulse plan for a bench EPM.", "prompt", ["ai", "h-bridge", "bench"], ["pasteable request", "pulse plan"]],
     ["delegate-code-last", "Generated code comes after the wiring map and current limit are explicit.", "sequence", ["code", "wiring", "current"], ["code", "wiring map", "current limit"]],
     ["delegate-one-button", "Target interface: one button for short pulse, one button for reverse pulse, no continuous coil power.", "interface", ["button", "pulse", "coil"], ["one button", "reverse pulse"]],
@@ -3369,7 +3435,7 @@ function generateLocalProjectState() {
   const summaryTerms = terms.filter((term) => !["cell", "sarrus", "linkage", "paper"].includes(term)).slice(0, 6);
   const signalText = summaryTerms.length ? joinNatural(summaryTerms) : topicText;
   const preference = signalText ? `Signals: ${signalText}.` : "";
-  const approvedSignal = recentIdeas.length ? `Recent approvals: ${joinNatural([...new Set(recentIdeas)])}.` : "";
+  const approvedSignal = recentIdeas.length ? `Recent kept signals: ${joinNatural([...new Set(recentIdeas)])}.` : "";
   const supportTopic = paperSupportTopic();
   if (supportTopic) {
     return `Stage: paper support. Find papers for "${supportTopic}". Prefer papers with built devices, apparatus photos, and measurements.`;
@@ -3413,9 +3479,9 @@ function generateLocalPriorityLine() {
   const stage = projectStageProfile();
   const stagePriority = {
     body: "Handle food, water, or sleep first; leave one small FluxCell re-entry action before stepping away.",
-    activation: "Activation target: one visually exciting bench EPM demo that Codex designs end-to-end; Alan only picks the version worth touching.",
+    activation: "Activation target: one visually exciting bench EPM demo that Codex designs end-to-end; I only keep the version worth touching.",
     vent: "Name the blocker in five words, then make one reversible project move instead of expanding the plan.",
-    delegate: "Codex owns H-bridge implementation: wiring map, pulse script, parts list, and one bench-test checklist; Alan only approves.",
+    delegate: "My H-bridge burden moves to Codex: wiring map, pulse script, parts list, and one bench-test checklist; I only pick what feels usable.",
     play: "Keep the random note, then route back to one object: magnet, coil, keeper, or fixture.",
     vision: "Make the portfolio proof small: one clean clip of bench EPM hold, pulse, release, and zero-current state.",
     reset: "Before the break, leave one re-entry line: FluxCell bench EPM, one coil, one keeper, one short pulse.",
@@ -4206,7 +4272,7 @@ function createApprovedBank(approvedIdeas, approvedPapers) {
   const total = approvedIdeas.length + approvedPapers.length;
   const drawer = document.createElement("details");
   drawer.className = "archive-drawer approved-drawer";
-  drawer.append(el("summary", "archive-summary", `Approved bank (${total})`));
+  drawer.append(el("summary", "archive-summary", `Kept bank (${total})`));
 
   const body = el("div", "approved-bank-body archive-grid");
   if (approvedIdeas.length) {
@@ -4296,7 +4362,7 @@ function focusPaperItems() {
 function approvedPaperItems() {
   return state.files
     .filter((file) => isVisibleLibraryFile(file) && isPaperFile(file) && paperFeedbackValue(file.id) === "useful")
-    .map((file) => ({ ...paperItem(file), focusReason: "Approved", approvedAt: paperFeedbackUpdatedAt(file.id) }))
+    .map((file) => ({ ...paperItem(file), focusReason: "Kept", approvedAt: paperFeedbackUpdatedAt(file.id) }))
     .sort((a, b) => feedbackTime(b.approvedAt) - feedbackTime(a.approvedAt) || new Date(b.createdAt) - new Date(a.createdAt));
 }
 
@@ -4406,9 +4472,9 @@ function createIdeaCard(idea) {
   const card = el("article", `item-card idea-card${feedback === "useful" ? " paper-kept" : ""}`);
   const body = el("div", "item-body");
   const title = el("p", "item-title");
-  appendLinkedText(title, idea.text);
+  appendLinkedText(title, privateSurfaceText(idea.text));
   body.append(title);
-  if (feedback === "useful" && idea.reason) body.append(el("p", "item-meta", idea.reason));
+  if (feedback === "useful" && idea.reason) body.append(el("p", "item-meta", privateSurfaceText(idea.reason)));
   const actionItems = [
     { action: "idea-feedback", id: idea.id, value: "useful", title: "Useful", iconName: "check", className: "feedback-useful", active: feedback === "useful" },
   ];
@@ -4928,14 +4994,14 @@ function aiFeedPayload() {
     notes: notes.slice(0, 32).map((note) => ({ text: note.text, createdAt: note.createdAt })),
     approvedIdeas: approvedIdeas.map((idea) => ({
       id: idea.id,
-      text: idea.text,
-      reason: idea.reason,
+      text: privateSurfaceText(idea.text),
+      reason: privateSurfaceText(idea.reason),
       approvedAt: idea.approvedAt,
     })),
     approvedPapers: approvedPapers.map((paper) => ({
       id: paper.id,
       title: paperDisplayTitle(paper),
-      reason: paper.focusReason || "",
+      reason: privateSurfaceText(paper.focusReason || ""),
       approvedAt: paper.approvedAt,
     })),
     rejectedIdeas: Object.entries(ideaFeedback)
