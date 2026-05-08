@@ -3087,16 +3087,47 @@ function codexOutputItems() {
   return [
     {
       title: "H-bridge wiring, pulse code, parts, bench test",
-      detail: generatedWorkStateDetail(),
+      rows: generatedWorkStateRows(),
       href: `${cloudStateBase() || ""}/api/generated/hbridge-bundle.md`,
     },
+  ];
+}
+
+function generatedWorkStateRows() {
+  return [
+    ["State right now", generatedWorkStateDetail()],
+    ["Need right now", generatedWorkNeedText()],
+    ["Trying to achieve", generatedWorkTargetText()],
+    ["Why this helps", generatedWorkHelpText()],
   ];
 }
 
 function generatedWorkStateDetail() {
   const signals = generatedWorkStateSignals();
   const stateText = signals.length ? joinNatural(signals) : "one concrete FluxCell artifact before more decisions";
-  return `Built for current state: ${stateText}. ${generatedWorkOutcomeText()}`;
+  return `${generatedWorkStageText()}: ${stateText}.`;
+}
+
+function generatedWorkStageText() {
+  const stage = projectStageProfile();
+  const names = {
+    activation: "task initiation",
+    delegate: "Codex delegation",
+    body: "low-energy reset",
+    vent: "friction spike",
+    play: "loose idea capture",
+    vision: "portfolio proof",
+    reset: "re-entry",
+    routine: "printer-adjacent loop",
+    start: "starter step",
+    sourcing: "parts decision",
+    bench: "bench build",
+    measurement: "bench measurement",
+    "cell-integration": "cell integration",
+    printing: "print support",
+    papers: "paper support",
+  };
+  return names[stage.id] || stage.label || "current stage";
 }
 
 function generatedWorkStateSignals() {
@@ -3129,6 +3160,32 @@ function generatedWorkOutcomeText() {
   return outcome[stage.id] || "Codex turns that into one artifact that can move FluxCell forward.";
 }
 
+function generatedWorkNeedText() {
+  const stage = projectStageProfile();
+  const need = {
+    activation: "One bench-ready artifact; no broad plan.",
+    delegate: "Codex-owned wiring, code, parts, and bench checklist.",
+    body: "One small FluxCell move that can wait until energy returns.",
+    vent: "One reversible step that does not expand the project.",
+    start: "A concrete starter file before more research.",
+    sourcing: "A small parts set for one safe pulse.",
+    bench: "A loose EPM test before cell CAD.",
+    routine: "A printer-adjacent step small enough to re-enter.",
+  };
+  return need[stage.id] || "One concrete artifact before more decisions.";
+}
+
+function generatedWorkTargetText() {
+  return "First safe EPM pulse loop: driver wiring, short pulse, reverse pulse, hold/release check.";
+}
+
+function generatedWorkHelpText() {
+  const signals = generatedWorkStateSignals().join(" ");
+  if (/h-bridge|code/i.test(signals)) return "Turns unclear H-bridge/code decisions into one openable bench file.";
+  if (/parts|sourcing/i.test(signals)) return "Turns buying uncertainty into one compact parts path.";
+  return generatedWorkOutcomeText();
+}
+
 function createCodexOutputCard(item) {
   const card = el(item.href ? "a" : "article", "codex-output-card");
   if (item.href) {
@@ -3138,7 +3195,18 @@ function createCodexOutputCard(item) {
     card.setAttribute("aria-label", `Open ${item.title}`);
   }
   const body = el("div", "item-body");
-  body.append(el("p", "item-title", item.title), el("p", "item-meta", item.detail));
+  body.append(el("p", "item-title", item.title));
+  if (item.rows?.length) {
+    const rows = el("div", "state-bridge-rows");
+    item.rows.forEach(([label, value]) => {
+      const row = el("div", "state-bridge-row");
+      row.append(el("span", "state-bridge-label", label), el("span", "state-bridge-value", value));
+      rows.append(row);
+    });
+    body.append(rows);
+  } else if (item.detail) {
+    body.append(el("p", "item-meta", item.detail));
+  }
   card.append(body);
   return card;
 }

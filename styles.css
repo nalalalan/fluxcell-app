@@ -427,6 +427,33 @@ a.codex-output-card:focus-visible {
   padding: 16px;
 }
 
+.state-bridge-rows {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.state-bridge-row {
+  display: grid;
+  grid-template-columns: minmax(118px, .28fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+}
+
+.state-bridge-label {
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 820;
+  line-height: 1.25;
+}
+
+.state-bridge-value {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 720;
+  line-height: 1.35;
+}
+
 .focus-library {
   padding-bottom: 8px;
 }
@@ -902,6 +929,15 @@ svg {
 
   .workspace {
     padding-top: 28px;
+  }
+
+  .state-bridge-rows {
+    gap: 10px;
+  }
+
+  .state-bridge-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
   }
 
   h1 {
