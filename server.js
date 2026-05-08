@@ -284,41 +284,45 @@ function privateSurfaceText(value) {
   const rules = [
     [/\bAlan's approval point\b/gi, "Decision point"],
     [/\bAlan approval point\b/gi, "Decision point"],
-    [/\bsingle generated deliverable for Alan to approve\b/gi, "single thing for me to use"],
-    [/\bsingle deliverable for Alan to approve\b/gi, "single thing for me to use"],
-    [/\bfor Alan to inspect and approve\b/gi, "for me to check"],
-    [/\bfor Alan to review and accept\b/gi, "for me to check"],
-    [/\bfor Alan to approve\b/gi, "for me to use"],
-    [/\bfor Alan to inspect\b/gi, "for me to check"],
-    [/\bfor Alan\b/gi, "for me"],
-    [/\bAlan will only need to review and accept\b/gi, "I only need to check"],
-    [/\bAlan will only need to review\b/gi, "I only need to check"],
-    [/\bAlan only needs to review and accept\b/gi, "I only need to check"],
-    [/\bAlan only needs to review\b/gi, "I only need to check"],
-    [/\bAlan only approves? the next artifact\b/gi, "I only pick the next artifact"],
-    [/\bAlan only approves?\b/gi, "I only pick"],
-    [/\bAlan picks only\b/gi, "I only pick"],
-    [/\bAlan picks\b/gi, "I pick"],
-    [/\bfor the user\b/gi, "for me"],
-    [/\bthe user's\b/gi, "my"],
-    [/\bthe user only needs to\b/gi, "I only need to"],
-    [/\bthe user only has to\b/gi, "I only need to"],
-    [/\bthe user needs to\b/gi, "I need to"],
-    [/\bthe user is\b/gi, "I am"],
-    [/\bthe user can\b/gi, "I can"],
-    [/\bthe user should\b/gi, "I should"],
-    [/\bthe user\b/gi, "I"],
-    [/\bAlan's\b/g, "my"],
-    [/\bAlan\b/g, "I"],
+    [/\bsingle generated deliverable for Alan to approve\b/gi, "single generated artifact"],
+    [/\bsingle deliverable for Alan to approve\b/gi, "single generated artifact"],
+    [/\bfor Alan to inspect and approve\b/gi, "for FluxCell"],
+    [/\bfor Alan to review and accept\b/gi, "for FluxCell"],
+    [/\bfor Alan to approve\b/gi, "for FluxCell"],
+    [/\bfor Alan to inspect\b/gi, "for FluxCell"],
+    [/\bfor Alan\b/gi, "for FluxCell"],
+    [/\bAlan will only need to review and accept\b/gi, "Codex leaves one check"],
+    [/\bAlan will only need to review\b/gi, "Codex leaves one check"],
+    [/\bAlan only needs to review and accept\b/gi, "Codex leaves one check"],
+    [/\bAlan only needs to review\b/gi, "Codex leaves one check"],
+    [/\bAlan only approves? the next artifact\b/gi, "Codex leaves one decision"],
+    [/\bAlan only approves?\b/gi, "Codex leaves one decision"],
+    [/\bAlan picks only\b/gi, "Codex narrows"],
+    [/\bAlan picks\b/gi, "Codex narrows"],
+    [/\bfor the user\b/gi, "for FluxCell"],
+    [/\bthe user's\b/gi, "FluxCell"],
+    [/\bthe user only needs to\b/gi, "Codex leaves"],
+    [/\bthe user only has to\b/gi, "Codex leaves"],
+    [/\bthe user needs to\b/gi, "Codex needs to"],
+    [/\bthe user is\b/gi, "FluxCell is"],
+    [/\bthe user can\b/gi, "FluxCell can"],
+    [/\bthe user should\b/gi, "Codex should"],
+    [/\bthe user\b/gi, "FluxCell"],
+    [/\bAlan's\b/g, "FluxCell"],
+    [/\bAlan\b/g, "FluxCell"],
   ];
   rules.forEach(([pattern, replacement]) => {
     clean = clean.replace(pattern, replacement);
   });
   return clean
     .replace(/\bI approval point\b/gi, "Decision point")
-    .replace(/\bI only approves\b/gi, "I only pick")
-    .replace(/\bI only approve\b/gi, "I only pick")
-    .replace(/\bI only need to approve\b/gi, "I only need to check")
+    .replace(/\bI only approves\b/gi, "Codex leaves one decision")
+    .replace(/\bI only approve\b/gi, "Codex leaves one decision")
+    .replace(/\bI only need to approve\b/gi, "Codex leaves one check")
+    .replace(/\bI only need to check\b/gi, "Codex leaves one check")
+    .replace(/\bI only need to\b/gi, "Codex leaves")
+    .replace(/\bI only pick\b/gi, "Codex leaves one decision")
+    .replace(/\bI pick\b/gi, "Codex narrows")
     .replace(/\bone approval point\b/gi, "one decision point")
     .replace(/\bapproval point\b/gi, "decision point")
     .replace(/\bapproval\b/gi, "decision")
@@ -327,8 +331,20 @@ function privateSurfaceText(value) {
     .replace(/\bapprove\b/gi, "pick")
     .replace(/\bapproved\b/gi, "kept")
     .replace(/\bapproving\b/gi, "keeping")
-    .replace(/\bfor I\b/gi, "for me")
-    .replace(/\bI to\b/gi, "me to")
+    .replace(/\bmy H-bridge burden moves to Codex:?\s*/gi, "Codex is building the H-bridge bundle: ")
+    .replace(/\bmy next usable H-bridge bundle:?\s*/gi, "Codex is building the H-bridge bundle: ")
+    .replace(/\bmy next build\b/gi, "the next build")
+    .replace(/\bmy next usable artifact\b/gi, "Codex output")
+    .replace(/\bmy burden\b/gi, "Codex work")
+    .replace(/\bfor I\b/gi, "for FluxCell")
+    .replace(/\bfor me\b/gi, "for FluxCell")
+    .replace(/\bme to\b/gi, "FluxCell")
+    .replace(/\bmy\b/gi, "FluxCell")
+    .replace(/\bI am\b/gi, "FluxCell is")
+    .replace(/\bI can\b/gi, "FluxCell can")
+    .replace(/\bI should\b/gi, "Codex should")
+    .replace(/\bI need to\b/gi, "Codex needs to")
+    .replace(/\bI\b/g, "Codex")
     .replace(/\s+/g, " ")
     .trim();
 }

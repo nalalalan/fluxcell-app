@@ -2606,41 +2606,45 @@ function privateSurfaceText(text) {
   const rules = [
     [/\bAlan's approval point\b/gi, "Decision point"],
     [/\bAlan approval point\b/gi, "Decision point"],
-    [/\bsingle generated deliverable for Alan to approve\b/gi, "single thing for me to use"],
-    [/\bsingle deliverable for Alan to approve\b/gi, "single thing for me to use"],
-    [/\bfor Alan to inspect and approve\b/gi, "for me to check"],
-    [/\bfor Alan to review and accept\b/gi, "for me to check"],
-    [/\bfor Alan to approve\b/gi, "for me to use"],
-    [/\bfor Alan to inspect\b/gi, "for me to check"],
-    [/\bfor Alan\b/gi, "for me"],
-    [/\bAlan will only need to review and accept\b/gi, "I only need to check"],
-    [/\bAlan will only need to review\b/gi, "I only need to check"],
-    [/\bAlan only needs to review and accept\b/gi, "I only need to check"],
-    [/\bAlan only needs to review\b/gi, "I only need to check"],
-    [/\bAlan only approves? the next artifact\b/gi, "I only pick the next artifact"],
-    [/\bAlan only approves?\b/gi, "I only pick"],
-    [/\bAlan picks only\b/gi, "I only pick"],
-    [/\bAlan picks\b/gi, "I pick"],
-    [/\bfor the user\b/gi, "for me"],
-    [/\bthe user's\b/gi, "my"],
-    [/\bthe user only needs to\b/gi, "I only need to"],
-    [/\bthe user only has to\b/gi, "I only need to"],
-    [/\bthe user needs to\b/gi, "I need to"],
-    [/\bthe user is\b/gi, "I am"],
-    [/\bthe user can\b/gi, "I can"],
-    [/\bthe user should\b/gi, "I should"],
-    [/\bthe user\b/gi, "I"],
-    [/\bAlan's\b/g, "my"],
-    [/\bAlan\b/g, "I"],
+    [/\bsingle generated deliverable for Alan to approve\b/gi, "single generated artifact"],
+    [/\bsingle deliverable for Alan to approve\b/gi, "single generated artifact"],
+    [/\bfor Alan to inspect and approve\b/gi, "for FluxCell"],
+    [/\bfor Alan to review and accept\b/gi, "for FluxCell"],
+    [/\bfor Alan to approve\b/gi, "for FluxCell"],
+    [/\bfor Alan to inspect\b/gi, "for FluxCell"],
+    [/\bfor Alan\b/gi, "for FluxCell"],
+    [/\bAlan will only need to review and accept\b/gi, "Codex leaves one check"],
+    [/\bAlan will only need to review\b/gi, "Codex leaves one check"],
+    [/\bAlan only needs to review and accept\b/gi, "Codex leaves one check"],
+    [/\bAlan only needs to review\b/gi, "Codex leaves one check"],
+    [/\bAlan only approves? the next artifact\b/gi, "Codex leaves one decision"],
+    [/\bAlan only approves?\b/gi, "Codex leaves one decision"],
+    [/\bAlan picks only\b/gi, "Codex narrows"],
+    [/\bAlan picks\b/gi, "Codex narrows"],
+    [/\bfor the user\b/gi, "for FluxCell"],
+    [/\bthe user's\b/gi, "FluxCell"],
+    [/\bthe user only needs to\b/gi, "Codex leaves"],
+    [/\bthe user only has to\b/gi, "Codex leaves"],
+    [/\bthe user needs to\b/gi, "Codex needs to"],
+    [/\bthe user is\b/gi, "FluxCell is"],
+    [/\bthe user can\b/gi, "FluxCell can"],
+    [/\bthe user should\b/gi, "Codex should"],
+    [/\bthe user\b/gi, "FluxCell"],
+    [/\bAlan's\b/g, "FluxCell"],
+    [/\bAlan\b/g, "FluxCell"],
   ];
   rules.forEach(([pattern, replacement]) => {
     clean = clean.replace(pattern, replacement);
   });
   return clean
     .replace(/\bI approval point\b/gi, "Decision point")
-    .replace(/\bI only approves\b/gi, "I only pick")
-    .replace(/\bI only approve\b/gi, "I only pick")
-    .replace(/\bI only need to approve\b/gi, "I only need to check")
+    .replace(/\bI only approves\b/gi, "Codex leaves one decision")
+    .replace(/\bI only approve\b/gi, "Codex leaves one decision")
+    .replace(/\bI only need to approve\b/gi, "Codex leaves one check")
+    .replace(/\bI only need to check\b/gi, "Codex leaves one check")
+    .replace(/\bI only need to\b/gi, "Codex leaves")
+    .replace(/\bI only pick\b/gi, "Codex leaves one decision")
+    .replace(/\bI pick\b/gi, "Codex narrows")
     .replace(/\bone approval point\b/gi, "one decision point")
     .replace(/\bapproval point\b/gi, "decision point")
     .replace(/\bapproval\b/gi, "decision")
@@ -2649,8 +2653,20 @@ function privateSurfaceText(text) {
     .replace(/\bapprove\b/gi, "pick")
     .replace(/\bapproved\b/gi, "kept")
     .replace(/\bapproving\b/gi, "keeping")
-    .replace(/\bfor I\b/gi, "for me")
-    .replace(/\bI to\b/gi, "me to")
+    .replace(/\bmy H-bridge burden moves to Codex:?\s*/gi, "Codex is building the H-bridge bundle: ")
+    .replace(/\bmy next usable H-bridge bundle:?\s*/gi, "Codex is building the H-bridge bundle: ")
+    .replace(/\bmy next build\b/gi, "the next build")
+    .replace(/\bmy next usable artifact\b/gi, "Codex output")
+    .replace(/\bmy burden\b/gi, "Codex work")
+    .replace(/\bfor I\b/gi, "for FluxCell")
+    .replace(/\bfor me\b/gi, "for FluxCell")
+    .replace(/\bme to\b/gi, "FluxCell")
+    .replace(/\bmy\b/gi, "FluxCell")
+    .replace(/\bI am\b/gi, "FluxCell is")
+    .replace(/\bI can\b/gi, "FluxCell can")
+    .replace(/\bI should\b/gi, "Codex should")
+    .replace(/\bI need to\b/gi, "Codex needs to")
+    .replace(/\bI\b/g, "Codex")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -3368,7 +3384,7 @@ const projectStageTipBank = {
   ],
   activation: [
     ["activation-demo-first", "Make the next artifact a tiny visible demo, not an electronics lesson.", "activation", ["demo", "exciting", "electronics"], ["visible demo", "electronics lesson"]],
-    ["activation-codex-options", "Codex should generate three bench-demo options; I only keep the one that feels exciting.", "choice", ["codex", "options", "exciting"], ["three bench-demo options", "feels exciting"]],
+    ["activation-codex-options", "Codex generates three bench-demo options; the keeper has the clearest visible payoff.", "choice", ["codex", "options", "exciting"], ["three bench-demo options", "visible payoff"]],
     ["activation-open-only", "Entry step: open one generated diagram; building remains optional until the object feels worth touching.", "entry", ["start", "diagram", "touch"], ["open one generated diagram", "worth touching"]],
     ["activation-sensory-proof", "Use visible motion as the hook: pulse, click, hold, release, short clip.", "motion", ["visible", "motion", "clip"], ["pulse", "click", "hold", "release"]],
     ["activation-no-chore-list", "No chore list; convert the next move into one artifact with a clear visual payoff.", "friction", ["friction", "artifact", "visual"], ["no chore list", "visual payoff"]],
@@ -3400,9 +3416,9 @@ const projectStageTipBank = {
     ["play-energy", "Use the goofy energy to make the next prototype visually satisfying.", "dopamine", ["goofy", "prototype"], ["goofy energy", "visually satisfying"]],
     ["play-one-touch", "The app can absorb nonsense; the project still needs one small physical touch.", "re-entry", ["chaos", "project"], ["absorb nonsense", "physical touch"]],
     ["play-do-not-spiral", "Do not interpret the random note; route it back to one action.", "scope", ["random", "action"], ["random note", "one action"]],
-    ["play-title-card", "Turn the chaos into a tile title only if it helps you reopen the app.", "dopamine", ["tile", "app"], ["tile title", "reopen"]],
+    ["play-title-card", "Chaos becomes a tile title only when it helps reopen the app.", "dopamine", ["tile", "app"], ["tile title", "reopen"]],
     ["play-quick-reset", "Smile at the dumb note, then add one part, sketch, photo, or test.", "tiny action", ["note", "test"], ["dumb note", "part", "sketch"]],
-    ["play-bench-object", "Put one object on the bench where future you can see it.", "setup", ["bench", "object"], ["one object", "future you"]],
+    ["play-bench-object", "One object stays visible on the bench for re-entry.", "setup", ["bench", "object"], ["one object", "re-entry"]],
     ["play-noise-filter", "If it is just noise, the useful output is a smaller next step.", "filter", ["noise", "next"], ["noise", "smaller next step"]],
     ["play-keep-human", "Keep the weird note; human context is allowed here.", "capture", ["human", "note"], ["weird note", "human context"]],
   ],
@@ -3420,8 +3436,8 @@ const projectStageTipBank = {
   reset: [
     ["reset-clean-break", "Practice violin as a clean reset, then return for one tiny FluxCell action.", "reset", ["violin", "reset", "action"], ["violin", "clean reset", "tiny action"]],
     ["reset-reentry-note", "Before leaving, write the next FluxCell action in one plain sentence.", "re-entry", ["note", "action"], ["next fluxcell action", "one sentence"]],
-    ["reset-no-reading", "When you come back, do not read; touch a part, cart, coil, or sketch.", "re-entry", ["start", "parts"], ["do not read", "part", "coil"]],
-    ["reset-five-minutes", "If you only have five minutes, add one starter component to the parts cart.", "tiny action", ["buy", "parts"], ["five minutes", "parts cart"]],
+    ["reset-no-reading", "Return mode: touch a part, cart, coil, or sketch before reading.", "re-entry", ["start", "parts"], ["do not read", "part", "coil"]],
+    ["reset-five-minutes", "Five-minute return: one starter component in the parts cart.", "tiny action", ["buy", "parts"], ["five minutes", "parts cart"]],
     ["reset-next-object", "Decide the next physical object before the break: magnet loop, coil, keeper, or fixture.", "object", ["object", "bench"], ["magnet loop", "coil", "keeper", "fixture"]],
     ["reset-not-verdict", "The violin impulse is a break signal, not evidence that the project is failing.", "reset", ["focus", "project"], ["break signal", "project"]],
     ["reset-one-loop", "Close one tiny loop today: one note, one ordered part, or one crude pulse test.", "small win", ["note", "part", "test"], ["one note", "ordered part", "pulse test"]],
@@ -3445,10 +3461,10 @@ const projectStageTipBank = {
     ["bench-before-cell", "Ignore the Sarrus cell until a loose EPM can hold and release.", "first build", ["bench", "epm"], ["loose epm", "hold and release"]],
     ["buy-minimum-kit", "Buy only the starter pile: small magnets, steel pieces, magnet wire, switch, and power source.", "shopping", ["buy", "parts"], ["starter pile", "small magnets", "magnet wire"]],
     ["cardboard-fixture", "Tape the magnet, steel, and coil to cardboard before designing a printed fixture.", "quick rig", ["fixture", "prototype"], ["cardboard", "tape", "printed fixture"]],
-    ["first-video-win", "Today counts if you get one video where a keeper changes state after a pulse.", "small win", ["video", "keeper"], ["video", "keeper changes state"]],
+    ["first-video-win", "Today counts when one video shows a keeper changing state after a pulse.", "small win", ["video", "keeper"], ["video", "keeper changes state"]],
     ["no-paper-right-now", "Do not read more papers right now; make the crude magnetic switch first.", "start here", ["start", "prototype"], ["do not read", "crude magnetic switch"]],
     ["warm-coil-stop", "Use short pulses, and stop as soon as the coil feels warm.", "basic safety", ["pulse", "heat"], ["short pulses", "coil feels warm"]],
-    ["phone-test", "Use your phone camera as the first measurement: before pulse, after pulse, release.", "easy test", ["video", "test"], ["phone camera", "before pulse", "after pulse"]],
+    ["phone-test", "Phone camera measurement: before pulse, after pulse, release.", "easy test", ["video", "test"], ["phone camera", "before pulse", "after pulse"]],
   ],
   sourcing: [
     ["starter-kit", "Order a tiny kit first: small NdFeB blocks, magnet wire, steel pieces, switch, and power source.", "starter kit", ["buy", "parts"], ["starter kit", "magnet wire", "steel pieces"]],
@@ -3553,7 +3569,7 @@ function generateLocalPriorityLine() {
   const stage = projectStageProfile();
   const stagePriority = {
     body: "Handle food, water, or sleep first; leave one small FluxCell re-entry action before stepping away.",
-    activation: "Activation target: one visually exciting bench EPM demo that Codex designs end-to-end; I only keep the version worth touching.",
+    activation: "Activation target: one visually exciting bench EPM demo that Codex designs end-to-end; the keeper has the clearest visible payoff.",
     vent: "Name the blocker in five words, then make one reversible project move instead of expanding the plan.",
     delegate: "Codex is building the H-bridge bundle: wiring map, pulse script, parts list, and one bench-test checklist.",
     play: "Keep the random note, then route back to one object: magnet, coil, keeper, or fixture.",
@@ -3803,7 +3819,7 @@ function contextHelpIdeaCandidates() {
   if (!routineMode && (startMode || /how|what is|make|build|no idea|don't know|dont know|idk|epm|electropermanent/.test(notesText))) {
     add("epm-basic", "An EPM is a permanent magnet path that a coil pulse switches between hold and release.", "basic EPM", ["epm", "basic"], ["epm is", "permanent magnet path", "coil pulse"]);
     add("epm-parts", "First bench parts: hard magnet, soft steel return path, coil wire, keeper, switch, and power source.", "parts", ["epm", "components"], ["hard magnet", "soft steel", "keeper", "coil wire"]);
-    add("bench-first", "Do the first EPM outside the Sarrus cell so you can see magnetic switching clearly.", "first build", ["bench", "prototype"], ["bench first", "outside the sarrus", "magnetic switching"]);
+    add("bench-first", "First EPM outside the Sarrus cell; magnetic switching stays visible.", "first build", ["bench", "prototype"], ["bench first", "outside the sarrus", "magnetic switching"]);
   }
 
   if (/heat|hot|temperature|burn|current|pulse/.test(notesText)) {
@@ -3813,7 +3829,7 @@ function contextHelpIdeaCandidates() {
 
   if (!startMode && /paper|papers|literature|reference|source|read/.test(notesText)) {
     add("paper-figure-filter", "Pick papers by useful figures first: apparatus photo, force curve, coil layout, or material stack.", "paper filter", ["paper", "figure"], ["apparatus photo", "force curve", "coil layout"]);
-    add("paper-question", "For each paper, ask one question: what exact part of my next build changes?", "reading filter", ["paper", "build"], ["next build changes", "paper question"]);
+    add("paper-question", "Paper filter: exact part of the next build changed by the claim.", "reading filter", ["paper", "build"], ["next build changes", "paper question"]);
   }
 
   if (!startMode && /integrat|sarrus|cell|lateral|expand|mechanism|cad|geometry|actuat/.test(notesText)) {
