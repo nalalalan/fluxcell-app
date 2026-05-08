@@ -99,14 +99,14 @@ a {
   display: inline-grid;
   place-items: center;
   flex: 0 0 32px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, .045);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .ao-home img {
-  width: 21px;
-  height: 21px;
+  width: 30px;
+  height: 30px;
   display: block;
 }
 
