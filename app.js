@@ -3076,7 +3076,7 @@ function createCodexOutputSection() {
   if (!codexOutputActive()) return null;
   const section = el("section", "codex-output top-feed");
   const head = el("div", "section-head codex-output-head");
-  head.append(el("h2", "", "H-bridge bundle"));
+  head.append(el("h2", "", "Generated work"));
   const grid = el("div", "codex-output-grid");
   codexOutputItems().forEach((item) => grid.append(createCodexOutputCard(item)));
   section.append(head, grid);
@@ -3086,26 +3086,24 @@ function createCodexOutputSection() {
 function codexOutputItems() {
   return [
     {
-      title: "Open generated bundle",
-      detail: "Wiring map, Arduino pulse script, parts list, bench-test checklist.",
+      title: "H-bridge wiring map, pulse script, parts list, bench-test checklist",
+      detail: "Generated Markdown bundle.",
       href: `${cloudStateBase() || ""}/api/generated/hbridge-bundle.md`,
     },
   ];
 }
 
 function createCodexOutputCard(item) {
-  const card = el("article", "codex-output-card");
+  const card = el(item.href ? "a" : "article", "codex-output-card");
+  if (item.href) {
+    card.href = item.href;
+    card.target = "_blank";
+    card.rel = "noopener noreferrer";
+    card.setAttribute("aria-label", `Open ${item.title}`);
+  }
   const body = el("div", "item-body");
   body.append(el("p", "item-title", item.title), el("p", "item-meta", item.detail));
   card.append(body);
-  if (item.href) {
-    const link = el("a", "output-link");
-    link.href = item.href;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.append(icon("open"), el("span", "", "Open"));
-    card.append(link);
-  }
   return card;
 }
 
