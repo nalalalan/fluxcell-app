@@ -3018,7 +3018,6 @@ function render() {
 function createShell() {
   const shell = el("main", "app-shell");
   shell.append(createTopbar());
-  shell.append(createPriorityPanel());
   const codexOutput = createCodexOutputSection();
   if (codexOutput) shell.append(codexOutput);
   const focusLibrary = createFocusLibrary();
@@ -3060,16 +3059,6 @@ function createStatusPill(text, className) {
   return el("span", className, text);
 }
 
-function createPriorityPanel() {
-  const section = el("section", "priority-panel");
-  const card = el("article", "priority-card");
-  const text = el("p", "priority-text");
-  appendLinkedText(text, currentPriorityLine());
-  card.append(el("p", "section-label priority-label", "Current"), text, el("p", "priority-meta", priorityMetaLine()));
-  section.append(card);
-  return section;
-}
-
 function currentPriorityLine() {
   if (aiFeedPriorityIsCurrent()) {
     return prioritySurfaceText(aiFeed.priority);
@@ -3087,7 +3076,7 @@ function createCodexOutputSection() {
   if (!codexOutputActive()) return null;
   const section = el("section", "codex-output top-feed");
   const head = el("div", "section-head codex-output-head");
-  head.append(el("p", "section-label", "Codex output"), el("h2", "", "H-bridge bundle"));
+  head.append(el("h2", "", "H-bridge bundle"));
   const grid = el("div", "codex-output-grid");
   codexOutputItems().forEach((item) => grid.append(createCodexOutputCard(item)));
   section.append(head, grid);
@@ -3097,20 +3086,9 @@ function createCodexOutputSection() {
 function codexOutputItems() {
   return [
     {
-      label: "Access",
       title: "Open generated bundle",
       detail: "Wiring map, Arduino pulse script, parts list, bench-test checklist.",
       href: `${cloudStateBase() || ""}/api/generated/hbridge-bundle.md`,
-    },
-    {
-      label: "Codex work",
-      title: "Building the first artifact set",
-      detail: "Codex owns wiring, code, parts, and checklist before bench power.",
-    },
-    {
-      label: "Landing place",
-      title: "FluxCell > Codex output",
-      detail: "Generated artifacts stay in this section above suggestions.",
     },
   ];
 }
@@ -3118,7 +3096,7 @@ function codexOutputItems() {
 function createCodexOutputCard(item) {
   const card = el("article", "codex-output-card");
   const body = el("div", "item-body");
-  body.append(el("p", "section-label output-label", item.label), el("p", "item-title", item.title), el("p", "item-meta", item.detail));
+  body.append(el("p", "item-title", item.title), el("p", "item-meta", item.detail));
   card.append(body);
   if (item.href) {
     const link = el("a", "output-link");
@@ -3129,13 +3107,6 @@ function createCodexOutputCard(item) {
     card.append(link);
   }
   return card;
-}
-
-function priorityMetaLine() {
-  const stage = projectStageProfile();
-  const source = aiFeedPriorityIsCurrent() ? "AI feed" : "local state";
-  const noteCount = userNotes(state.notes).length;
-  return `${stage.label} - ${noteCount} notes - ${source}`;
 }
 
 function aiFeedPriorityIsCurrent() {
@@ -4307,7 +4278,6 @@ function createFocusLibrary() {
   if (ideas.length) {
     const ideaBlock = el("section", "useful-block");
     const visibleIdeas = visibleTipItems(ideas);
-    ideaBlock.append(el("p", "section-label", tipFeedLabel(ideas.length)));
     const ideaGrid = el("div", "ideas-grid tip-grid");
     visibleIdeas.forEach((idea) => ideaGrid.append(createIdeaCard(idea)));
     ideaBlock.append(ideaGrid);
@@ -4325,12 +4295,6 @@ function visibleTipItems(ideas) {
   if (ideas.length <= visibleTipCount) return ideas;
   const start = ((tipWindowIndex % ideas.length) + ideas.length) % ideas.length;
   return Array.from({ length: visibleTipCount }, (_, offset) => ideas[(start + offset) % ideas.length]);
-}
-
-function tipFeedLabel(total) {
-  if (paperSupportTopic()) return "Paper support";
-  const stage = projectStageProfile();
-  return stage.id === "start" ? "Start here" : stage.label;
 }
 
 function createFeedControls(total) {
