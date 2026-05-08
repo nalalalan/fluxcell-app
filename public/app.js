@@ -2658,12 +2658,29 @@ function privateSurfaceText(text) {
 function prioritySurfaceText(text) {
   let clean = privateSurfaceText(text);
   clean = clean
-    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?(?:H-bridge\s+)?(?:artifact set|artifacts|artifact|bundle|H-bridge bundle)\s+now:?\s*/i, "My next usable H-bridge bundle: ")
-    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?/i, "My next usable H-bridge bundle: ")
-    .replace(/^Pick\s+(?:the\s+|one\s+)?(?:Codex-owned|Codex)\s+deliverable:?\s*/i, "My next usable H-bridge bundle: ")
-    .replace(/^Produce a complete H-bridge\s+/i, "My next usable H-bridge bundle: ");
+    .replace(/^My next usable H-bridge bundle:?\s*/i, "Codex is building the H-bridge bundle: ")
+    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?(?:H-bridge\s+)?(?:artifact set|artifacts|artifact|bundle|H-bridge bundle)\s+now:?\s*/i, "Codex is building the H-bridge bundle: ")
+    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?/i, "Codex is building the H-bridge bundle: ")
+    .replace(/^Pick\s+(?:the\s+|one\s+)?(?:Codex-owned|Codex)\s+deliverable:?\s*/i, "Codex is building the H-bridge bundle: ")
+    .replace(/^Produce a complete H-bridge\s+/i, "Codex is building the H-bridge bundle: ")
+    .replace(/\s+(?:ready\s+)?for review\.?$/i, ".");
   if (clean) clean = clean.charAt(0).toUpperCase() + clean.slice(1);
   return shortTipText(clean, 220);
+}
+
+function ideaSurfaceText(text) {
+  let clean = privateSurfaceText(text);
+  if (projectStageProfile().id !== "delegate") return clean;
+  clean = clean
+    .replace(/^Use\s+/i, "Codex uses ")
+    .replace(/^Order\s+/i, "Codex adds ")
+    .replace(/^Prefer\s+/i, "Codex uses ")
+    .replace(/^Target interface:\s*/i, "Codex targets: ")
+    .replace(/^Generated code comes\s+/i, "Codex writes generated code after ")
+    .replace(/^No H-bridge study plan;\s*/i, "Codex keeps this as a generated artifact; ")
+    .replace(/^Pasteable request:\s*/i, "Codex writes: ");
+  if (clean) clean = clean.charAt(0).toUpperCase() + clean.slice(1);
+  return clean;
 }
 
 function hashId(text) {
@@ -2985,6 +3002,8 @@ function createShell() {
   const shell = el("main", "app-shell");
   shell.append(createTopbar());
   shell.append(createPriorityPanel());
+  const codexOutput = createCodexOutputSection();
+  if (codexOutput) shell.append(codexOutput);
   const focusLibrary = createFocusLibrary();
   if (focusLibrary) shell.append(focusLibrary);
   shell.append(createWorkspace());
@@ -3039,6 +3058,60 @@ function currentPriorityLine() {
     return prioritySurfaceText(aiFeed.priority);
   }
   return prioritySurfaceText(generateLocalPriorityLine());
+}
+
+function codexOutputActive() {
+  const stage = projectStageProfile();
+  const text = `${currentPriorityLine()} ${generateProjectState()} ${recentConcernText()}`.toLowerCase();
+  return stage.id === "delegate" || /codex|h-?bridge|wiring map|pulse script|bench-test checklist/.test(text);
+}
+
+function createCodexOutputSection() {
+  if (!codexOutputActive()) return null;
+  const section = el("section", "codex-output top-feed");
+  const head = el("div", "section-head codex-output-head");
+  head.append(el("p", "section-label", "Codex output"), el("h2", "", "H-bridge bundle"));
+  const grid = el("div", "codex-output-grid");
+  codexOutputItems().forEach((item) => grid.append(createCodexOutputCard(item)));
+  section.append(head, grid);
+  return section;
+}
+
+function codexOutputItems() {
+  return [
+    {
+      label: "Access",
+      title: "Open generated bundle",
+      detail: "Wiring map, Arduino pulse script, parts list, bench-test checklist.",
+      href: `${cloudStateBase() || ""}/api/generated/hbridge-bundle.md`,
+    },
+    {
+      label: "Codex work",
+      title: "Building the first artifact set",
+      detail: "Codex owns wiring, code, parts, and checklist before bench power.",
+    },
+    {
+      label: "Landing place",
+      title: "FluxCell > Codex output",
+      detail: "Generated artifacts stay in this section above suggestions.",
+    },
+  ];
+}
+
+function createCodexOutputCard(item) {
+  const card = el("article", "codex-output-card");
+  const body = el("div", "item-body");
+  body.append(el("p", "section-label output-label", item.label), el("p", "item-title", item.title), el("p", "item-meta", item.detail));
+  card.append(body);
+  if (item.href) {
+    const link = el("a", "output-link");
+    link.href = item.href;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.append(icon("open"), el("span", "", "Open"));
+    card.append(link);
+  }
+  return card;
 }
 
 function priorityMetaLine() {
@@ -3313,13 +3386,13 @@ const projectStageTipBank = {
     ["vent-proof-not-plan", "Make the next proof smaller instead of making the plan bigger.", "scope", ["proof", "plan"], ["proof smaller", "plan bigger"]],
   ],
   delegate: [
-    ["delegate-codex-owner", "Codex task: produce H-bridge wiring map, pulse script, parts list, and bench-test checklist.", "delegation", ["codex", "h-bridge", "code"], ["codex", "h-bridge", "pulse script"]],
-    ["delegate-no-study-plan", "No H-bridge study plan; require a generated artifact that can be checked before power touches hardware.", "boundary", ["h-bridge", "artifact", "safety"], ["no h-bridge study", "checked before power"]],
+    ["delegate-codex-owner", "Codex produces the H-bridge wiring map, pulse script, parts list, and bench-test checklist.", "delegation", ["codex", "h-bridge", "code"], ["codex", "h-bridge", "pulse script"]],
+    ["delegate-no-study-plan", "Codex keeps this as a generated artifact, not an H-bridge study plan.", "boundary", ["h-bridge", "artifact", "safety"], ["no h-bridge study", "generated artifact"]],
     ["delegate-approval-point", "Decision point: one diagram, one command, one parts cart, one safe pulse test.", "decision", ["decision", "diagram", "parts"], ["one diagram", "one command", "parts cart"]],
-    ["delegate-ai-prompt", "Pasteable request: generate the simplest reversible H-bridge pulse plan for a bench EPM.", "prompt", ["ai", "h-bridge", "bench"], ["pasteable request", "pulse plan"]],
-    ["delegate-code-last", "Generated code comes after the wiring map and current limit are explicit.", "sequence", ["code", "wiring", "current"], ["code", "wiring map", "current limit"]],
+    ["delegate-ai-prompt", "Codex writes the simplest reversible H-bridge pulse plan for a bench EPM.", "prompt", ["ai", "h-bridge", "bench"], ["pulse plan", "bench epm"]],
+    ["delegate-code-last", "Codex writes code after the wiring map and current limit are explicit.", "sequence", ["code", "wiring", "current"], ["code", "wiring map", "current limit"]],
     ["delegate-one-button", "Target interface: one button for short pulse, one button for reverse pulse, no continuous coil power.", "interface", ["button", "pulse", "coil"], ["one button", "reverse pulse"]],
-    ["delegate-off-the-shelf-driver", "Prefer an off-the-shelf motor driver breakout over custom electronics for the first pulse.", "hardware", ["driver", "breakout", "electronics"], ["off-the-shelf", "motor driver breakout"]],
+    ["delegate-off-the-shelf-driver", "Codex uses an off-the-shelf motor driver breakout over custom electronics for the first pulse.", "hardware", ["driver", "breakout", "electronics"], ["off-the-shelf", "motor driver breakout"]],
   ],
   play: [
     ["play-logged", "Chaotic thought logged; now name one concrete object: magnet, coil, keeper, or fixture.", "capture", ["random", "object"], ["chaotic thought", "concrete object"]],
@@ -3481,7 +3554,7 @@ function generateLocalPriorityLine() {
     body: "Handle food, water, or sleep first; leave one small FluxCell re-entry action before stepping away.",
     activation: "Activation target: one visually exciting bench EPM demo that Codex designs end-to-end; I only keep the version worth touching.",
     vent: "Name the blocker in five words, then make one reversible project move instead of expanding the plan.",
-    delegate: "My H-bridge burden moves to Codex: wiring map, pulse script, parts list, and one bench-test checklist; I only pick what feels usable.",
+    delegate: "Codex is building the H-bridge bundle: wiring map, pulse script, parts list, and one bench-test checklist.",
     play: "Keep the random note, then route back to one object: magnet, coil, keeper, or fixture.",
     vision: "Make the portfolio proof small: one clean clip of bench EPM hold, pulse, release, and zero-current state.",
     reset: "Before the break, leave one re-entry line: FluxCell bench EPM, one coil, one keeper, one short pulse.",
@@ -4209,7 +4282,8 @@ function createFocusLibrary() {
 
   const section = el("section", "focus-library useful-library top-feed");
   const head = el("div", "section-head section-head-row");
-  head.append(el("h2", "", "Suggestions"), createFeedControls(ideas.length));
+  const heading = projectStageProfile().id === "delegate" ? "Codex queue" : "Suggestions";
+  head.append(el("h2", "", heading), createFeedControls(ideas.length));
   section.append(head);
 
   const layout = el("div", "useful-layout");
@@ -4472,9 +4546,9 @@ function createIdeaCard(idea) {
   const card = el("article", `item-card idea-card${feedback === "useful" ? " paper-kept" : ""}`);
   const body = el("div", "item-body");
   const title = el("p", "item-title");
-  appendLinkedText(title, privateSurfaceText(idea.text));
+  appendLinkedText(title, ideaSurfaceText(idea.text));
   body.append(title);
-  if (feedback === "useful" && idea.reason) body.append(el("p", "item-meta", privateSurfaceText(idea.reason)));
+  if (feedback === "useful" && idea.reason) body.append(el("p", "item-meta", ideaSurfaceText(idea.reason)));
   const actionItems = [
     { action: "idea-feedback", id: idea.id, value: "useful", title: "Useful", iconName: "check", className: "feedback-useful", active: feedback === "useful" },
   ];

@@ -430,6 +430,67 @@ h1 {
   line-height: 1.25;
 }
 
+.codex-output {
+  margin-top: 10px;
+}
+
+.codex-output-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1fr;
+  gap: 10px;
+}
+
+.codex-output-card {
+  position: relative;
+  min-width: 0;
+  min-height: 128px;
+  border: 1px solid rgba(104, 214, 200, .22);
+  border-radius: 7px;
+  background: rgba(255, 250, 240, .04);
+  box-shadow: var(--shadow);
+}
+
+.codex-output-card .item-body {
+  padding: 16px 108px 16px 16px;
+}
+
+.codex-output-card:not(:has(.output-link)) .item-body {
+  padding-right: 16px;
+}
+
+.output-label {
+  color: var(--cyan);
+}
+
+.output-link {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(104, 214, 200, .42);
+  border-radius: 7px;
+  padding: 0 11px;
+  background: rgba(104, 214, 200, .08);
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 860;
+  text-decoration: none;
+}
+
+.output-link:hover,
+.output-link:focus-visible {
+  border-color: rgba(141, 231, 155, .74);
+  color: var(--green);
+}
+
+.output-link svg {
+  width: 16px;
+  height: 16px;
+}
+
 .focus-library {
   padding-bottom: 8px;
 }
@@ -866,6 +927,7 @@ svg {
 
 @media (max-width: 900px) {
   .workspace,
+  .codex-output-grid,
   .ideas-grid,
   .notes-grid,
   .focus-grid,

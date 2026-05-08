@@ -59,8 +59,104 @@ function sendText(res, status, text) {
   res.end(text);
 }
 
+function sendMarkdown(res, status, text) {
+  setCors(res);
+  res.writeHead(status, {
+    "Content-Type": "text/markdown; charset=utf-8",
+    "Cache-Control": "no-store",
+  });
+  res.end(text);
+}
+
 function openAiKey() {
   return process.env.OPENAI_API_KEY || process.env.FLUXCELL_OPENAI_API_KEY || "";
+}
+
+function generatedHBridgeBundleMarkdown() {
+  return `# FluxCell H-Bridge Bundle
+
+Location: FluxCell > Codex output > Open generated bundle
+
+## Wiring map
+
+- Current-limited bench supply positive -> DRV8871 VMotor.
+- Current-limited bench supply negative -> DRV8871 GND.
+- Microcontroller GND -> DRV8871 GND.
+- Microcontroller D5 -> DRV8871 IN1.
+- Microcontroller D6 -> DRV8871 IN2.
+- Bench EPM coil lead A -> DRV8871 OUT1.
+- Bench EPM coil lead B -> DRV8871 OUT2.
+- Keep both IN pins LOW between pulses.
+
+## Parts list
+
+- DRV8871-style H-bridge motor-driver breakout with IN1, IN2, OUT1, OUT2, VMotor, and GND terminals.
+- Arduino Uno/Nano or ESP32 dev board.
+- Current-limited DC bench supply.
+- Bench EPM coupon: small coil, soft-steel keeper path, and small NdFeB magnet pair.
+- Jumper wires, screw terminals, meter leads, and a camera/phone for the bench clip.
+
+Search links:
+
+- DRV8871 motor driver breakout: https://www.digikey.com/en/products?keywords=DRV8871%20breakout
+- Motor driver breakout modules: https://www.mouser.com/c/?q=DRV8871%20breakout
+- Small NdFeB blocks: https://www.kjmagnetics.com/
+- Magnet wire: https://www.digikey.com/en/products/filter/magnet-wire/262
+
+## Arduino pulse script
+
+\`\`\`cpp
+const int IN1 = 5;
+const int IN2 = 6;
+const int PULSE_MS = 80;
+
+void coast() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+}
+
+void pulseForward() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  delay(PULSE_MS);
+  coast();
+}
+
+void pulseReverse() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  delay(PULSE_MS);
+  coast();
+}
+
+void setup() {
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  coast();
+  delay(1000);
+}
+
+void loop() {
+  pulseForward();
+  delay(2000);
+  pulseReverse();
+  delay(4000);
+}
+\`\`\`
+
+## Bench-test checklist
+
+- Supply current limit set low before power.
+- OUT1/OUT2 connected only to the coil.
+- Microcontroller ground and driver ground common.
+- First pulse filmed from the side of the keeper gap.
+- Coil returns to zero drive after every pulse.
+
+## Source notes
+
+- TI lists DRV8871 as a single H-bridge motor driver with 6.5 V minimum supply, 3.6 A peak drive, PWM input control, current regulation, and protection features: https://www.ti.com/product/DRV8871
+- Adafruit's DRV8871 guide describes VMotor/GND supply, IN1/IN2 input control, OUT terminal block load wiring, PWM support, and resistor-set current limiting: https://learn.adafruit.com/adafruit-drv8871-brushed-dc-motor-driver-breakout
+`;
 }
 
 function isInside(root, filePath) {
@@ -240,10 +336,12 @@ function privateSurfaceText(value) {
 function prioritySurfaceText(value) {
   let clean = privateSurfaceText(value);
   clean = clean
-    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?(?:H-bridge\s+)?(?:artifact set|artifacts|artifact|bundle|H-bridge bundle)\s+now:?\s*/i, "My next usable H-bridge bundle: ")
-    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?/i, "My next usable H-bridge bundle: ")
-    .replace(/^Pick\s+(?:the\s+|one\s+)?(?:Codex-owned|Codex)\s+deliverable:?\s*/i, "My next usable H-bridge bundle: ")
-    .replace(/^Produce a complete H-bridge\s+/i, "My next usable H-bridge bundle: ");
+    .replace(/^My next usable H-bridge bundle:?\s*/i, "Codex is building the H-bridge bundle: ")
+    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?(?:H-bridge\s+)?(?:artifact set|artifacts|artifact|bundle|H-bridge bundle)\s+now:?\s*/i, "Codex is building the H-bridge bundle: ")
+    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?/i, "Codex is building the H-bridge bundle: ")
+    .replace(/^Pick\s+(?:the\s+|one\s+)?(?:Codex-owned|Codex)\s+deliverable:?\s*/i, "Codex is building the H-bridge bundle: ")
+    .replace(/^Produce a complete H-bridge\s+/i, "Codex is building the H-bridge bundle: ")
+    .replace(/\s+(?:ready\s+)?for review\.?$/i, ".");
   if (clean) clean = clean.charAt(0).toUpperCase() + clean.slice(1);
   return clean;
 }
@@ -801,15 +899,15 @@ function aiSystemPrompt() {
     "Priority must consider latestNote, approved items, rejected items, skipped items, current stage, and available project files. It should be more important than any individual note card.",
     "Priority must be direct visible language: one immediate action or constraint, no second-person coaching, no motivational framing, no fake precision, no report-about-the-user phrasing.",
     "This is a private work surface for the user. Do not write Alan, user, he, they, for Alan, Alan approval, or external-review phrasing in priority, summary, or suggested notes.",
-    "Prefer owned-surface language when personal framing is needed: I only need to, my next usable artifact, my burden moves to Codex, or terse noun labels.",
-    "For delegation priority, prefer 'My next usable H-bridge bundle: ...' over Produce, Generate, or Deliver as an assignment verb.",
+    "Prefer Codex-owned work language when delegation is active: Codex is building, Codex writes, Codex checks, or Codex stores.",
+    "For delegation priority, prefer 'Codex is building the H-bridge bundle: ...' over Produce, Generate, Deliver, or user-task wording.",
     "Treat latestNote and open questions in notes as the main problems to help with right now.",
     "Suggested notes are helpful tips, tiny explanations, shopping routes, search terms, source links, or next tiny actions that directly answer those concerns.",
     "For each stage, give the fastest useful action for that exact stage: body reset means handle hunger/tiredness then return with one tiny move; activation means make the entry exciting enough to touch and remove startup friction; rough mood means lower the bar to one reversible step; delegation means Codex or AI owns code, driver, H-bridge, wiring, parts, and checklist artifacts while the visible output leaves only one keep/check decision; chaos capture means absorb the random note and route back to one concrete object; north star means turn ambition into a portfolio-visible artifact; focus reset means take a clean break and leave one re-entry action; prototype routine means protect writing momentum while making one tiny printer-adjacent iteration loop; orientation means reduce friction; sourcing means parts and suppliers; bench means crude EPM switching; measurement means one visible diagnostic; cell integration means transplant the working bench mechanism; printing means isolate material risk; papers means citations that support the stated claim.",
     "If latestNote is off-topic or says the user wants to practice violin, avoid guilt or hype; treat it as RESET MODE and give short re-entry suggestions that keep the research alive after the break.",
     "If latestNote is a raw thought like hungry, ice cream, profanity, low energy, lazy, jokes, or chaotic words, do not ignore it and do not moralize; translate it into body reset, rough mood, or chaos capture suggestions.",
     "If latestNote mentions ADHD, autism, hard to start, wanting to be excited, or a unique brain, treat it as ACTIVATION MODE: no generic productivity advice, no shame, no study plan, no long list; make one visually exciting artifact, one choice, or one low-friction entry point.",
-    "If latestNote asks for AI generation, Codex, ChatGPT, code to be handled, or says H-bridge/electronics is confusing and not worth learning right now, treat it as DELEGATION MODE: produce Codex-owned artifacts such as a wiring map, pulse script, parts list, safety checklist, and one decision point.",
+    "If latestNote asks for AI generation, Codex, ChatGPT, code to be handled, or says H-bridge/electronics is confusing and not worth learning right now, treat it as DELEGATION MODE: Codex produces artifacts such as a wiring map, pulse script, parts list, safety checklist, and one decision point.",
     "If latestNote mentions Disney Imagineering, getting hired, portfolio, success, or cool stuff, treat it as NORTH STAR mode and suggest visible artifacts that would make the project compelling to an R&D Imagineering audience.",
     "If latestNote mentions writing a lot, switching states to prototyping, printer iterations, or fitting prototyping into the current routine, treat it as PROTOTYPE ROUTINE mode; address context switching and printer-adjacent workflow before technical build advice.",
     "Keep addressing a concern until approvedIdeas already contains a tip that clearly answers it.",
@@ -943,6 +1041,11 @@ async function handleApi(req, res, requestUrl) {
   if (requestUrl.pathname === "/api/app-state" && req.method === "POST") {
     const payload = await readJsonBody(req, 3 * 1024 * 1024);
     sendJson(res, 200, { state: await mergeAppState(objectRecord(payload.state || payload)) });
+    return;
+  }
+
+  if (requestUrl.pathname === "/api/generated/hbridge-bundle.md" && req.method === "GET") {
+    sendMarkdown(res, 200, generatedHBridgeBundleMarkdown());
     return;
   }
 
