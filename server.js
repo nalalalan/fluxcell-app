@@ -182,15 +182,94 @@ function cleanSuggestionState(record) {
   };
 }
 
+function privateSurfaceText(value) {
+  let clean = String(value || "").replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  const rules = [
+    [/\bAlan's approval point\b/gi, "Decision point"],
+    [/\bAlan approval point\b/gi, "Decision point"],
+    [/\bsingle generated deliverable for Alan to approve\b/gi, "single thing for me to use"],
+    [/\bsingle deliverable for Alan to approve\b/gi, "single thing for me to use"],
+    [/\bfor Alan to inspect and approve\b/gi, "for me to check"],
+    [/\bfor Alan to review and accept\b/gi, "for me to check"],
+    [/\bfor Alan to approve\b/gi, "for me to use"],
+    [/\bfor Alan to inspect\b/gi, "for me to check"],
+    [/\bfor Alan\b/gi, "for me"],
+    [/\bAlan will only need to review and accept\b/gi, "I only need to check"],
+    [/\bAlan will only need to review\b/gi, "I only need to check"],
+    [/\bAlan only needs to review and accept\b/gi, "I only need to check"],
+    [/\bAlan only needs to review\b/gi, "I only need to check"],
+    [/\bAlan only approves? the next artifact\b/gi, "I only pick the next artifact"],
+    [/\bAlan only approves?\b/gi, "I only pick"],
+    [/\bAlan picks only\b/gi, "I only pick"],
+    [/\bAlan picks\b/gi, "I pick"],
+    [/\bfor the user\b/gi, "for me"],
+    [/\bthe user's\b/gi, "my"],
+    [/\bthe user only needs to\b/gi, "I only need to"],
+    [/\bthe user only has to\b/gi, "I only need to"],
+    [/\bthe user needs to\b/gi, "I need to"],
+    [/\bthe user is\b/gi, "I am"],
+    [/\bthe user can\b/gi, "I can"],
+    [/\bthe user should\b/gi, "I should"],
+    [/\bthe user\b/gi, "I"],
+    [/\bAlan's\b/g, "my"],
+    [/\bAlan\b/g, "I"],
+  ];
+  rules.forEach(([pattern, replacement]) => {
+    clean = clean.replace(pattern, replacement);
+  });
+  return clean
+    .replace(/\bI approval point\b/gi, "Decision point")
+    .replace(/\bI only approves\b/gi, "I only pick")
+    .replace(/\bI only approve\b/gi, "I only pick")
+    .replace(/\bI only need to approve\b/gi, "I only need to check")
+    .replace(/\bone approval point\b/gi, "one decision point")
+    .replace(/\bapproval point\b/gi, "decision point")
+    .replace(/\bapproval\b/gi, "decision")
+    .replace(/\bto approve\b/gi, "to pick")
+    .replace(/\bapproves\b/gi, "picks")
+    .replace(/\bapprove\b/gi, "pick")
+    .replace(/\bapproved\b/gi, "kept")
+    .replace(/\bapproving\b/gi, "keeping")
+    .replace(/\bfor I\b/gi, "for me")
+    .replace(/\bI to\b/gi, "me to")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function prioritySurfaceText(value) {
+  let clean = privateSurfaceText(value);
+  clean = clean
+    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?(?:H-bridge\s+)?(?:artifact set|artifacts|artifact|bundle|H-bridge bundle)\s+now:?\s*/i, "My next usable H-bridge bundle: ")
+    .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?/i, "My next usable H-bridge bundle: ")
+    .replace(/^Pick\s+(?:the\s+|one\s+)?(?:Codex-owned|Codex)\s+deliverable:?\s*/i, "My next usable H-bridge bundle: ")
+    .replace(/^Produce a complete H-bridge\s+/i, "My next usable H-bridge bundle: ");
+  if (clean) clean = clean.charAt(0).toUpperCase() + clean.slice(1);
+  return clean;
+}
+
+function cleanAiIdea(idea) {
+  const record = objectRecord(idea);
+  const text = privateSurfaceText(record.text).slice(0, 380);
+  if (!text) return null;
+  return {
+    id: String(record.id || "").replace(/\s+/g, "-").slice(0, 120),
+    text,
+    reason: privateSurfaceText(record.reason || "tip").slice(0, 140),
+    keywords: Array.isArray(record.keywords) ? record.keywords.map((keyword) => String(keyword || "").trim()).filter(Boolean).slice(0, 5) : [],
+    source: String(record.source || "ai").slice(0, 40),
+  };
+}
+
 function cleanAiFeed(record) {
   const feed = objectRecord(record);
   return {
     status: feed.status === "loading" ? "idle" : String(feed.status || "idle").slice(0, 40),
     mode: String(feed.mode || "").slice(0, 40),
     model: String(feed.model || "").slice(0, 80),
-    priority: String(feed.priority || "").replace(/\s+/g, " ").trim().slice(0, 260),
-    summary: String(feed.summary || "").replace(/\s+/g, " ").trim().slice(0, 1200),
-    ideas: Array.isArray(feed.ideas) ? feed.ideas.map((idea) => objectRecord(idea)).slice(0, 80) : [],
+    priority: prioritySurfaceText(feed.priority).slice(0, 260),
+    summary: privateSurfaceText(feed.summary).slice(0, 1200),
+    ideas: Array.isArray(feed.ideas) ? feed.ideas.map(cleanAiIdea).filter(Boolean).slice(0, 80) : [],
     paperIds: Array.isArray(feed.paperIds) ? feed.paperIds.map((id) => String(id || "")).filter(Boolean).slice(0, 120) : [],
     updatedAt: feed.updatedAt || "",
     error: String(feed.error || "").slice(0, 240),
@@ -625,8 +704,8 @@ function compactArray(items, maxItems, mapper) {
 function compactAiPayload(payload) {
   return {
     focus: compactString(payload.focus, 700),
-    priority: compactString(payload.priority, 260),
-    summary: compactString(payload.summary, 900),
+    priority: compactString(prioritySurfaceText(payload.priority), 260),
+    summary: compactString(privateSurfaceText(payload.summary), 900),
     stage: {
       id: compactString(payload.stage?.id, 80),
       label: compactString(payload.stage?.label, 120),
@@ -638,8 +717,8 @@ function compactAiPayload(payload) {
     notes: compactArray(payload.notes, 24, (note) => compactString(note?.text, 500)),
     approvedIdeas: compactArray(payload.approvedIdeas, 36, (idea) => ({
       id: compactString(idea?.id, 120),
-      text: compactString(idea?.text, 380),
-      reason: compactString(idea?.reason, 140),
+      text: compactString(privateSurfaceText(idea?.text), 380),
+      reason: compactString(privateSurfaceText(idea?.reason), 140),
     })),
     approvedPapers: compactArray(payload.approvedPapers, 18, (paper) => ({
       id: compactString(paper?.id, 120),
@@ -720,14 +799,17 @@ function aiSystemPrompt() {
     "The client provides a current project stage. Treat that stage as the strongest context unless latestNote clearly changes it.",
     "Return priority as the one thing that should sit at the very top of the page. If the user reads only that line, the project should move forward.",
     "Priority must consider latestNote, approved items, rejected items, skipped items, current stage, and available project files. It should be more important than any individual note card.",
-    "Priority must be direct visible language: one immediate action or constraint, no second-person coaching, no motivational framing, no fake precision.",
+    "Priority must be direct visible language: one immediate action or constraint, no second-person coaching, no motivational framing, no fake precision, no report-about-the-user phrasing.",
+    "This is a private work surface for the user. Do not write Alan, user, he, they, for Alan, Alan approval, or external-review phrasing in priority, summary, or suggested notes.",
+    "Prefer owned-surface language when personal framing is needed: I only need to, my next usable artifact, my burden moves to Codex, or terse noun labels.",
+    "For delegation priority, prefer 'My next usable H-bridge bundle: ...' over Produce, Generate, or Deliver as an assignment verb.",
     "Treat latestNote and open questions in notes as the main problems to help with right now.",
     "Suggested notes are helpful tips, tiny explanations, shopping routes, search terms, source links, or next tiny actions that directly answer those concerns.",
-    "For each stage, give the fastest useful action for that exact stage: body reset means handle hunger/tiredness then return with one tiny move; activation means make the entry exciting enough to touch and remove startup friction; rough mood means lower the bar to one reversible step; delegation means Codex or AI owns code, driver, H-bridge, wiring, parts, and checklist artifacts while Alan only approves the next artifact; chaos capture means absorb the random note and route back to one concrete object; north star means turn ambition into a portfolio-visible artifact; focus reset means take a clean break and leave one re-entry action; prototype routine means protect writing momentum while making one tiny printer-adjacent iteration loop; orientation means reduce friction; sourcing means parts and suppliers; bench means crude EPM switching; measurement means one visible diagnostic; cell integration means transplant the working bench mechanism; printing means isolate material risk; papers means citations that support the stated claim.",
+    "For each stage, give the fastest useful action for that exact stage: body reset means handle hunger/tiredness then return with one tiny move; activation means make the entry exciting enough to touch and remove startup friction; rough mood means lower the bar to one reversible step; delegation means Codex or AI owns code, driver, H-bridge, wiring, parts, and checklist artifacts while the visible output leaves only one keep/check decision; chaos capture means absorb the random note and route back to one concrete object; north star means turn ambition into a portfolio-visible artifact; focus reset means take a clean break and leave one re-entry action; prototype routine means protect writing momentum while making one tiny printer-adjacent iteration loop; orientation means reduce friction; sourcing means parts and suppliers; bench means crude EPM switching; measurement means one visible diagnostic; cell integration means transplant the working bench mechanism; printing means isolate material risk; papers means citations that support the stated claim.",
     "If latestNote is off-topic or says the user wants to practice violin, avoid guilt or hype; treat it as RESET MODE and give short re-entry suggestions that keep the research alive after the break.",
     "If latestNote is a raw thought like hungry, ice cream, profanity, low energy, lazy, jokes, or chaotic words, do not ignore it and do not moralize; translate it into body reset, rough mood, or chaos capture suggestions.",
     "If latestNote mentions ADHD, autism, hard to start, wanting to be excited, or a unique brain, treat it as ACTIVATION MODE: no generic productivity advice, no shame, no study plan, no long list; make one visually exciting artifact, one choice, or one low-friction entry point.",
-    "If latestNote asks for AI generation, Codex, ChatGPT, code to be handled, or says H-bridge/electronics is confusing and not worth learning right now, treat it as DELEGATION MODE: produce Codex-owned artifacts such as a wiring map, pulse script, parts list, safety checklist, and one approval point.",
+    "If latestNote asks for AI generation, Codex, ChatGPT, code to be handled, or says H-bridge/electronics is confusing and not worth learning right now, treat it as DELEGATION MODE: produce Codex-owned artifacts such as a wiring map, pulse script, parts list, safety checklist, and one decision point.",
     "If latestNote mentions Disney Imagineering, getting hired, portfolio, success, or cool stuff, treat it as NORTH STAR mode and suggest visible artifacts that would make the project compelling to an R&D Imagineering audience.",
     "If latestNote mentions writing a lot, switching states to prototyping, printer iterations, or fitting prototyping into the current routine, treat it as PROTOTYPE ROUTINE mode; address context switching and printer-adjacent workflow before technical build advice.",
     "Keep addressing a concern until approvedIdeas already contains a tip that clearly answers it.",
@@ -765,12 +847,12 @@ function responseOutputText(response) {
 function normalizeAiResult(result, candidatePaperIds) {
   const paperIdSet = new Set(candidatePaperIds);
   const notes = compactArray(result.notes, 18, (note, index) => {
-    const text = compactString(note?.text, 180);
+    const text = compactString(privateSurfaceText(note?.text), 180);
     if (!text) return null;
     return {
       id: `ai-${compactString(note.id, 80) || crypto.createHash("sha1").update(text).digest("hex").slice(0, 12)}-${index}`,
       text,
-      reason: compactString(note?.reason, 70) || "tip",
+      reason: compactString(privateSurfaceText(note?.reason), 70) || "tip",
       keywords: compactArray(note?.keywords, 5, (keyword) => compactString(keyword, 60)),
       source: "ai",
     };
@@ -778,8 +860,8 @@ function normalizeAiResult(result, candidatePaperIds) {
   return {
     mode: "ai",
     model: openAiModel,
-    priority: compactString(result.priority, 220),
-    summary: compactString(result.summary, 500),
+    priority: compactString(prioritySurfaceText(result.priority), 220),
+    summary: compactString(privateSurfaceText(result.summary), 500),
     notes,
     paperIds: compactArray(result.paperIds, 18, (id) => compactString(id, 120)).filter((id) => paperIdSet.has(id)),
     updatedAt: new Date().toISOString(),
