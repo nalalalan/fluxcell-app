@@ -2663,6 +2663,7 @@ function prioritySurfaceText(text) {
     .replace(/^(?:Produce|Generate|Deliver)\s+(?:one\s+|four\s+|a\s+)?(?:complete\s+)?(?:consolidated\s+)?(?:Codex-owned\s+)?/i, "Codex is building the H-bridge bundle: ")
     .replace(/^Pick\s+(?:the\s+|one\s+)?(?:Codex-owned|Codex)\s+deliverable:?\s*/i, "Codex is building the H-bridge bundle: ")
     .replace(/^Produce a complete H-bridge\s+/i, "Codex is building the H-bridge bundle: ")
+    .replace(/\s+[-\u2014]\s*pick\b.*$/i, ".")
     .replace(/\s+(?:ready\s+)?for review\.?$/i, ".");
   if (clean) clean = clean.charAt(0).toUpperCase() + clean.slice(1);
   return shortTipText(clean, 220);
