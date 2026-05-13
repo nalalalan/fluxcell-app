@@ -3033,6 +3033,12 @@ function createTopbar() {
   const topbar = el("header", "topbar");
   const brand = el("a", "brand", appName);
   brand.href = "/";
+  const home = el("a", "ao-home");
+  home.href = "https://aolabs.io/";
+  home.setAttribute("aria-label", "AO Labs");
+  home.innerHTML = '<img src="https://aolabs.io/marks/ao-cream.svg?v=20260513-ao-ring" alt="">';
+  const left = el("div", "topbar-left");
+  left.append(home, brand);
 
   const status = el("div", "status-strip");
   const fileCount = state.files.filter(isVisibleLibraryFile).length;
@@ -3045,13 +3051,9 @@ function createTopbar() {
   status.append(createStatusPill(`${noteCount} notes`, "stat"));
 
   const right = el("div", "topbar-right");
-  const home = el("a", "ao-home");
-  home.href = "https://aolabs.io/";
-  home.setAttribute("aria-label", "AO Labs");
-  home.innerHTML = '<img src="https://aolabs.io/favicon.svg?v=20260512-suite-mark" alt="">';
-  right.append(status, home);
+  right.append(status);
 
-  topbar.append(brand, right);
+  topbar.append(left, right);
   return topbar;
 }
 
