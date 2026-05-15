@@ -1,6 +1,6 @@
 const root = document.getElementById("app");
 
-const appName = "FluxCell";
+const appName = "fluxcell";
 const stateKey = "fluxcell.lab.v1";
 const ownerKey = "fluxcell.owner.delete.hash.v1";
 const dbName = "fluxcell-file-vault";
@@ -3030,14 +3030,17 @@ function createShell() {
 }
 
 function createTopbar() {
-  const topbar = el("header", "topbar");
-  const brand = el("a", "brand", appName);
+  const topbar = el("header", "suite-topbar");
+  topbar.setAttribute("aria-label", "fluxcell navigation");
+  const brand = el("a", "suite-app-brand");
   brand.href = "/";
-  const home = el("a", "ao-home");
+  brand.setAttribute("aria-label", "fluxcell home");
+  brand.innerHTML = '<img class="suite-app-mark" src="https://aolabs.io/icons/fluxcell.svg?v=20260508-icon-pass2" alt=""><span class="suite-app-name">fluxcell</span>';
+  const home = el("a", "suite-ao-home");
   home.href = "https://aolabs.io/";
-  home.setAttribute("aria-label", "AO Labs");
-  home.innerHTML = '<img src="https://aolabs.io/marks/ao-cream.svg?v=20260515-ao-monogram-centered" alt="">';
-  const left = el("div", "topbar-left");
+  home.setAttribute("aria-label", "aolabs.io");
+  home.innerHTML = '<img src="https://aolabs.io/marks/ao-ink.svg?v=20260515-ao-disc-a" alt="">';
+  const left = el("div", "suite-brand-cluster");
   left.append(home, brand);
 
   const status = el("div", "status-strip");
@@ -3050,7 +3053,7 @@ function createTopbar() {
   status.append(createStatusPill(`${fileCount} files`, "stat"));
   status.append(createStatusPill(`${noteCount} notes`, "stat"));
 
-  const right = el("div", "topbar-right");
+  const right = el("div", "suite-topbar-actions");
   right.append(status);
 
   topbar.append(left, right);
