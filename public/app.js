@@ -3036,7 +3036,7 @@ function createTopbar() {
   const home = el("a", "ao-home");
   home.href = "https://aolabs.io/";
   home.setAttribute("aria-label", "AO Labs");
-  home.innerHTML = '<img src="https://aolabs.io/marks/ao-cream.svg?v=20260515-ao-monogram" alt="">';
+  home.innerHTML = '<img src="https://aolabs.io/marks/ao-cream.svg?v=20260515-ao-monogram-centered" alt="">';
   const left = el("div", "topbar-left");
   left.append(home, brand);
 
