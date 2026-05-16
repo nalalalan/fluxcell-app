@@ -197,7 +197,7 @@ const cadFigures = [
   {
     src: "/paper/figures/cell-3d-exploded.png",
     title: "Exploded stack",
-    detail: "Top plate, shared center plate, bottom plate, rods, fork prongs, and center tongues.",
+    detail: "Top-down stack: center tongue between rods, fork prongs outside.",
   },
 ];
 

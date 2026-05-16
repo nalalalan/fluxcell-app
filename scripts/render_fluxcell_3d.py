@@ -462,12 +462,139 @@ def draw_state_panel(
 
 
 def render_exploded() -> Image.Image:
-    renderer = IsoRenderer(1600, 920, yaw=39, pitch=24, scale=165, origin=(0, 96))
-    add_two_axis_cell(renderer, exploded=True)
-    return renderer.render(
-        "FluxCell two-axis cell: exploded 3D schematic",
-        "Top, shared center, and bottom pole plates are separated so the two magnetic layers are visible.",
+    image = Image.new("RGBA", (1200, 980), BG + (255,))
+    draw = ImageDraw.Draw(image)
+    draw.text((42, 34), "Exploded top-down construction view", fill=INK, font=font(32, True))
+    draw.text(
+        (42, 76),
+        "Top-down view. The single center tongue is between Alnico/NdFeB; the fork prongs are outside.",
+        fill=MUTED,
+        font=font(18),
     )
+
+    cx = 600
+    draw_plate_topdown(draw, cx, 176, "top pole plate")
+    draw_layer_topdown(draw, cx, 346, "Y layer", "front/back axis", "y")
+    draw_plate_topdown(draw, cx, 516, "shared center plate")
+    draw_layer_topdown(draw, cx, 684, "X layer", "left/right axis", "x")
+    draw_plate_topdown(draw, cx, 852, "bottom pole plate")
+
+    draw_stack_guides(draw, cx)
+    return image.convert("RGB")
+
+
+def draw_plate_topdown(draw: ImageDraw.ImageDraw, cx: int, cy: int, label: str) -> None:
+    half = 72
+    depth = (12, 10)
+    rect = (cx - half, cy - half, cx + half, cy + half)
+    shadow = tuple(value + offset for value, offset in zip(rect, depth * 2))
+    draw.rounded_rectangle(shadow, radius=3, fill=(0, 0, 0, 24))
+    draw.rectangle(rect, fill=STEEL + (255,), outline=LINE, width=2)
+    draw.rectangle((cx - half, cy - half, cx + half, cy - half + 18), fill=shade(STEEL, 1.12) + (255,), outline=None)
+    label_x = cx + 104
+    label_y = cy - 14
+    draw.line((cx + half, cy, label_x - 10, label_y + 12), fill=(124, 116, 106), width=1)
+    draw_label(draw, (label_x, label_y), label)
+
+
+def draw_layer_topdown(
+    draw: ImageDraw.ImageDraw,
+    cx: int,
+    cy: int,
+    layer: str,
+    subtitle: str,
+    axis: str,
+) -> None:
+    layer_color = Y_LAYER if axis == "y" else X_LAYER
+    outline = (132, 112, 45) if axis == "y" else (64, 93, 119)
+    half = 82
+    plate = (cx - half, cy - half, cx + half, cy + half)
+    draw.rounded_rectangle((plate[0] + 9, plate[1] + 9, plate[2] + 9, plate[3] + 9), radius=4, fill=(0, 0, 0, 18))
+    draw.rectangle(plate, fill=layer_color + (245,), outline=outline, width=2)
+    draw.text((cx - 320, cy - 96), layer, fill=INK, font=font(23, True))
+    draw.text((cx - 320, cy - 68), subtitle, fill=MUTED, font=font(15, True))
+
+    if axis == "y":
+        # Lane order: fork | Alnico | center tongue | NdFeB | fork.
+        draw_carrier(draw, (cx - 110, cy - 132, cx + 110, cy - 110))
+        draw_carrier(draw, (cx - 110, cy + 110, cx + 110, cy + 132))
+        draw_bar(draw, (cx - 62, cy - 110, cx - 44, cy - 14))
+        draw_bar(draw, (cx + 44, cy - 110, cx + 62, cy - 14))
+        draw_bar(draw, (cx - 12, cy + 14, cx + 12, cy + 110))
+        draw_magnet_disc(draw, (cx - 34, cy), ALNICO, "A")
+        draw_magnet_disc(draw, (cx + 34, cy), NDFEB, "N")
+        draw_part_callout(draw, (cx, cy + 52), (cx + 170, cy + 74), "single center tongue\nbetween A and N")
+        draw_part_callout(draw, (cx + 52, cy - 72), (cx + 170, cy - 86), "fork prongs outside\nA/N pair")
+    else:
+        # Same lane order, rotated 90 degrees.
+        draw_carrier(draw, (cx - 132, cy - 110, cx - 110, cy + 110))
+        draw_carrier(draw, (cx + 110, cy - 110, cx + 132, cy + 110))
+        draw_bar(draw, (cx - 110, cy - 12, cx - 14, cy + 12))
+        draw_bar(draw, (cx + 14, cy - 62, cx + 110, cy - 44))
+        draw_bar(draw, (cx + 14, cy + 44, cx + 110, cy + 62))
+        draw_magnet_disc(draw, (cx, cy - 34), ALNICO, "A")
+        draw_magnet_disc(draw, (cx, cy + 34), NDFEB, "N")
+        draw_part_callout(draw, (cx - 54, cy), (cx - 404, cy - 28), "single center tongue\nbetween A and N")
+        draw_part_callout(draw, (cx + 72, cy + 52), (cx + 170, cy + 68), "fork prongs outside\nA/N pair")
+
+
+def draw_carrier(draw: ImageDraw.ImageDraw, rect: tuple[int, int, int, int]) -> None:
+    x0, y0, x1, y1 = rect
+    draw.rectangle((x0 + 6, y0 + 6, x1 + 6, y1 + 6), fill=(0, 0, 0, 26))
+    draw.rectangle(rect, fill=CARRIER + (255,), outline=(37, 82, 116), width=2)
+
+
+def draw_bar(draw: ImageDraw.ImageDraw, rect: tuple[int, int, int, int]) -> None:
+    draw.rectangle(rect, fill=DARK_STEEL + (255,), outline=(22, 23, 22), width=2)
+
+
+def draw_magnet_disc(
+    draw: ImageDraw.ImageDraw,
+    center: tuple[int, int],
+    color: tuple[int, int, int],
+    letter: str,
+) -> None:
+    x, y = center
+    radius = 23
+    draw.ellipse((x - radius - 5, y - radius - 5, x + radius + 5, y + radius + 5), fill=(255, 255, 252, 245))
+    draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=color + (255,), outline=shade(color, 0.55), width=4)
+    draw.text((x - 8, y - 14), letter, fill=(20, 20, 18), font=font(24, True))
+
+
+def draw_part_callout(
+    draw: ImageDraw.ImageDraw,
+    anchor: tuple[int, int],
+    label_pos: tuple[int, int],
+    text: str,
+) -> None:
+    draw.line((anchor[0], anchor[1], label_pos[0] - 12, label_pos[1] + 16), fill=(124, 116, 106), width=1)
+    draw_label(draw, label_pos, text)
+
+
+def draw_label(draw: ImageDraw.ImageDraw, pos: tuple[int, int], text: str) -> None:
+    label_font = font(17, True)
+    lines = text.split("\n")
+    widths = [draw.textbbox((0, 0), line, font=label_font)[2] for line in lines]
+    line_h = draw.textbbox((0, 0), "Ag", font=label_font)[3] + 3
+    x, y = pos
+    pad_x = 8
+    pad_y = 5
+    draw.rounded_rectangle(
+        (x - pad_x, y - pad_y, x + max(widths) + pad_x, y + line_h * len(lines) + pad_y),
+        radius=5,
+        fill=(255, 255, 255, 245),
+        outline=(211, 204, 194),
+        width=1,
+    )
+    for index, line in enumerate(lines):
+        draw.text((x, y + index * line_h), line, fill=INK, font=label_font)
+
+
+def draw_stack_guides(draw: ImageDraw.ImageDraw, cx: int) -> None:
+    for x in (cx - 82, cx + 82):
+        draw.line((x, 254, x, 778), fill=(159, 149, 138), width=1)
+        for y in range(254, 778, 16):
+            draw.line((x, y, x, y + 6), fill=(159, 149, 138), width=2)
 
 
 def save_all() -> None:
