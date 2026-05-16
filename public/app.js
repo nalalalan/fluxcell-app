@@ -190,12 +190,12 @@ const designFigures = [
 
 const cadFigures = [
   {
-    src: "/paper/figures/fluxcell-3d-assembled.png",
+    src: "/paper/figures/cell-3d-assembled.png",
     title: "Assembled exterior",
     detail: "Opaque 3D view of the top plate, carrier bars, and protruding steel keepers.",
   },
   {
-    src: "/paper/figures/fluxcell-3d-exploded.png",
+    src: "/paper/figures/cell-3d-exploded.png",
     title: "Exploded stack",
     detail: "Top plate, shared center plate, bottom plate, rods, fork prongs, and center tongues.",
   },

@@ -326,8 +326,8 @@ def render_exploded() -> Image.Image:
 
 def save_all() -> None:
     assets = {
-        "fluxcell-3d-assembled.png": render_assembled(),
-        "fluxcell-3d-exploded.png": render_exploded(),
+        "cell-3d-assembled.png": render_assembled(),
+        "cell-3d-exploded.png": render_exploded(),
     }
     for directory in FIGURE_DIRS:
         directory.mkdir(parents=True, exist_ok=True)
