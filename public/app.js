@@ -131,9 +131,75 @@ const recoveredFeedbackSeed = {
 
 const focus = {
   domain: "fluxcell.aolabs.io",
-  title: "Printed electropermanent actuation for Sarrus cells.",
-  current: "Integrated EPM actuation in one laterally expanding cell.",
+  title: "Electropermanent magnetic memory for Sarrus-cell motion.",
+  current: "One-axis proof first, then four two-axis FluxCell cells.",
 };
+
+const systemFacts = [
+  ["Locked design", "Square pole plates, solid steel inserts, one-axis proof first, parts for four full two-axis cells."],
+  ["Geometry lock", '1.00" keeper inserts, 1.25" square pole plates, 3.0" expanded, 1.5" contracted, 0.75" side stroke.'],
+  ["Magnetic layout", "Fixed center EPM cartridge; fork prongs and center tongue are moving steel keepers."],
+  ["Bench proof", "One axis uses 1 Alnico rod, 1 NdFeB rod, 2 pole plates, 2 fork prongs, 1 center tongue, 1 printed frame."],
+];
+
+const generatedArtifacts = [
+  {
+    title: "Draft paper",
+    detail: "Manuscript PDF with figures, source, and evidence boundaries.",
+    href: "/paper.pdf",
+  },
+  {
+    title: "Paper source",
+    detail: "LaTeX source for the current draft.",
+    href: "/paper/source.tex",
+  },
+  {
+    title: "Proof bundle",
+    detail: "Wiring map, pulse script, purchase lock, and bench-test checklist.",
+    href: "/api/generated/hbridge-bundle.md",
+  },
+];
+
+const designLog = [
+  ["System role", "FluxCell stores state, artifacts, design decisions, files, and current proof direction."],
+  ["EPM architecture", "The EPM stays as a fixed center cartridge; moving steel inserts change magnetic overlap."],
+  ["Lane layout", "Center tongue runs between Alnico and NdFeB; fork prongs run outside the magnet pair."],
+  ["Dimensional decision", '1.00" keepers keep off-state overlap near 0.125" and on-state overlap near 0.875".'],
+  ["Build order", "One-axis proof happens before two-axis cell integration."],
+  ["Scale target", "Purchase quantities support the proof, four two-axis cells, and spares."],
+];
+
+const purchaseRows = [
+  ["Alnico 5 rods", "12", '0.250" dia x 0.625" long, Alnico 5, axial', "CLMI", "https://clmi.us/shop/250-round-bar-magnets-alnico-grade-5/", "$23.88"],
+  ["NdFeB rods", "12", 'K&J D4A, 1/4" dia x 5/8" long, N42, axial', "K&J", "https://www.kjmagnetics.com/d4a-neodymium-cylinder-magnet", "~$15.00"],
+  ["Square pole plates", "16", '1018 steel rectangle bar, 0.25" thick x 1.25" wide, cut length 1.25"', "OnlineMetals", "https://www.onlinemetals.com/en/buy/carbon-steel/0-25-x-1-25-carbon-steel-rectangle-bar-1018-cold-finish/pid/7466", "~$56.00"],
+  ["Fork prong inserts", "24", 'A36 flat bar, 1/8" thick x 1/2" wide, cut length 1.00"', "All Metals", "https://allmetalsinc.com/products/steel-hot-rolled-flat-bar-1-8-x-1-2-grade-a36", "$167.28"],
+  ["Center tongue inserts", "12", '1018 flat bar, 1/4" thick x 1/2" wide, cut length 1.00"', "All Metals", "https://allmetalsinc.com/products/steel-cold-rolled-flat-bar-1-4-x-1-2-grade-1018", "$87.72"],
+  ["Magnet wire", "1 spool", "30 AWG enameled copper magnet wire, 4 oz", "BNTECHGO", "https://bntechgo.com/bntechgo-30-awg-magnet-wire-enameled-copper-wire-enameled-magnet-winding-wire-4-oz-0-0098-diameter-1-spool-coil-red-temperature-rating-155-degrees-celsius-widely-used-for-transformers-and-inductors/", "~$12.00"],
+  ["Kapton tape", "1 roll", '1/2" Kapton/polyimide tape', "Stellar", "https://stellartechnical.com/products/kapton-film-tape-1-2", "$8.75"],
+  ["Bench supply", "1", "0-30 V, 0-10 A adjustable DC supply", "Amazon/Walmart", "https://www.amazon.com/Adjustable-Switching-Regulated-Adjustments-Jesverty/dp/B09YSJQWRG", "~$60.00"],
+  ["Banana leads", "1 set", "4 mm banana plug to alligator clip leads, 10-15 A preferred", "Amazon", "https://www.amazon.com/s?k=banana+plug+to+alligator+clip+leads+15a", "~$12.00"],
+  ["Silicone wire", "1 kit", "24-28 AWG flexible silicone wire for coil pigtails", "Amazon", "https://www.amazon.com/s?k=24+awg+silicone+wire+kit", "~$10.00"],
+  ["Heat shrink", "1 kit", "Small heat-shrink tubing for coil strain relief", "Amazon", "https://www.amazon.com/s?k=heat+shrink+tubing+kit", "~$8.00"],
+];
+
+const designFigures = [
+  {
+    src: "/paper/figures/fixed-cartridge.png",
+    title: "Fixed cartridge",
+    detail: "EPM is fixed; the steel prongs and tongue move through the working gap.",
+  },
+  {
+    src: "/paper/figures/lane-layout.png",
+    title: "Lane layout",
+    detail: "Fork prongs outside, center tongue between Alnico and NdFeB.",
+  },
+  {
+    src: "/assets/fluxcell-one-axis-summary.svg",
+    title: "One-axis overlap",
+    detail: '3.0" expanded/off and 1.5" contracted/on with controlled keeper overlap.',
+  },
+];
 
 const paperGuideRules = [
   {
@@ -2397,7 +2463,7 @@ let tipWindowIndex = 0;
 let suppressCloudStateSave = false;
 let lastCloudStateSignature = "";
 const previewUrls = new Map();
-const visibleTipCount = 9;
+const visibleTipCount = 3;
 
 function loadState() {
   try {
@@ -3018,14 +3084,17 @@ function render() {
 function createShell() {
   const shell = el("main", "app-shell");
   shell.append(createTopbar());
-  const codexOutput = createCodexOutputSection();
-  if (codexOutput) shell.append(codexOutput);
-  const focusLibrary = createFocusLibrary();
-  if (focusLibrary) shell.append(focusLibrary);
+  shell.append(createSystemViewSection());
+  shell.append(createGeneratedArtifactsSection());
+  shell.append(createDesignLogSection());
+  shell.append(createPurchaseSection());
+  shell.append(createPortfolioSection());
   shell.append(createWorkspace());
   const notes = createNotesSection();
   if (notes) shell.append(notes);
   shell.append(createLibrary());
+  const focusLibrary = createFocusLibrary();
+  if (focusLibrary) shell.append(focusLibrary);
   return shell;
 }
 
@@ -3062,6 +3131,136 @@ function createTopbar() {
 
 function createStatusPill(text, className) {
   return el("span", className, text);
+}
+
+function createSystemViewSection() {
+  const section = el("section", "system-view");
+  const titleBlock = el("div", "system-title-block");
+  const copy = el("div", "system-title-copy");
+  copy.append(
+    el("h1", "", "One-axis EPM proof, then four two-axis FluxCell cells."),
+    el("p", "system-summary", "Current plan: square pole plates, solid steel inserts, supplier-cut steel, one-axis evidence before cell-scale complexity.")
+  );
+
+  const actions = el("div", "system-actions");
+  actions.append(
+    createTextLink("Draft paper", "/paper.pdf", "system-button primary"),
+    createTextLink("Proof bundle", "/api/generated/hbridge-bundle.md", "system-button")
+  );
+  titleBlock.append(copy, actions);
+
+  const facts = el("div", "system-facts");
+  systemFacts.forEach(([label, value]) => {
+    const row = el("div", "system-fact");
+    row.append(el("p", "system-fact-label", label), el("p", "system-fact-value", value));
+    facts.append(row);
+  });
+
+  section.append(titleBlock, facts);
+  return section;
+}
+
+function createGeneratedArtifactsSection() {
+  const section = el("section", "artifact-section");
+  const head = el("div", "section-head");
+  head.append(el("h2", "", "Generated artifacts"));
+  const grid = el("div", "artifact-grid");
+  generatedArtifacts.forEach((item) => {
+    const card = createTextLink("", item.href, "artifact-card");
+    const body = el("div", "item-body");
+    body.append(el("p", "item-title", item.title), el("p", "item-meta", item.detail));
+    card.append(body);
+    grid.append(card);
+  });
+  section.append(head, grid);
+  return section;
+}
+
+function createDesignLogSection() {
+  const section = el("section", "design-log-section");
+  const head = el("div", "section-head");
+  head.append(el("h2", "", "Design log"));
+  const rows = el("div", "log-rows");
+  designLog.forEach(([label, value]) => {
+    const row = el("div", "log-row");
+    row.append(el("p", "log-label", label), el("p", "log-value", value));
+    rows.append(row);
+  });
+
+  const figures = el("div", "design-figure-grid");
+  designFigures.forEach((figure) => {
+    const card = el("figure", "design-figure");
+    const img = document.createElement("img");
+    img.src = figure.src;
+    img.alt = figure.title;
+    img.loading = "lazy";
+    img.decoding = "async";
+    const caption = el("figcaption", "");
+    caption.append(el("strong", "", figure.title), document.createTextNode(` ${figure.detail}`));
+    card.append(img, caption);
+    figures.append(card);
+  });
+
+  section.append(head, rows, figures);
+  return section;
+}
+
+function createPurchaseSection() {
+  const section = el("section", "purchase-section");
+  const head = el("div", "section-head");
+  head.append(
+    el("h2", "", "Locked purchase list"),
+    el("p", "section-note", "Square pole plates + solid steel inserts + one-axis proof first + enough parts for 4 full two-axis cells. Approx total before shipping/tax: ~$456.65.")
+  );
+
+  const scroll = el("div", "table-scroll");
+  const table = el("table", "purchase-table");
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  ["Part", "Qty", "Spec", "Source", "Total"].forEach((label) => headRow.append(el("th", "", label)));
+  thead.append(headRow);
+  const tbody = document.createElement("tbody");
+  purchaseRows.forEach(([part, qty, spec, source, href, total]) => {
+    const row = document.createElement("tr");
+    row.append(el("td", "", part), el("td", "", qty), el("td", "", spec));
+    const sourceCell = document.createElement("td");
+    sourceCell.append(createTextLink(source, href, "inline-link"));
+    row.append(sourceCell, el("td", "", total));
+    tbody.append(row);
+  });
+  table.append(thead, tbody);
+  scroll.append(table);
+  section.append(head, scroll);
+  return section;
+}
+
+function createPortfolioSection() {
+  const section = el("section", "portfolio-section");
+  const blocks = [
+    ["Paper story", "Pulse-programmed mechanical memory: a small robotic cell changes geometry with a short pulse and holds state without continuous power."],
+    ["R&D/Imagineering relevance", "Portfolio-facing proof for physical computing, quiet show mechanisms, visible state change, repeatable reset, and evidence-rich iteration."],
+    ["Demo target", "Four-cell kinetic surface: synchronized width trace, current trace, temperature note, and zero-current hold after each state change."],
+  ];
+  const head = el("div", "section-head");
+  head.append(el("h2", "", "Paper direction"));
+  const grid = el("div", "portfolio-grid");
+  blocks.forEach(([label, value]) => {
+    const block = el("article", "portfolio-block");
+    block.append(el("p", "portfolio-label", label), el("p", "portfolio-value", value));
+    grid.append(block);
+  });
+  section.append(head, grid);
+  return section;
+}
+
+function createTextLink(text, href, className) {
+  const link = el("a", className, text);
+  link.href = href;
+  if (/^https?:\/\//i.test(href)) {
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+  }
+  return link;
 }
 
 function currentPriorityLine() {
@@ -3231,21 +3430,17 @@ function syncLabel() {
 }
 
 function createWorkspace() {
-  const section = el("section", "workspace");
+  const section = el("section", "workspace capture-workspace");
 
   const capture = el("section", "capture-panel");
   capture.append(createIntro(), createCaptureForm());
-
-  const thinking = el("aside", "state-panel");
-  thinking.append(createProjectStatePanel());
-
-  section.append(capture, thinking);
+  section.append(capture);
   return section;
 }
 
 function createIntro() {
   const wrap = el("div", "intro");
-  wrap.append(el("h1", "", appName), el("p", "tagline", focus.title));
+  wrap.append(el("h2", "", "Capture log"), el("p", "tagline", "Notes, figures, PDFs, and build evidence stay attached to the project state."));
   return wrap;
 }
 
@@ -4375,9 +4570,9 @@ function createFocusLibrary() {
   const papers = focusPaperItems();
   if (!approvedIdeas.length && !approvedPapers.length && !ideas.length && !papers.length) return null;
 
-  const section = el("section", "focus-library useful-library top-feed");
+  const section = el("section", "focus-library useful-library backlog-library");
   const head = el("div", "section-head section-head-row");
-  const heading = projectStageProfile().id === "delegate" ? "Codex queue" : "Suggestions";
+  const heading = "Backlog";
   head.append(el("h2", "", heading), createFeedControls(ideas.length));
   section.append(head);
 
@@ -4411,7 +4606,7 @@ function createFeedControls(total) {
     const next = el("button", "refresh-button feed-next");
     next.type = "button";
     next.dataset.action = "next-tips";
-    next.title = "Show next tips";
+    next.title = "Show next backlog items";
     next.append(icon("skip"), document.createTextNode("Next"));
     controls.append(next);
   }
@@ -4461,7 +4656,7 @@ function createRefreshSuggestionsButton() {
   const button = el("button", "refresh-button");
   button.type = "button";
   button.dataset.action = "refresh-suggestions";
-  button.title = "Refresh suggestions";
+  button.title = "Refresh backlog";
   button.append(icon("refresh"), document.createTextNode("Refresh"));
   return button;
 }
@@ -5114,14 +5309,14 @@ async function refreshSuggestions() {
     toast("Refreshing AI feed.");
     await requestAiFeed({ force: true });
   } else {
-    toast(sync.status === "local" ? "Local suggestions refreshed. Add OPENAI_API_KEY for AI." : "Suggestions refreshed.");
+    toast(sync.status === "local" ? "Local backlog refreshed. Add OPENAI_API_KEY for AI." : "Backlog refreshed.");
   }
 }
 
 function scheduleAiFeedRefresh() {
   if (!aiBackendAvailable()) return;
   window.clearTimeout(aiRefreshTimer);
-  aiRefreshTimer = window.setTimeout(() => requestAiFeed({ force: false }), 350);
+  aiRefreshTimer = window.setTimeout(() => requestAiFeed({ force: false, quiet: true }), 350);
 }
 
 function aiBackendBase() {
@@ -5190,7 +5385,7 @@ function aiFeedPayload() {
   };
 }
 
-async function requestAiFeed({ force = false } = {}) {
+async function requestAiFeed({ force = false, quiet = false } = {}) {
   const base = aiBackendBase();
   if (!base) return false;
   if (!force && aiFeed.status === "loading") return false;
@@ -5203,7 +5398,7 @@ async function requestAiFeed({ force = false } = {}) {
       aiFeed = normalizeAiFeed({ ...response, status: "idle" });
       saveAiFeed();
       render();
-      toast(response.error || "AI is not configured.");
+      if (!quiet) toast(response.error || "AI is not configured.");
       return false;
     }
     aiFeed = normalizeAiFeed({
@@ -5219,14 +5414,14 @@ async function requestAiFeed({ force = false } = {}) {
     aiFeed.ideas.forEach(rememberCustomIdea);
     saveAiFeed();
     render();
-    toast("AI feed updated.");
+    if (!quiet) toast("AI feed updated.");
     return true;
   } catch (error) {
     console.error(error);
     aiFeed = normalizeAiFeed({ ...aiFeed, status: "idle", error: error.message || "AI request failed" });
     saveAiFeed();
     render();
-    toast(aiFeed.error);
+    if (!quiet) toast(aiFeed.error);
     return false;
   }
 }

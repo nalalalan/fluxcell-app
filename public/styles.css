@@ -49,6 +49,23 @@ a {
   color: inherit;
 }
 
+.suite-topbar {
+  background: rgba(8, 10, 10, .92) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .08) !important;
+  color: var(--ink) !important;
+  backdrop-filter: blur(16px);
+}
+
+.suite-app-name,
+.suite-topbar-actions,
+.suite-topbar-actions a {
+  color: var(--ink) !important;
+}
+
+.suite-topbar-actions {
+  gap: 8px !important;
+}
+
 .app-shell {
   width: min(calc(100% - 32px), 1120px);
   min-height: 100vh;
@@ -147,12 +164,259 @@ a {
   color: var(--amber);
 }
 
+.system-view,
+.artifact-section,
+.design-log-section,
+.purchase-section,
+.portfolio-section {
+  border-bottom: 1px solid var(--line);
+  padding: 22px 0;
+}
+
+.system-title-block {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+}
+
+.system-title-copy {
+  min-width: 0;
+}
+
+.system-summary,
+.section-note {
+  max-width: 780px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.42;
+}
+
+.system-actions,
+.artifact-grid,
+.portfolio-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.system-actions {
+  grid-template-columns: repeat(2, max-content);
+}
+
+.system-button,
+.artifact-card {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: rgba(255, 250, 240, .045);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 840;
+  text-decoration: none;
+}
+
+.system-button {
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.system-button.primary {
+  border-color: rgba(230, 179, 77, .42);
+  background: rgba(230, 179, 77, .9);
+  color: #120f09;
+}
+
+.system-button:hover,
+.system-button:focus-visible,
+.artifact-card:hover,
+.artifact-card:focus-visible {
+  border-color: rgba(104, 214, 200, .68);
+  outline: none;
+}
+
+.system-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.system-fact,
+.portfolio-block,
+.artifact-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: rgba(255, 250, 240, .035);
+}
+
+.system-fact,
+.portfolio-block {
+  padding: 14px;
+}
+
+.system-fact-label,
+.log-label,
+.portfolio-label {
+  margin: 0;
+  color: var(--amber);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.18;
+}
+
+.system-fact-value,
+.log-value,
+.portfolio-value {
+  margin: 8px 0 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.38;
+}
+
+.artifact-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.artifact-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.log-rows {
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.log-row {
+  display: grid;
+  grid-template-columns: minmax(140px, .22fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 13px 14px;
+  background: rgba(255, 250, 240, .028);
+}
+
+.log-row + .log-row {
+  border-top: 1px solid var(--line);
+}
+
+.design-figure-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.design-figure {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #f4f1ea;
+}
+
+.design-figure img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: top center;
+  background: #fff;
+}
+
+.design-figure figcaption {
+  padding: 10px 12px;
+  border-top: 1px solid rgba(0, 0, 0, .12);
+  background: #11120f;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 680;
+  line-height: 1.35;
+}
+
+.design-figure figcaption strong {
+  color: var(--ink);
+}
+
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.purchase-table {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.36;
+}
+
+.purchase-table th,
+.purchase-table td {
+  padding: 12px 13px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.purchase-table th {
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.purchase-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.purchase-table td:first-child,
+.purchase-table td:nth-child(2),
+.purchase-table td:last-child {
+  font-weight: 830;
+}
+
+.purchase-table td:nth-child(3) {
+  color: var(--muted);
+}
+
+.inline-link {
+  color: var(--cyan);
+  text-decoration: none;
+  font-weight: 820;
+}
+
+.inline-link:hover,
+.inline-link:focus-visible {
+  text-decoration: underline;
+}
+
+.portfolio-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(340px, .95fr);
   gap: 16px;
   align-items: start;
   padding: 16px 0 12px;
+}
+
+.capture-workspace {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .capture-panel,
@@ -188,6 +452,12 @@ h1 {
   font-size: clamp(30px, 3vw, 38px);
   font-weight: 900;
   line-height: .96;
+}
+
+.intro h2 {
+  font-size: 24px;
+  font-weight: 840;
+  line-height: 1.05;
 }
 
 .tagline {
@@ -896,6 +1166,12 @@ svg {
 }
 
 @media (max-width: 900px) {
+  .system-title-block,
+  .system-actions,
+  .system-facts,
+  .artifact-grid,
+  .design-figure-grid,
+  .portfolio-grid,
   .workspace,
   .codex-output-grid,
   .ideas-grid,
@@ -903,6 +1179,20 @@ svg {
   .focus-grid,
   .library-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .system-actions {
+    align-items: stretch;
+  }
+
+  .system-button {
+    width: 100%;
+  }
+
+  .design-figure img {
+    aspect-ratio: auto;
+    height: auto;
+    object-fit: contain;
   }
 
   .state-panel {
@@ -936,6 +1226,86 @@ svg {
 
   .workspace {
     padding-top: 28px;
+  }
+
+  .system-view,
+  .artifact-section,
+  .design-log-section,
+  .purchase-section,
+  .portfolio-section {
+    padding: 18px 0;
+  }
+
+  .log-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .table-scroll {
+    overflow-x: visible;
+  }
+
+  .purchase-table {
+    min-width: 0;
+    font-size: 13px;
+  }
+
+  .purchase-table thead {
+    display: none;
+  }
+
+  .purchase-table,
+  .purchase-table tbody,
+  .purchase-table tr,
+  .purchase-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .purchase-table tr {
+    padding: 13px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .purchase-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .purchase-table td {
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .purchase-table td + td {
+    margin-top: 8px;
+  }
+
+  .purchase-table td::before {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--amber);
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .purchase-table td:nth-child(1)::before {
+    content: "Part";
+  }
+
+  .purchase-table td:nth-child(2)::before {
+    content: "Qty";
+  }
+
+  .purchase-table td:nth-child(3)::before {
+    content: "Spec";
+  }
+
+  .purchase-table td:nth-child(4)::before {
+    content: "Source";
+  }
+
+  .purchase-table td:nth-child(5)::before {
+    content: "Total";
   }
 
   .state-bridge-rows {

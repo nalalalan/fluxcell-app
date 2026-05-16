@@ -38,6 +38,8 @@ const mimeTypes = {
   ".gcode": "text/plain; charset=utf-8",
   ".md": "text/markdown; charset=utf-8",
   ".txt": "text/plain; charset=utf-8",
+  ".tex": "text/plain; charset=utf-8",
+  ".bib": "text/plain; charset=utf-8",
   ".ico": "image/x-icon",
 };
 
@@ -73,35 +75,66 @@ function openAiKey() {
 }
 
 function generatedHBridgeBundleMarkdown() {
-  return `# FluxCell H-Bridge Bundle
+  return `# FluxCell Proof Bundle
 
-Location: FluxCell > Codex output > Open generated bundle
+Location: FluxCell > Generated artifacts > Proof bundle
 
-## Wiring map
+## Locked plan
 
-- Current-limited bench supply positive -> DRV8871 VMotor.
-- Current-limited bench supply negative -> DRV8871 GND.
-- Microcontroller GND -> DRV8871 GND.
-- Microcontroller D5 -> DRV8871 IN1.
-- Microcontroller D6 -> DRV8871 IN2.
-- Bench EPM coil lead A -> DRV8871 OUT1.
-- Bench EPM coil lead B -> DRV8871 OUT2.
+- Square pole plates.
+- Solid steel fork and tongue inserts.
+- One-axis proof before full two-axis integration.
+- Purchase quantities support the one-axis proof, four full two-axis cells, and spares.
+- Steel suppliers cut the pole plates and inserts to length; no home cutting is part of the locked plan.
+
+## Geometry lock
+
+- Pole plates: 1.25" x 1.25" x 0.25" from 1018 steel rectangle bar.
+- Keeper inserts: 1.00" long, not 1-1/8".
+- Expanded/off outer width: 3.0".
+- Contracted/on outer width: 1.5".
+- Side stroke: 0.75".
+- Expanded/off keeper overlap: ~0.125".
+- Contracted/on keeper overlap: ~0.875".
+
+## One-axis proof bill of materials
+
+- 1 Alnico 5 rod, 0.250" diameter x 0.625" long, axial.
+- 1 K&J D4A NdFeB rod, 1/4" diameter x 5/8" long, N42, axial.
+- 2 square 1018 pole plates, 1.25" x 1.25" x 0.25".
+- 2 A36 fork prong inserts, 1/8" x 1/2" x 1.00".
+- 1 1018 center tongue insert, 1/4" x 1/2" x 1.00".
+- 30 AWG magnet wire, Kapton wrap, silicone pigtails, heat shrink.
+- Printed proof frame.
+
+## Full purchase lock
+
+| Part | Qty | Spec |
+| --- | ---: | --- |
+| Alnico 5 rods | 12 | 0.250" dia x 0.625" long, axial |
+| NdFeB rods | 12 | K&J D4A, 1/4" dia x 5/8" long, N42 axial |
+| Square pole plates | 16 | 1018 rectangle bar, 0.25" thick x 1.25" wide, cut length 1.25" |
+| Fork prong inserts | 24 | A36 flat bar, 1/8" thick x 1/2" wide, cut length 1.00" |
+| Center tongue inserts | 12 | 1018 flat bar, 1/4" thick x 1/2" wide, cut length 1.00" |
+| Magnet wire | 1 spool | 30 AWG enameled copper magnet wire, 4 oz |
+| Kapton tape | 1 roll | 1/2" Kapton/polyimide tape |
+| Bench supply | 1 | 0-30 V, 0-10 A adjustable DC supply |
+| Banana leads | 1 set | 4 mm banana plug to alligator clip leads, 10-15 A preferred |
+| Silicone wire | 1 kit | 24-28 AWG flexible silicone wire |
+| Heat shrink | 1 kit | Small heat-shrink tubing |
+
+Approx total before shipping/tax: ~$456.65.
+
+## Bench wiring map
+
+- Current-limited bench supply positive -> H-bridge VMotor.
+- Current-limited bench supply negative -> H-bridge GND.
+- Microcontroller GND -> H-bridge GND.
+- Microcontroller D5 -> H-bridge IN1.
+- Microcontroller D6 -> H-bridge IN2.
+- EPM coil lead A -> H-bridge OUT1.
+- EPM coil lead B -> H-bridge OUT2.
 - Keep both IN pins LOW between pulses.
-
-## Parts list
-
-- DRV8871-style H-bridge motor-driver breakout with IN1, IN2, OUT1, OUT2, VMotor, and GND terminals.
-- Arduino Uno/Nano or ESP32 dev board.
-- Current-limited DC bench supply.
-- Bench EPM coupon: small coil, soft-steel keeper path, and small NdFeB magnet pair.
-- Jumper wires, screw terminals, meter leads, and a camera/phone for the bench clip.
-
-Search links:
-
-- DRV8871 motor driver breakout: https://www.digikey.com/en/products?keywords=DRV8871%20breakout
-- Motor driver breakout modules: https://www.mouser.com/c/?q=DRV8871%20breakout
-- Small NdFeB blocks: https://www.kjmagnetics.com/
-- Magnet wire: https://www.digikey.com/en/products/filter/magnet-wire/262
 
 ## Arduino pulse script
 
@@ -147,15 +180,21 @@ void loop() {
 ## Bench-test checklist
 
 - Supply current limit set low before power.
-- OUT1/OUT2 connected only to the coil.
+- OUT1/OUT2 connected only to the Alnico coil.
 - Microcontroller ground and driver ground common.
-- First pulse filmed from the side of the keeper gap.
+- First pulse filmed from the side with a width reference in frame.
+- Record pulse polarity, pulse length, current limit, visible width, hold state, and coil temperature note.
 - Coil returns to zero drive after every pulse.
 
 ## Source notes
 
-- TI lists DRV8871 as a single H-bridge motor driver with 6.5 V minimum supply, 3.6 A peak drive, PWM input control, current regulation, and protection features: https://www.ti.com/product/DRV8871
-- Adafruit's DRV8871 guide describes VMotor/GND supply, IN1/IN2 input control, OUT terminal block load wiring, PWM support, and resistor-set current limiting: https://learn.adafruit.com/adafruit-drv8871-brushed-dc-motor-driver-breakout
+- CLMI Alnico rods: https://clmi.us/shop/250-round-bar-magnets-alnico-grade-5/
+- K&J D4A NdFeB rods: https://www.kjmagnetics.com/d4a-neodymium-cylinder-magnet
+- OnlineMetals 1018 pole plate stock: https://www.onlinemetals.com/en/buy/carbon-steel/0-25-x-1-25-carbon-steel-rectangle-bar-1018-cold-finish/pid/7466
+- All Metals A36 fork insert stock: https://allmetalsinc.com/products/steel-hot-rolled-flat-bar-1-8-x-1-2-grade-a36
+- All Metals 1018 tongue insert stock: https://allmetalsinc.com/products/steel-cold-rolled-flat-bar-1-4-x-1-2-grade-1018
+- BNTECHGO 30 AWG magnet wire: https://bntechgo.com/bntechgo-30-awg-magnet-wire-enameled-copper-wire-enameled-magnet-winding-wire-4-oz-0-0098-diameter-1-spool-coil-red-temperature-rating-155-degrees-celsius-widely-used-for-transformers-and-inductors/
+- Stellar Kapton tape: https://stellartechnical.com/products/kapton-film-tape-1-2
 `;
 }
 
