@@ -3039,7 +3039,7 @@ function createTopbar() {
   const home = el("a", "suite-ao-home");
   home.href = "https://aolabs.io/";
   home.setAttribute("aria-label", "aolabs.io");
-  home.innerHTML = '<img src="https://aolabs.io/marks/ao-ink.svg?v=20260516-suite-orbit" alt="">';
+  home.innerHTML = '<img src="https://aolabs.io/marks/ao-ink.svg?v=20260516-suite-pane" alt="">';
   const left = el("div", "suite-brand-cluster");
   left.append(home, brand);
 
