@@ -3035,11 +3035,11 @@ function createTopbar() {
   const brand = el("a", "suite-app-brand");
   brand.href = "/";
   brand.setAttribute("aria-label", "fluxcell home");
-  brand.innerHTML = '<img class="suite-app-mark" src="https://aolabs.io/icons/fluxcell.svg?v=20260508-icon-pass2" alt=""><span class="suite-app-name">fluxcell</span>';
+  brand.innerHTML = '<img class="suite-app-mark" src="https://aolabs.io/icons/fluxcell.svg?v=20260508-icon-pass2" alt=""><span class="suite-app-name">fluxcell.aolabs.io</span>';
   const home = el("a", "suite-ao-home");
   home.href = "https://aolabs.io/";
   home.setAttribute("aria-label", "aolabs.io");
-  home.innerHTML = '<img src="https://aolabs.io/marks/ao-ink.svg?v=20260515-ao-disc-a" alt="">';
+  home.innerHTML = '<img src="https://aolabs.io/marks/ao-ink.svg?v=20260516-domain-header" alt="">';
   const left = el("div", "suite-brand-cluster");
   left.append(home, brand);
 
