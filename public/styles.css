@@ -74,8 +74,8 @@ a {
 }
 
 .topbar {
-  position: sticky;
-  top: 0;
+  position: relative;
+  top: auto;
   z-index: 30;
   display: flex;
   align-items: center;
