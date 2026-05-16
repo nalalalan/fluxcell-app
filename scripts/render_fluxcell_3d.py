@@ -22,6 +22,9 @@ INK = (34, 31, 28)
 MUTED = (102, 94, 84)
 LINE = (57, 57, 56)
 BG = (250, 249, 245)
+Y_LAYER = (249, 231, 166)
+X_LAYER = (206, 226, 244)
+DIM = (172, 52, 48)
 
 
 def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -197,16 +200,18 @@ def add_two_axis_cell(renderer: IsoRenderer, exploded: bool = False) -> None:
     # X-axis lower layer: left/right motion.
     x_shift = 0.34 if exploded else 0.0
     renderer.add_box((-0.48 - x_shift, 0.0, lower_gap_z), (1.22, 0.22, 0.16), DARK_STEEL)
-    renderer.add_box((0.52 + x_shift, -0.42, lower_gap_z), (1.18, 0.11, 0.14), DARK_STEEL)
-    renderer.add_box((0.52 + x_shift, 0.42, lower_gap_z), (1.18, 0.11, 0.14), DARK_STEEL)
+    # Fork prongs terminate flush at the inside face of the carrier bar.
+    renderer.add_box((0.46 + x_shift, -0.42, lower_gap_z), (1.04, 0.11, 0.14), DARK_STEEL)
+    renderer.add_box((0.46 + x_shift, 0.42, lower_gap_z), (1.04, 0.11, 0.14), DARK_STEEL)
     renderer.add_box((-1.15 - x_shift, 0, lower_gap_z), (0.14, 1.22, 0.22), CARRIER)
     renderer.add_box((1.15 + x_shift, 0, lower_gap_z), (0.14, 1.22, 0.22), CARRIER)
 
     # Y-axis upper layer: front/back motion.
     y_shift = 0.34 if exploded else 0.0
     renderer.add_box((0.0, -0.48 - y_shift, upper_gap_z), (0.22, 1.22, 0.16), DARK_STEEL)
-    renderer.add_box((-0.42, 0.52 + y_shift, upper_gap_z), (0.11, 1.18, 0.14), DARK_STEEL)
-    renderer.add_box((0.42, 0.52 + y_shift, upper_gap_z), (0.11, 1.18, 0.14), DARK_STEEL)
+    # Fork prongs terminate flush at the inside face of the carrier bar.
+    renderer.add_box((-0.42, 0.46 + y_shift, upper_gap_z), (0.11, 1.04, 0.14), DARK_STEEL)
+    renderer.add_box((0.42, 0.46 + y_shift, upper_gap_z), (0.11, 1.04, 0.14), DARK_STEEL)
     renderer.add_box((0, -1.15 - y_shift, upper_gap_z), (1.22, 0.14, 0.22), CARRIER)
     renderer.add_box((0, 1.15 + y_shift, upper_gap_z), (1.22, 0.14, 0.22), CARRIER)
 
@@ -315,6 +320,147 @@ def render_assembled() -> Image.Image:
     return image
 
 
+def render_state_views() -> Image.Image:
+    image = Image.new("RGBA", (1700, 860), BG + (255,))
+    draw = ImageDraw.Draw(image)
+    draw.text((42, 30), "Two-layer magnetic layout: expanded and contracted", fill=INK, font=font(32, True))
+    draw.text(
+        (42, 72),
+        "Both panels show the X and Y layers together. Orange rods are Alnico; blue rods are NdFeB.",
+        fill=MUTED,
+        font=font(18),
+    )
+
+    legend_y = 114
+    draw_rod_symbol(draw, (56, legend_y), ALNICO, "Alnico")
+    draw_rod_symbol(draw, (180, legend_y), NDFEB, "NdFeB")
+
+    draw_state_panel(draw, (52, 150, 810, 800), expanded=True)
+    draw_state_panel(draw, (890, 150, 1648, 800), expanded=False)
+    return image.convert("RGB")
+
+
+def draw_rod_symbol(
+    draw: ImageDraw.ImageDraw,
+    center: tuple[int, int],
+    color: tuple[int, int, int],
+    label: str,
+) -> None:
+    x, y = center
+    draw.ellipse((x - 14, y - 14, x + 14, y + 14), fill=color, outline=shade(color, 0.65), width=4)
+    draw.text((x + 24, y - 12), label, fill=INK, font=font(17, True))
+
+
+def draw_state_panel(
+    draw: ImageDraw.ImageDraw,
+    bounds: tuple[int, int, int, int],
+    expanded: bool,
+) -> None:
+    x0, y0, x1, y1 = bounds
+    panel_bg = (255, 255, 252, 255)
+    draw.rounded_rectangle(bounds, radius=14, fill=panel_bg, outline=(213, 207, 198), width=2)
+
+    title = "Expanded / off" if expanded else "Contracted / on"
+    span = 3.0 if expanded else 1.5
+    overlap = "low keeper overlap" if expanded else "high keeper overlap"
+    draw.text((x0 + 28, y0 + 24), title, fill=INK, font=font(28, True))
+    draw.text((x0 + 28, y0 + 62), f'{span:.1f}" span, {overlap}', fill=MUTED, font=font(18))
+
+    cx = (x0 + x1) / 2
+    cy = y0 + 374
+    scale = 166
+
+    def pt(x: float, y: float) -> tuple[int, int]:
+        return int(cx + x * scale), int(cy - y * scale)
+
+    def box(
+        rect: tuple[float, float, float, float],
+        fill: tuple[int, int, int],
+        outline: tuple[int, int, int] = LINE,
+        alpha: int = 255,
+        shadow: bool = False,
+    ) -> None:
+        a, b, c, d = rect
+        pts = [pt(a, b), pt(c, b), pt(c, d), pt(a, d)]
+        if shadow:
+            off = [(px + 8, py + 8) for px, py in pts]
+            draw.polygon(off, fill=(0, 0, 0, 24))
+        draw.polygon(pts, fill=fill + (alpha,), outline=outline)
+
+    def rod(x: float, y: float, color: tuple[int, int, int], letter: str) -> None:
+        px, py = pt(x, y)
+        r = max(13, int(0.125 * scale))
+        draw.ellipse((px - r - 4, py - r - 4, px + r + 4, py + r + 4), fill=(255, 255, 252, 235))
+        draw.ellipse((px - r, py - r, px + r, py + r), fill=color + (255,), outline=shade(color, 0.55), width=4)
+        draw.text((px - 7, py - 13), letter, fill=(20, 20, 18), font=font(23, True))
+
+    # Layer plates: the two orthogonal magnetic gaps share the same footprint, so
+    # the schematic offsets them slightly in drawing space while preserving scale.
+    ox = 0.11
+    oy = -0.11
+    box((-0.625 + ox, -0.625 + oy, 0.625 + ox, 0.625 + oy), X_LAYER, (64, 93, 119), 210, True)
+    box((-0.625 - ox, -0.625 - oy, 0.625 - ox, 0.625 - oy), Y_LAYER, (132, 112, 45), 210, False)
+    draw.text(pt(-0.69, 0.67), "Y", fill=(106, 89, 34), font=font(18, True))
+    draw.text(pt(0.59, -0.76), "X", fill=(47, 78, 105), font=font(18, True))
+
+    carrier_t = 0.14
+    prong_w = 0.10
+    tongue_w = 0.22
+    if expanded:
+        carrier_outer = 1.50
+        keeper_inner = 0.50
+    else:
+        carrier_outer = 0.75
+        keeper_inner = -0.25
+
+    carrier_inner = carrier_outer - carrier_t
+    left_inner = -carrier_inner
+    right_inner = carrier_inner
+    top_inner = carrier_inner
+    bottom_inner = -carrier_inner
+
+    # X layer, lower plate level: left center tongue, right fork prongs.
+    box((-carrier_outer, -0.58, left_inner, 0.58), CARRIER, (37, 82, 116), 255, True)
+    box((right_inner, -0.58, carrier_outer, 0.58), CARRIER, (37, 82, 116), 255, True)
+    box((left_inner, -tongue_w / 2, -keeper_inner, tongue_w / 2), DARK_STEEL, (22, 23, 22), 255)
+    box((keeper_inner, 0.33, right_inner, 0.33 + prong_w), DARK_STEEL, (22, 23, 22), 255)
+    box((keeper_inner, -0.33 - prong_w, right_inner, -0.33), DARK_STEEL, (22, 23, 22), 255)
+
+    # Y layer, upper plate level: top fork prongs, bottom center tongue.
+    box((-0.58, top_inner, 0.58, carrier_outer), CARRIER, (37, 82, 116), 255, True)
+    box((-0.58, -carrier_outer, 0.58, bottom_inner), CARRIER, (37, 82, 116), 255, True)
+    box((-0.34 - prong_w, keeper_inner, -0.34, top_inner), DARK_STEEL, (22, 23, 22), 255)
+    box((0.34, keeper_inner, 0.34 + prong_w, top_inner), DARK_STEEL, (22, 23, 22), 255)
+    box((-tongue_w / 2, bottom_inner, tongue_w / 2, -keeper_inner), DARK_STEEL, (22, 23, 22), 255)
+
+    # Magnet rods. Two pairs are shown because a full two-axis cell has one
+    # Alnico/NdFeB pair per axis.
+    rod(-0.23, 0.17, ALNICO, "A")
+    rod(0.23, 0.17, NDFEB, "N")
+    rod(-0.17, -0.25, ALNICO, "A")
+    rod(0.17, -0.25, NDFEB, "N")
+
+    # Dimension line.
+    dim_y = y0 + 112
+    left = pt(-span / 2, -1.03)[0]
+    right = pt(span / 2, -1.03)[0]
+    draw.line((left, dim_y, right, dim_y), fill=DIM, width=3)
+    draw.line((left, dim_y - 8, left, dim_y + 8), fill=DIM, width=3)
+    draw.line((right, dim_y - 8, right, dim_y + 8), fill=DIM, width=3)
+    dim_label = f'{span:.1f}"'
+    dim_font = font(22, True)
+    dim_box = draw.textbbox((0, 0), dim_label, font=dim_font)
+    label_x = int((left + right - (dim_box[2] - dim_box[0])) / 2)
+    label_y = dim_y - 36
+    draw.rounded_rectangle(
+        (label_x - 8, label_y - 3, label_x + dim_box[2] - dim_box[0] + 8, label_y + dim_box[3] - dim_box[1] + 5),
+        radius=5,
+        fill=(255, 255, 252, 245),
+    )
+    draw.text((label_x, label_y), dim_label, fill=DIM, font=dim_font)
+
+
+
 def render_exploded() -> Image.Image:
     renderer = IsoRenderer(1600, 920, yaw=39, pitch=24, scale=165, origin=(0, 96))
     add_two_axis_cell(renderer, exploded=True)
@@ -326,6 +472,7 @@ def render_exploded() -> Image.Image:
 
 def save_all() -> None:
     assets = {
+        "cell-3d-states.png": render_state_views(),
         "cell-3d-assembled.png": render_assembled(),
         "cell-3d-exploded.png": render_exploded(),
     }

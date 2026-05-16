@@ -190,9 +190,9 @@ const designFigures = [
 
 const cadFigures = [
   {
-    src: "/paper/figures/cell-3d-assembled.png",
-    title: "Assembled exterior",
-    detail: "Opaque 3D view of the top plate, carrier bars, and protruding steel keepers.",
+    src: "/paper/figures/cell-3d-states.png",
+    title: "Expanded and contracted state",
+    detail: "Both layers together, Alnico/NdFeB rods visible, keeper overlap shown.",
   },
   {
     src: "/paper/figures/cell-3d-exploded.png",
