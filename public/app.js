@@ -142,10 +142,6 @@ const currentRows = [
 
 const fileLinks = [
   {
-    title: "Paper PDF",
-    href: "/paper.pdf",
-  },
-  {
     title: "Proof bundle",
     href: "/api/generated/hbridge-bundle.md",
   },
@@ -3074,7 +3070,7 @@ function render() {
 
 function createShell() {
   const fragment = document.createDocumentFragment();
-  fragment.append(createTopbar());
+  fragment.append(createTopbar(), createPaperStrip());
   const shell = el("main", "app-shell");
   shell.append(createSystemViewSection());
   const notes = createNotesSection();
