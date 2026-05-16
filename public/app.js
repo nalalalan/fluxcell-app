@@ -144,14 +144,6 @@ const currentRows = [
 
 const fileLinks = [
   {
-    title: "Paper PDF",
-    href: "/paper.pdf",
-  },
-  {
-    title: "Paper source",
-    href: "/paper/source.tex",
-  },
-  {
     title: "Proof bundle",
     href: "/api/generated/hbridge-bundle.md",
   },
@@ -3079,8 +3071,9 @@ function render() {
 }
 
 function createShell() {
+  const fragment = document.createDocumentFragment();
+  fragment.append(createTopbar(), createPaperStrip());
   const shell = el("main", "app-shell");
-  shell.append(createTopbar());
   shell.append(createSystemViewSection());
   shell.append(createWorkspace());
   const notes = createNotesSection();
@@ -3088,7 +3081,8 @@ function createShell() {
   shell.append(createSectionDrawer("Backlog", createLibrary()));
   const focusLibrary = createFocusLibrary();
   if (focusLibrary) shell.append(createSectionDrawer("Saved research", focusLibrary));
-  return shell;
+  fragment.append(shell);
+  return fragment;
 }
 
 function createTopbar() {
@@ -3120,6 +3114,24 @@ function createTopbar() {
 
   topbar.append(left, right);
   return topbar;
+}
+
+function createPaperStrip() {
+  const strip = el("header", "paper-strip");
+  strip.setAttribute("aria-label", "fluxcell paper");
+  const copy = el("div", "paper-copy");
+  copy.append(
+    el("span", "", "Paper"),
+    el("strong", "", "Pulse-programmed mechanical memory for Sarrus-cell robotic matter"),
+    el("p", "", "Fixed cartridge, moving keepers, one-axis proof boundary, and pending bench measurements.")
+  );
+  const actions = el("div", "paper-actions");
+  const pdf = el("a", "paper-button primary", "Open PDF");
+  pdf.href = "/paper.pdf";
+  pdf.download = "";
+  actions.append(pdf);
+  strip.append(copy, actions);
+  return strip;
 }
 
 function createStatusPill(text, className) {
