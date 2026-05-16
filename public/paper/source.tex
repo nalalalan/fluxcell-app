@@ -1,13 +1,31 @@
 \pdfminorversion=7
 \documentclass[12pt,letterpaper]{article}
 
-\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[american]{babel}
+\usepackage{csquotes}
+
+\usepackage[
+    style=science,
+    backend=biber,
+    sorting=none,
+    articletitle=true,
+    url=false,
+    doi=false,
+    eprint=false,
+    isbn=false
+]{biblatex}
+\addbibresource{references.bib}
+\AtEveryBibitem{\clearlist{language}}
+
 \usepackage{newtxtext,newtxmath}
 \usepackage{microtype}
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{caption}
+\usepackage[margin=0.92in,top=0.82in,bottom=0.95in,headsep=18pt,footskip=24pt]{geometry}
+\usepackage[font=small,labelfont=bf,labelsep=period]{caption}
 \usepackage{subcaption}
 \usepackage{float}
 \usepackage{afterpage}
@@ -19,101 +37,164 @@
 \usepackage{fancyhdr}
 \usepackage{needspace}
 \usepackage{etoolbox}
-\usepackage{placeins}
+\usepackage[section]{placeins}
 \usepackage{flafter}
-\usepackage{xcolor}
-\usepackage[hidelinks]{hyperref}
-\usepackage[style=science,backend=biber,sorting=none,articletitle=true]{biblatex}
-\usepackage{lineno}
+\usepackage[table]{xcolor}
 
-\addbibresource{references.bib}
+\definecolor{ClayLine}{HTML}{EEDBDD}
+\definecolor{SumiInk}{HTML}{2D2426}
+\definecolor{DustyTaupe}{HTML}{866A6D}
+
+\usepackage[hidelinks]{hyperref}
+\usepackage[switch]{lineno}
+
 \graphicspath{{figures/}}
 
-\setstretch{1.12}
-\setlength{\parindent}{0.22in}
-\setlength{\parskip}{0pt}
-\captionsetup{font=small,labelfont=bf}
-\titlespacing*{\section}{0pt}{2.0ex plus .4ex}{0.9ex}
-\titlespacing*{\subsection}{0pt}{1.6ex plus .3ex}{0.7ex}
-\titleformat{\section}{\large\bfseries}{\thesection}{0.7em}{}
-\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.7em}{}
-\setlist[itemize]{leftmargin=1.2em,itemsep=2pt,topsep=4pt}
+\color{SumiInk}
+\setstretch{1.45}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.42em}
+\setlength{\textfloatsep}{8pt plus 1pt minus 1pt}
+\setlength{\floatsep}{7pt plus 1pt minus 1pt}
+\setlength{\intextsep}{7pt plus 1pt minus 1pt}
+\setlength{\abovecaptionskip}{5pt}
+\setlength{\belowcaptionskip}{2pt}
+\setlength{\tabcolsep}{9pt}
+\renewcommand{\arraystretch}{1.14}
+\captionsetup{justification=raggedright,singlelinecheck=false}
+\setlist[itemize]{leftmargin=1.3em,itemsep=0.18em,topsep=0.25em}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.8}
+\setlength{\headheight}{24pt}
+\emergencystretch=2em
+\raggedbottom
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\titleformat{\section}
+  {\Large\sffamily\bfseries\color{SumiInk}}
+  {\thesection}
+  {0.6em}
+  {}
+  [\vspace{0.25em}\color{ClayLine}\titlerule]
+\titleformat{\subsection}
+  {\large\sffamily\bfseries\color{SumiInk}}
+  {\thesubsection}
+  {0.55em}
+  {}
+\titleformat{\subsubsection}
+  {\normalsize\sffamily\bfseries\color{SumiInk}}
+  {}
+  {0em}
+  {}
+\titlespacing*{\section}{0pt}{1.3ex plus 0.4ex minus 0.2ex}{0.7ex}
+\titlespacing*{\subsection}{0pt}{1.15ex plus 0.2ex minus 0.2ex}{0.45ex}
+\titlespacing*{\subsubsection}{0pt}{0.9ex plus 0.15ex minus 0.1ex}{0.25ex}
+
+\pretocmd{\subsubsection}{\needspace{4\baselineskip}}{}{}
+\pretocmd{\subsection}{\needspace{5\baselineskip}}{}{}
+
 \pagestyle{fancy}
-\setlength{\headheight}{13.6pt}
 \fancyhf{}
-\lhead{\small FluxCell draft manuscript}
-\rhead{\small \thepage}
-\renewcommand{\headrulewidth}{0.3pt}
+\fancyhead[L]{\footnotesize\sffamily\color{SumiInk} FluxCell mechanical memory}
+\fancyhead[R]{\footnotesize\sffamily\color{DustyTaupe}\nouppercase{\leftmark}}
+\fancyfoot[C]{\footnotesize\sffamily\thepage}
+\renewcommand{\headrulewidth}{0.35pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{ClayLine}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}}
+
+\makeatletter
+\def\fps@figure{tbp}
+\def\fps@table{tbp}
+\makeatother
 
 \newcommand{\fluxcell}{FluxCell}
 \newcommand{\epm}{electropermanent magnet}
-\newcommand{\pending}{\textcolor{black}{pending measurement}}
+\newcommand{\pending}{\textcolor{DustyTaupe}{pending measurement}}
 
 \begin{document}
+\linenumbers
+\thispagestyle{empty}
 
 \begin{center}
-{\LARGE \textbf{Pulse-programmed mechanical memory for Sarrus-cell robotic matter}}\\[1.1em]
-{\large Alan Pham}\\[0.35em]
-AO Labs, United States\\[1.0em]
+    \vspace*{-0.6em}
+
+    {\fontsize{20}{22}\selectfont\bfseries\color{SumiInk}
+    Pulse-programmed mechanical memory for Sarrus-cell robotic matter\par}
+
+    \vspace{0.95em}
+
+    {\normalsize\color{SumiInk}
+    Alan N. Pham$^{1}$\par}
+
+    \vspace{0.38em}
+
+    {\small\color{DustyTaupe}
+    $^{1}$AO Labs, Worcester, Massachusetts, USA\par}
 \end{center}
 
-\noindent\textbf{Opening summary.}
-This draft frames \fluxcell{} as a small but unusually consequential physical-computing unit: a Sarrus-compatible cell whose geometry is changed by a short magnetic pulse and then held without continuous power. The current design locks a fixed electropermanent-magnetic cartridge, square 1018 steel pole plates, solid steel fork/tongue keepers, a one-axis proof before two-axis integration, and purchase quantities for four complete two-axis cells. The manuscript is intentionally evidence-bound. It claims a design direction, a build lock, and a measurement protocol now; measured force, energy, thermal, and cycle-life claims remain \pending{} until the one-axis proof is filmed and instrumented. The central argument is that a centimeter-scale cell with pulse-addressed memory could bridge soft robotics, mechanical computation, and show-safe kinetic environments: the same proof that makes a paper credible also makes a portfolio artifact legible for R\&D work in physical experiences.
+\vspace{0.35em}
+\noindent\textbf{Robotic materials need local states that can be changed briefly and then held without continuous power. \fluxcell{} is a source-bounded design for a Sarrus-compatible cell that uses a fixed electropermanent-magnetic cartridge and moving steel keepers to make geometry, magnetic overlap, and mechanical state testable in one bench experiment. The present contribution is a locked architecture and proof protocol, not a completed actuator dataset. Force, current, heat, release, repeatability, and cycle-life claims remain unmade until the one-axis proof is built and measured.}
 
 \newpage
-\linenumbers
+\pagestyle{fancy}
 
 \section{Introduction}
 
-Robotic materials are moving away from single machines with remote actuators and toward distributed bodies whose local structure stores state, transforms motion, and computes mechanically \cite{byun2024,wangPhysicalComputing2026}. Soft robots have shown integrated bodies, embedded actuation, and autonomous operation \cite{wehner2016,wangEmbedded2023}, while magnetic materials have shown programmable shape change, haptic inputs, electropermanent latching, and low-power state retention \cite{knaian2010,mechamagnets2019,johnson2024,ntella2023}. The open opportunity is not only stronger actuation. It is a cell-level unit that can change geometry, hold state without continuous power, and tile into visible robotic surfaces.
+Soft robots and robotic materials increasingly distribute function through body geometry, material state, and embedded physical computation rather than through a single remote actuator \cite{rus2015,wehner2016,byun2024,wang2026}. This direction is attractive because mechanical structure can store information, route signals, and shape motion before software has to intervene. The unresolved engineering question is how to make a small unit that can change state, hold that state with negligible standby power, and tile into larger visible machines without requiring a new actuator design for every morphology.
 
-\fluxcell{} addresses that opportunity by moving the difficult actuation question into a narrow overlap-gated magnetic circuit. Instead of asking a small magnetic actuator to pull a mechanism across a large air gap, the design holds the magnetic cartridge fixed and lets steel keepers slide deeper into or farther out of a working gap. A pulse changes the electropermanent state; the Sarrus/flexure structure supplies the gross motion; the keeper overlap controls whether the magnetic circuit assists the contracted state. This makes the first experiment concrete: build one axis, measure width change, current, temperature, hold, and release, then decide whether the mechanism earns two-axis integration.
+Electropermanent magnets offer a direct route to low-standby-power state retention. An \epm{} combines magnetic materials with different coercivities so that a short current pulse can switch the net external field while the magnetized state persists after current returns to zero \cite{knaian2010,johnson2024,zhu2019}. EPMs have been used for programmable matter, modular robotic connection, magnetic soft-robot components, and magnetorheological fluid control \cite{knaian2010,zhu2019,johnson2024,ntella2023}. In parallel, physical-interface work has shown that embedded magnets can create legible, passive haptic states in digitally fabricated mechanisms \cite{zheng2019}.
 
-The current purchase lock is deliberately pragmatic. Square pole plates and solid steel inserts are cleaner than stacked-key hacks, while still avoiding home cutting because supplier cut-length options set the steel dimensions. The one-axis proof uses one Alnico rod, one NdFeB rod, two square pole plates, two fork prongs, one center tongue, and one printed proof frame. The four-cell purchase quantity then supplies eight rods of each magnet type, twelve pole plates, sixteen fork prongs, and eight center tongues for four complete two-axis cells, plus spares \cite{fluxcellDesignLog2026,onlineMetals2026,allMetalsA362026,allMetals10182026}.
+\fluxcell{} connects those threads to a Sarrus-cell robotic-matter concept. The design does not ask a small magnet to pull a compliant mechanism across a large open gap. Instead, a fixed \epm{} cartridge creates a localized magnetic circuit, while steel fork and tongue keepers slide through that circuit as the Sarrus-compatible frame changes width. This turns the first experiment into a compact overlap problem: pulse the cartridge, observe whether the geometry changes, check whether the state holds at zero current, reverse the pulse, and measure the limits. The paper is intentionally strict because the project is still pre-measurement. Its novelty is the architecture and falsifiable proof plan; performance claims are deferred until data exist.
 
 \section{Results}
 
-\subsection{A fixed EPM cartridge turns the actuation problem into keeper overlap}
+\subsection{A fixed cartridge turns actuation into keeper overlap}
 
-The locked architecture separates the magnetic cartridge from the moving carriers (Fig.~\ref{fig:cartridge}). The cartridge contains the Alnico coil element, the NdFeB bias element, and the top and bottom steel pole plates. The moving structure contributes steel keepers only: two fork prongs from one side and a center tongue from the opposite side. This matters because the large visible stroke is not produced by pulling steel across a large open gap. It is produced by changing how deeply already-nearby keeper material overlaps the magnetic working region.
+The locked architecture separates the magnetic cartridge from the moving carriers (Fig.~\ref{fig:cartridge}). The cartridge contains the Alnico pulse element, the NdFeB bias element, and the top and bottom steel pole plates. The moving structure contributes steel keepers only: two fork prongs from one side and a center tongue from the opposite side. The useful magnetic path is therefore local to the overlap between the fixed pole plates and the moving steel keepers. This makes the one-axis proof inspectable because the visible width change and the hidden magnetic variable are linked by one measurable dimension: keeper overlap.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{fixed-cartridge.png}
-  \caption{\textbf{Fixed cartridge and moving keeper concept.} The EPM cartridge remains fixed while fork prongs and a center tongue move through the working gap. The useful magnetic path is top pole plate to moving steel keeper to bottom pole plate. This converts the first proof from a broad soft-robot problem into a bench-checkable overlap problem. Source: FluxCell uploaded design figure, 13 May 2026.}
+  \caption{Fixed cartridge and moving keeper concept. The EPM cartridge remains fixed while fork prongs and a center tongue move through the working gap. The useful magnetic path is top pole plate to moving steel keeper to bottom pole plate. Source: FluxCell uploaded design figure, 13 May 2026.}
   \label{fig:cartridge}
 \end{figure}
 
-\subsection{The lane layout removes collision before it asks for fabrication polish}
+\subsection{The lane layout removes collision before fabrication polish}
 
-The one-axis layer uses a clear comb/fork topology (Fig.~\ref{fig:lane}). The center tongue enters between the Alnico and NdFeB rods, while the fork prongs pass outside the pair. The moving steel pieces therefore interdigitate instead of colliding. This is the key design decision that makes the one-axis proof worth building: the geometry answers the immediate mechanical feasibility question before committing to a monolithic two-axis print.
+The one-axis layer uses a comb/fork topology (Fig.~\ref{fig:lane}). The center tongue enters between the Alnico and NdFeB rods, while the fork prongs pass outside the pair. The moving steel pieces therefore interdigitate rather than collide. This geometry is a prerequisite for meaningful actuation testing: if the carriers collide, any later force or current measurement would only describe a packaging failure. The lane figure therefore serves as an engineering gate before committing to a monolithic two-axis cell.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\linewidth]{lane-layout.png}
-  \caption{\textbf{Comb/fork lane order.} The center tongue runs between the Alnico and NdFeB positions, and fork prongs run on the outside lanes. The layout keeps both carriers centered and gives the magnetic circuit a repeatable overlap variable. Source: FluxCell uploaded design figure, 13 May 2026.}
+  \caption{Comb/fork lane order. The center tongue runs between the Alnico and NdFeB positions, and fork prongs run on the outside lanes. The layout keeps both carriers centered and gives the magnetic circuit a repeatable overlap variable. Source: FluxCell uploaded design figure, 13 May 2026.}
   \label{fig:lane}
 \end{figure}
 
-\subsection{The current dimensional lock creates a measurable binary proof}
+\subsection{The dimensional lock creates a falsifiable binary proof}
 
-The present dimensional correction uses 1.00 inch keeper inserts rather than 1-1/8 inch inserts. With 1.25 inch square pole plates, the one-axis proof targets a 3.0 inch expanded/off width and a 1.5 inch contracted/on width, corresponding to a 0.75 inch side stroke. The off-state overlap is approximately 0.125 inch and the on-state overlap is approximately 0.875 inch (Fig.~\ref{fig:overlap}). The important experimental consequence is that the proof can be judged by one synchronized record: video of width, current pulse, polarity, hold state, release state, and coil temperature note.
+The current dimensional correction uses 1.00 inch keeper inserts rather than 1-1/8 inch inserts. With 1.25 inch square pole plates, the one-axis proof targets a 3.0 inch expanded/off width and a 1.5 inch contracted/on width, corresponding to a 0.75 inch side stroke. The off-state overlap is approximately 0.125 inch and the on-state overlap is approximately 0.875 inch (Fig.~\ref{fig:overlap}). These numbers are design targets, not measured performance. Their value is that they make the first physical test falsifiable: a synchronized record can show width, pulse polarity, current, hold at zero drive, release after reverse pulse, and coil temperature.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.86\linewidth]{one-axis-overlap.png}
-  \caption{\textbf{One-axis overlap target.} The expanded/off and contracted/on states create a large visible width change while the magnetic variable stays local to keeper overlap. Current evidence locks the geometry; measured force, current, heat, repeatability, and release margins remain pending until the proof is built. Source: FluxCell uploaded design figure, 13 May 2026.}
+  \caption{One-axis overlap target. The expanded/off and contracted/on states create a large visible width change while the magnetic variable stays local to keeper overlap. Current evidence locks the geometry; measured force, current, heat, repeatability, and release margins remain pending until the proof is built. Source: FluxCell uploaded design figure, 13 May 2026.}
   \label{fig:overlap}
 \end{figure}
 
-\subsection{The build lock is small enough to buy, test, and scale}
+\subsection{The build lock is small enough to purchase and test}
 
 \begin{table}[H]
 \centering
 \small
-\caption{\textbf{Locked purchase logic.} The design uses supplier-cut steel dimensions, not home-cut steel, and buys enough for one proof plus four two-axis cells.}
+\caption{Locked purchase logic for one proof plus four complete two-axis cells. Costs are purchase-planning values before shipping and tax, not experimental performance data.}
 \label{tab:purchase}
-\begin{tabular}{>{\raggedright\arraybackslash}p{0.18\linewidth} >{\raggedleft\arraybackslash}p{0.06\linewidth} >{\raggedright\arraybackslash}p{0.49\linewidth} >{\raggedleft\arraybackslash}p{0.11\linewidth}}
+\begin{tabular}{L{0.21\linewidth} >{\raggedleft\arraybackslash}p{0.06\linewidth} L{0.47\linewidth} >{\raggedleft\arraybackslash}p{0.11\linewidth}}
 \toprule
 Part & Qty & Locked specification & Approx total \\
 \midrule
@@ -127,25 +208,15 @@ Wire, tape, supply, leads, pigtails, heat shrink & set & 30 AWG magnet wire, Kap
 \end{tabular}
 \end{table}
 
-The total before shipping and tax is approximately \$456.65. This number is not a performance claim. It is a friction claim: the project has a specific, ordered build path and no longer depends on an abstract ``find parts later'' step.
+The total before shipping and tax is approximately \$456.65 \cite{fluxcellDesignLog2026,onlineMetals2026,allMetalsA362026,allMetals10182026}. This number is not a claim about manufacturability at scale. It is a friction claim: the proof has a specific bill of materials and no longer depends on an undefined part-search step.
 
 \section{Discussion}
 
-\subsection{Why this could be a strong paper}
+The strongest version of \fluxcell{} is not a generic magnetic actuator paper. It is a paper about pulse-programmed mechanical memory. The state variable is not merely magnetic polarity; it is a visible mechanical configuration coupled to magnetic overlap and held after the electrical pulse ends. If the one-axis proof records clean switching, zero-current hold, reverse-pulse release, bounded heating, and repeated cycles, the work can move from design protocol to actuator evidence.
 
-The strongest version of this work is not a generic magnetic soft-robot paper. It is a paper about \emph{pulse-programmed mechanical memory}. That framing gives the project a sharper contribution than a one-off actuator: a cell can be addressed briefly, settle into a stable mechanical state, and then become part of a larger surface or body. If the one-axis proof records a clean current pulse, visible width change, zero-current hold, reverse-pulse release, and bounded temperature rise, the manuscript gains the kind of evidence that selective venues can inspect directly.
+The source boundary matters. This manuscript does not claim force density, efficiency, safety, lifetime, or reliable two-axis behavior. It claims that the current design has become concrete enough to test and that the proof has been reduced to a small set of measurements. That reduction is the paper's present contribution. It makes the next experiment difficult to hand-wave: either the geometry moves and holds under a measured pulse, or the data identify the dominant failure mode.
 
-The paper should stay strict. It should not claim force density, endurance, safety, or scalability until those numbers exist. The current draft therefore marks the bridge from design to evidence: Figure~\ref{fig:cartridge} establishes magnetic architecture, Figure~\ref{fig:lane} establishes collision-free lane logic, Figure~\ref{fig:overlap} establishes the measurable binary state, and Table~\ref{tab:purchase} establishes the build path. The first decisive experiment is not a complete robot. It is the smallest physical demonstration that can falsify or support the mechanism.
-
-\subsection{R\&D and Imagineering relevance}
-
-For an R\&D portfolio aimed at physical experience design, including Disney Imagineering-style work, the compelling story is a quiet kinetic material that remembers shape. A small FluxCell surface could become a visible proof of tangible physical computing: one short pulse changes a body; the body holds without continuous power; the state can be reset; the mechanism is legible on camera; the evidence record includes current, geometry, heat, and repeatability. That combination is closer to show mechanism practice than a purely simulated metamaterial because it foregrounds reliability, inspectability, low standby power, and expressive motion.
-
-The best portfolio concept is a four-cell demonstrator with one choreographed transformation rather than a broad robot. The artifact should show a small surface changing contour or aperture, holding while unplugged, and returning on command. The paper supplies the technical story; the video supplies the human-readable proof.
-
-\subsection{Limitations}
-
-No measured actuation data are claimed in this draft. The current evidence is the design log, uploaded schematic figures, locked dimensions, purchase list, and planned measurement protocol. The main risks are insufficient keeper force, excess friction, heating in the Alnico coil, poor release margin from residual attraction, carrier twist, and fabrication tolerance stack-up. Each risk maps to a first-proof measurement: width trace, current trace, temperature note, hold/release observation, and video from the keeper-gap side.
+For R\&D in physical experiences, the compelling artifact would be a small surface that changes contour, holds while electrically quiet, and returns on command. That future demonstrator would be human-readable because the motion, latch, and reset are visible. The current paper does not claim that demonstrator exists. It defines the cell-level experiment that must pass before that story is credible.
 
 \section{Materials and Methods}
 
@@ -155,15 +226,15 @@ The proof uses a fixed center EPM cartridge with two 1.25 inch square pole plate
 
 \subsection{Electrical pulse protocol}
 
-The Alnico coil is insulated with Kapton, wound with 30 AWG magnet wire, and connected to an H-bridge driver from a current-limited bench supply. The first test uses short bidirectional pulses separated by zero-drive intervals. For each pulse, the record includes polarity, pulse duration, current limit, observed width, hold state after zero drive, release state after reverse pulse, and a coil temperature note.
+The Alnico coil is insulated with Kapton, wound with 30 AWG magnet wire, and connected to an H-bridge driver from a current-limited bench supply. The first test uses short bidirectional pulses separated by zero-drive intervals. For each pulse, the record should include polarity, pulse duration, current limit, observed width, hold state after zero drive, release state after reverse pulse, and a coil temperature note.
 
-\subsection{Acceptance boundary for the first proof}
+\subsection{Acceptance boundary}
 
-The first proof succeeds only if the one-axis assembly visibly changes width, holds a state after current returns to zero, releases or reverses under the opposite pulse, and stays within a temperature range safe enough for continued bench testing. A partial result is still useful if it identifies the dominant failure mode: weak magnetic force, high friction, carrier twist, thermal limit, or poor release margin.
+The first proof succeeds only if the one-axis assembly visibly changes width, holds a state after current returns to zero, releases or reverses under the opposite pulse, and stays within a temperature range safe enough for continued bench testing. A partial result remains useful if it identifies the dominant failure mode: weak magnetic force, high friction, carrier twist, thermal limit, or poor release margin.
 
 \section{Acknowledgements}
 
-This draft was assembled from the FluxCell design log, uploaded ChatGPT-derived geometry figures, and the current locked purchase list.
+This draft was assembled from the FluxCell design log, uploaded schematic figures, and the current locked purchase list.
 
 \section{Funding}
 
@@ -171,7 +242,7 @@ No external funding is claimed in this draft.
 
 \section{Author contributions}
 
-Alan Pham conceived the project direction, maintained the design log, selected the current purchase lock, and defined the proof target. Codex assisted with manuscript drafting, page integration, figure placement, and verification workflow.
+Alan N. Pham conceived the project direction, maintained the design log, selected the current purchase lock, and defined the proof target. Codex assisted with manuscript formatting, page integration, figure placement, and verification workflow.
 
 \section{Competing interests}
 
@@ -187,9 +258,10 @@ The current project page, generated proof bundle, and manuscript source are serv
 
 \section{Additional information}
 
-This is a draft manuscript and design protocol, not a completed experimental report. The claims should be updated after the one-axis proof records measured current, width, temperature, hold, release, and repeatability.
+This is a draft manuscript and design protocol, not a completed experimental report. The claims should be updated only after the one-axis proof records measured current, width, temperature, hold, release, and repeatability.
 
 \section{References}
+
 \printbibliography[heading=none]
 
 \end{document}
