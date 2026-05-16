@@ -3122,7 +3122,7 @@ function createPaperStrip() {
   const copy = el("div", "paper-copy");
   copy.append(
     el("span", "", "Paper"),
-    el("strong", "", "Pulse-programmed mechanical memory for Sarrus-cell robotic matter"),
+    el("strong", "", "Pulse-programmed mechanical memory for zero-standby robotic matter"),
     el("p", "", "Fixed cartridge, moving keepers, one-axis proof boundary, and pending bench measurements.")
   );
   const actions = el("div", "paper-actions");

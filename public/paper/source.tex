@@ -125,7 +125,7 @@
     \vspace*{-0.6em}
 
     {\fontsize{20}{22}\selectfont\bfseries\color{SumiInk}
-    Pulse-programmed mechanical memory for Sarrus-cell robotic matter\par}
+    Pulse-programmed mechanical memory for zero-standby robotic matter\par}
 
     \vspace{0.95em}
 
@@ -139,20 +139,22 @@
 \end{center}
 
 \vspace{0.35em}
-\noindent\textbf{Robotic materials need local states that can be changed briefly and then held without continuous power. \fluxcell{} is a source-bounded design for a Sarrus-compatible cell that uses a fixed electropermanent-magnetic cartridge and moving steel keepers to make geometry, magnetic overlap, and mechanical state testable in one bench experiment. The present contribution is a locked architecture and proof protocol, not a completed actuator dataset. Force, current, heat, release, repeatability, and cycle-life claims remain unmade until the one-axis proof is built and measured.}
+\noindent\textbf{Robotic matter becomes more powerful when a small unit can change shape, remember that shape without static power, and reset on command. \fluxcell{} frames that problem as pulse-programmed mechanical memory: a Sarrus-compatible unit cell in which a fixed electropermanent-magnetic cartridge changes the overlap of moving steel keepers, coupling magnetic state to visible geometry. The current contribution is a locked architecture, figure-backed design record, and falsifiable one-axis proof protocol. It does not yet claim force, efficiency, lifetime, or reliable two-axis operation; those claims are reserved for measured stroke, current, heat, hold, release, and cycle data.}
 
 \newpage
 \pagestyle{fancy}
 
 \section{Introduction}
 
-Soft robots and robotic materials increasingly distribute function through body geometry, material state, and embedded physical computation rather than through a single remote actuator \cite{rus2015,wehner2016,byun2024,wang2026}. This direction is attractive because mechanical structure can store information, route signals, and shape motion before software has to intervene. The unresolved engineering question is how to make a small unit that can change state, hold that state with negligible standby power, and tile into larger visible machines without requiring a new actuator design for every morphology.
+Soft robots and robotic materials increasingly distribute function through body geometry, material state, and embedded physical computation rather than through a single remote actuator \cite{rus2015,wehner2016,byun2024,wang2026}. This direction is attractive because mechanical structure can store information, route signals, and shape motion before software has to intervene. A central unresolved question is not simply how to actuate a soft or compliant structure, but how to make a small repeated unit that changes state, stores that state physically, and tiles into a larger machine without paying continuous electrical power to remember its last command.
 
 Electropermanent magnets offer a direct route to low-standby-power state retention. An \epm{} combines magnetic materials with different coercivities so that a short current pulse can switch the net external field while the magnetized state persists after current returns to zero \cite{knaian2010,johnson2024,zhu2019}. EPMs have been used for programmable matter, modular robotic connection, magnetic soft-robot components, and magnetorheological fluid control \cite{knaian2010,zhu2019,johnson2024,ntella2023}. In parallel, physical-interface work has shown that embedded magnets can create legible, passive haptic states in digitally fabricated mechanisms \cite{zheng2019}.
 
-\fluxcell{} connects those threads to a Sarrus-cell robotic-matter concept. The design does not ask a small magnet to pull a compliant mechanism across a large open gap. Instead, a fixed \epm{} cartridge creates a localized magnetic circuit, while steel fork and tongue keepers slide through that circuit as the Sarrus-compatible frame changes width. This turns the first experiment into a compact overlap problem: pulse the cartridge, observe whether the geometry changes, check whether the state holds at zero current, reverse the pulse, and measure the limits. The paper is intentionally strict because the project is still pre-measurement. Its novelty is the architecture and falsifiable proof plan; performance claims are deferred until data exist.
+\fluxcell{} connects those threads to a Sarrus-cell robotic-matter concept. The design does not ask a small magnet to pull a compliant mechanism across a large open gap. Instead, a fixed \epm{} cartridge creates a localized magnetic circuit, while steel fork and tongue keepers slide through that circuit as the Sarrus-compatible frame changes width. The first experiment is therefore reduced to a compact overlap problem: pulse the cartridge, record whether geometry changes, check whether the state persists at zero current, reverse the pulse, and measure the limits. This is a stronger scientific object than a broad concept sketch because it can fail cleanly. Either pulse-programmed keeper overlap produces a visible held mechanical state, or the measurement identifies the dominant failure mode.
 
 \section{Results}
+
+\fluxcell{} is presently a pre-measurement design result. The result is therefore not an efficiency claim or a force-density claim. It is the conversion of a speculative robotic-matter idea into a physically ordered architecture, a locked bill of materials, and a small proof whose required traces are defined before the bench test begins.
 
 \subsection{A fixed cartridge turns actuation into keeper overlap}
 
@@ -176,7 +178,7 @@ The one-axis layer uses a comb/fork topology (Fig.~\ref{fig:lane}). The center t
   \label{fig:lane}
 \end{figure}
 
-\subsection{The dimensional lock creates a falsifiable binary proof}
+\subsection{The dimensional lock creates a falsifiable mechanical-memory proof}
 
 The current dimensional correction uses 1.00 inch keeper inserts rather than 1-1/8 inch inserts. With 1.25 inch square pole plates, the one-axis proof targets a 3.0 inch expanded/off width and a 1.5 inch contracted/on width, corresponding to a 0.75 inch side stroke. The off-state overlap is approximately 0.125 inch and the on-state overlap is approximately 0.875 inch (Fig.~\ref{fig:overlap}). These numbers are design targets, not measured performance. Their value is that they make the first physical test falsifiable: a synchronized record can show width, pulse polarity, current, hold at zero drive, release after reverse pulse, and coil temperature.
 
@@ -187,14 +189,42 @@ The current dimensional correction uses 1.00 inch keeper inserts rather than 1-1
   \label{fig:overlap}
 \end{figure}
 
+\subsection{The publishable evidence gate is a synchronized trace}
+
+The manuscript becomes an actuator paper only if the one-axis proof produces a synchronized record rather than a single success photograph. The minimum publishable trace is deliberately small (Table~\ref{tab:evidence}). It has to show the command, the electrical cost of the command, the mechanical response, and whether the state remains after drive current returns to zero. This makes the evidence portable: the same trace can support a robotics claim, a mechanical-memory claim, and a later four-cell surface demonstration.
+
+\begin{table}[H]
+\centering
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{Evidence gate for converting the present design manuscript into an experimental actuator manuscript.}
+\label{tab:evidence}
+\begin{tabular}{@{}L{0.18\linewidth} L{0.48\linewidth} L{0.17\linewidth}@{}}
+\toprule
+Signal & Required record & Current state \\
+\midrule
+Stroke & Width before pulse, width after pulse, and held width at zero current & \pending \\
+Switching cost & Pulse polarity, duration, current limit, and supply voltage & \pending \\
+Hold & Zero-current interval with no visible return drift & \pending \\
+Release & Opposite pulse followed by measurable release or reverse motion & \pending \\
+Thermal margin & Coil temperature note after repeated pulses & \pending \\
+Failure mode & If motion fails, dominant limit: friction, weak flux, twist, heat, or residual sticking & \pending \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table}
+
 \subsection{The build lock is small enough to purchase and test}
 
 \begin{table}[H]
 \centering
-\small
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{5pt}
 \caption{Locked purchase logic for one proof plus four complete two-axis cells. Costs are purchase-planning values before shipping and tax, not experimental performance data.}
 \label{tab:purchase}
-\begin{tabular}{L{0.21\linewidth} >{\raggedleft\arraybackslash}p{0.06\linewidth} L{0.47\linewidth} >{\raggedleft\arraybackslash}p{0.11\linewidth}}
+\begin{tabular}{@{}L{0.20\linewidth} >{\raggedleft\arraybackslash}p{0.06\linewidth} L{0.46\linewidth} >{\raggedleft\arraybackslash}p{0.10\linewidth}@{}}
 \toprule
 Part & Qty & Locked specification & Approx total \\
 \midrule
@@ -206,6 +236,7 @@ Center tongue inserts & 12 & 1018 flat bar, 1/4 inch by 1/2 inch, cut length 1.0
 Wire, tape, supply, leads, pigtails, heat shrink & set & 30 AWG magnet wire, Kapton, 0--30 V / 0--10 A supply, leads, silicone wire, strain relief & \(\sim\)\$106.75 \\
 \bottomrule
 \end{tabular}
+\endgroup
 \end{table}
 
 The total before shipping and tax is approximately \$456.65 \cite{fluxcellDesignLog2026,onlineMetals2026,allMetalsA362026,allMetals10182026}. This number is not a claim about manufacturability at scale. It is a friction claim: the proof has a specific bill of materials and no longer depends on an undefined part-search step.
@@ -214,9 +245,9 @@ The total before shipping and tax is approximately \$456.65 \cite{fluxcellDesign
 
 The strongest version of \fluxcell{} is not a generic magnetic actuator paper. It is a paper about pulse-programmed mechanical memory. The state variable is not merely magnetic polarity; it is a visible mechanical configuration coupled to magnetic overlap and held after the electrical pulse ends. If the one-axis proof records clean switching, zero-current hold, reverse-pulse release, bounded heating, and repeated cycles, the work can move from design protocol to actuator evidence.
 
-The source boundary matters. This manuscript does not claim force density, efficiency, safety, lifetime, or reliable two-axis behavior. It claims that the current design has become concrete enough to test and that the proof has been reduced to a small set of measurements. That reduction is the paper's present contribution. It makes the next experiment difficult to hand-wave: either the geometry moves and holds under a measured pulse, or the data identify the dominant failure mode.
+The source boundary matters because overclaiming would make the project weaker, not stronger. This manuscript does not claim force density, efficiency, safety, lifetime, or reliable two-axis behavior. It claims that the current design has become concrete enough to test and that the proof has been reduced to a small set of measurements. That reduction is the paper's present contribution. It makes the next experiment difficult to hand-wave: either the geometry moves and holds under a measured pulse, or the data identify the dominant failure mode.
 
-For R\&D in physical experiences, the compelling artifact would be a small surface that changes contour, holds while electrically quiet, and returns on command. That future demonstrator would be human-readable because the motion, latch, and reset are visible. The current paper does not claim that demonstrator exists. It defines the cell-level experiment that must pass before that story is credible.
+For R\&D in physical experiences, the compelling artifact would be a small surface that changes contour, holds while electrically quiet, and returns on command. That future demonstrator would be human-readable because the motion, latch, and reset are visible. This is the portfolio-facing reason the project matters for an Imagineering-style R\&D path: it combines physical computing, visible mechanism design, soft-robotic structure, rapid fabrication, and evidence-rich iteration in one inspectable artifact. The current paper does not claim that demonstrator exists, nor does it imply any hiring outcome or institutional relationship. It defines the cell-level experiment that must pass before that story is credible.
 
 \section{Materials and Methods}
 
