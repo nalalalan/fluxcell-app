@@ -189,6 +189,24 @@ The opaque assembled view makes the external object testable without exposing ev
   \label{fig:opaque}
 \end{figure}
 
+\subsection{Construction schematics separate the exterior from the stack}
+
+The 3D construction views are intentionally plain schematics, not a rendered final product. The assembled exterior view keeps the paper's opaque-view rule: only the top pole plate, carrier bars, and protruding steel keepers are shown (Fig.~\ref{fig:assembled-3d}). The exploded stack view then separates the top, shared center, and bottom pole plates enough to show how the two orthogonal magnetic layers occupy the same cell footprint (Fig.~\ref{fig:exploded-3d}). No Sarrus/flexure shell, wire routing, fasteners, or decorative housing is added.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{fluxcell-3d-assembled.png}
+  \caption{Assembled exterior 3D schematic. The visible object is reduced to the top pole plate, carrier bars, and protruding steel keepers. Magnets and internal gaps are deliberately hidden, matching the opaque assembled view in Fig.~\ref{fig:opaque}.}
+  \label{fig:assembled-3d}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{fluxcell-3d-exploded.png}
+  \caption{Exploded 3D schematic. The top, shared center, and bottom pole plates are separated to reveal the two orthogonal magnetic layers. The view shows the Alnico and NdFeB rods, Y-layer fork prongs, X-layer center tongue, and plate stack without adding a shell or wiring.}
+  \label{fig:exploded-3d}
+\end{figure}
+
 \subsection{The dimensional lock creates a falsifiable mechanical-memory proof}
 
 The current dimensional correction uses 1.00 inch keeper inserts rather than 1-1/8 inch inserts. With 1.25 inch square pole plates, the one-axis proof targets a 3.0 inch expanded/off width and a 1.5 inch contracted/on width, corresponding to a 0.75 inch side stroke on each side. The off-state overlap is approximately 0.125 inch and the on-state overlap is approximately 0.875 inch. These numbers are design targets, not measured performance. Their value is that they make the first physical test falsifiable: a synchronized record can show width, pulse polarity, current, hold at zero drive, release after reverse pulse, and coil temperature.
@@ -257,7 +275,7 @@ For R\&D in physical experiences, the compelling artifact would be a small surfa
 
 \subsection{One-axis proof geometry}
 
-The proof uses a fixed center EPM cartridge with two 1.25 inch square pole plates made from 0.25 inch by 1.25 inch 1018 steel rectangle bar cut to 1.25 inch length. The magnetic elements are one 0.250 inch diameter by 0.625 inch long Alnico 5 rod and one 1/4 inch diameter by 5/8 inch long NdFeB rod. The moving keepers are two A36 fork prong inserts, each 1/8 inch by 1/2 inch by 1.00 inch, and one 1018 center tongue insert, 1/4 inch by 1/2 inch by 1.00 inch. The Y/X/opaque figures in this draft are cropped from the supplied source PDF without changing figure content \cite{fluxcellGeometry2026}.
+The proof uses a fixed center EPM cartridge with two 1.25 inch square pole plates made from 0.25 inch by 1.25 inch 1018 steel rectangle bar cut to 1.25 inch length. The magnetic elements are one 0.250 inch diameter by 0.625 inch long Alnico 5 rod and one 1/4 inch diameter by 5/8 inch long NdFeB rod. The moving keepers are two A36 fork prong inserts, each 1/8 inch by 1/2 inch by 1.00 inch, and one 1018 center tongue insert, 1/4 inch by 1/2 inch by 1.00 inch. The Y/X/opaque figures in this draft are cropped from the supplied source PDF without changing figure content \cite{fluxcellGeometry2026}. The 3D construction schematics are generated from these dimensions and include only parts described in the paper.
 
 \subsection{Electrical pulse protocol}
 
@@ -285,11 +303,11 @@ The author declares no competing interests for this draft.
 
 \section{Data availability}
 
-The current data are design records, the supplied corrected geometry PDF, cropped figure exports, supplier links, and purchase specifications. Measured actuation data are pending the one-axis proof.
+The current data are design records, the supplied corrected geometry PDF, cropped figure exports, generated 3D construction schematics, supplier links, and purchase specifications. Measured actuation data are pending the one-axis proof.
 
 \section{Code availability}
 
-The current project page, generated proof bundle, and manuscript source are served through the FluxCell site. Arduino pulse code is included in the generated proof bundle.
+The current project page, generated proof bundle, manuscript source, and 3D schematic rendering script are served through the FluxCell site. Arduino pulse code is included in the generated proof bundle.
 
 \section{Additional information}
 

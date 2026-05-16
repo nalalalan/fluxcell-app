@@ -576,7 +576,7 @@ a {
 .home-geometry img {
   display: block;
   width: 100%;
-  max-height: 360px;
+  max-height: 300px;
   object-fit: contain;
   background: #fff;
 }
@@ -586,6 +586,16 @@ a {
   color: var(--muted);
   font-size: 13px;
   font-weight: 560;
+}
+
+.design-figure.figure-wide {
+  grid-column: span 3;
+}
+
+.design-figure.figure-wide img {
+  height: auto;
+  max-height: 430px;
+  object-fit: contain;
 }
 
 .plain-details {

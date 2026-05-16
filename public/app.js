@@ -188,6 +188,19 @@ const designFigures = [
   },
 ];
 
+const cadFigures = [
+  {
+    src: "/paper/figures/fluxcell-3d-assembled.png",
+    title: "Assembled exterior",
+    detail: "Opaque 3D view of the top plate, carrier bars, and protruding steel keepers.",
+  },
+  {
+    src: "/paper/figures/fluxcell-3d-exploded.png",
+    title: "Exploded stack",
+    detail: "Top plate, shared center plate, bottom plate, rods, fork prongs, and center tongues.",
+  },
+];
+
 const paperGuideRules = [
   {
     match: /Knaian 2010|Electropermanent Magnetic Connectors/i,
@@ -3156,13 +3169,14 @@ function createSystemViewSection() {
 }
 
 function createGeometryFigure() {
+  const item = cadFigures[0];
   const figure = el("figure", "home-geometry");
   const img = document.createElement("img");
-  img.src = "/paper/figures/opaque-assembled-view.png";
-  img.alt = "Opaque assembled FluxCell view";
+  img.src = item.src;
+  img.alt = item.title;
   img.loading = "eager";
   img.decoding = "async";
-  figure.append(img, el("figcaption", "", "Opaque assembled view."));
+  figure.append(img, el("figcaption", "", item.title));
   return figure;
 }
 
