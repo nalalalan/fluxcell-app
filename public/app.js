@@ -135,38 +135,35 @@ const focus = {
   current: "One-axis proof first, then four two-axis FluxCell cells.",
 };
 
-const systemFacts = [
-  ["Locked design", "Square pole plates, solid steel inserts, one-axis proof first, parts for four full two-axis cells."],
-  ["Geometry lock", '1.00" keeper inserts, 1.25" square pole plates, 3.0" expanded, 1.5" contracted, 0.75" side stroke.'],
-  ["Magnetic layout", "Fixed center EPM cartridge; fork prongs and center tongue are moving steel keepers."],
-  ["Bench proof", "One axis uses 1 Alnico rod, 1 NdFeB rod, 2 pole plates, 2 fork prongs, 1 center tongue, 1 printed frame."],
+const currentRows = [
+  ["Plan", "One-axis EPM proof first. Then four two-axis FluxCell cells."],
+  ["Design", "Square pole plates. Solid steel inserts. Supplier-cut steel."],
+  ["Proof data needed", "Stroke, release, hold, current, heat, repeatability."],
+  ["Paper state", "Draft exists. Results wait for bench data."],
 ];
 
-const generatedArtifacts = [
+const fileLinks = [
   {
-    title: "Draft paper",
-    detail: "Manuscript PDF with figures, source, and evidence boundaries.",
+    title: "Paper PDF",
     href: "/paper.pdf",
   },
   {
     title: "Paper source",
-    detail: "LaTeX source for the current draft.",
     href: "/paper/source.tex",
   },
   {
     title: "Proof bundle",
-    detail: "Wiring map, pulse script, purchase lock, and bench-test checklist.",
     href: "/api/generated/hbridge-bundle.md",
   },
 ];
 
 const designLog = [
-  ["System role", "FluxCell stores state, artifacts, design decisions, files, and current proof direction."],
-  ["EPM architecture", "The EPM stays as a fixed center cartridge; moving steel inserts change magnetic overlap."],
-  ["Lane layout", "Center tongue runs between Alnico and NdFeB; fork prongs run outside the magnet pair."],
-  ["Dimensional decision", '1.00" keepers keep off-state overlap near 0.125" and on-state overlap near 0.875".'],
-  ["Build order", "One-axis proof happens before two-axis cell integration."],
-  ["Scale target", "Purchase quantities support the proof, four two-axis cells, and spares."],
+  ["State log", "FluxCell stores notes, files, design decisions, generated artifacts, and the current proof direction."],
+  ["EPM decision", "Fixed center cartridge. Moving steel inserts change magnetic overlap."],
+  ["Layout decision", "Center tongue between Alnico and NdFeB. Fork prongs outside the magnet pair."],
+  ["Dimension decision", '1.00" keepers, 1.25" square pole plates, 0.75" side stroke.'],
+  ["Build order", "One-axis proof before two-axis cell integration."],
+  ["Scale target", "Parts cover one proof, four two-axis cells, and spares."],
 ];
 
 const purchaseRows = [
@@ -3085,16 +3082,12 @@ function createShell() {
   const shell = el("main", "app-shell");
   shell.append(createTopbar());
   shell.append(createSystemViewSection());
-  shell.append(createGeneratedArtifactsSection());
-  shell.append(createDesignLogSection());
-  shell.append(createPurchaseSection());
-  shell.append(createPortfolioSection());
   shell.append(createWorkspace());
   const notes = createNotesSection();
-  if (notes) shell.append(notes);
-  shell.append(createLibrary());
+  if (notes) shell.append(createSectionDrawer(`Notes (${userNotes(state.notes).length})`, notes));
+  shell.append(createSectionDrawer("Backlog", createLibrary()));
   const focusLibrary = createFocusLibrary();
-  if (focusLibrary) shell.append(focusLibrary);
+  if (focusLibrary) shell.append(createSectionDrawer("Saved research", focusLibrary));
   return shell;
 }
 
@@ -3134,52 +3127,45 @@ function createStatusPill(text, className) {
 }
 
 function createSystemViewSection() {
-  const section = el("section", "system-view");
-  const titleBlock = el("div", "system-title-block");
-  const copy = el("div", "system-title-copy");
-  copy.append(
-    el("h1", "", "One-axis EPM proof, then four two-axis FluxCell cells."),
-    el("p", "system-summary", "Current plan: square pole plates, solid steel inserts, supplier-cut steel, one-axis evidence before cell-scale complexity.")
+  const section = el("section", "system-view plain-system-view");
+  section.append(
+    el("h1", "", "One-axis proof first."),
+    el("p", "plain-lede", "Then four two-axis FluxCell cells.")
   );
 
-  const actions = el("div", "system-actions");
-  actions.append(
-    createTextLink("Draft paper", "/paper.pdf", "system-button primary"),
-    createTextLink("Proof bundle", "/api/generated/hbridge-bundle.md", "system-button")
-  );
-  titleBlock.append(copy, actions);
-
-  const facts = el("div", "system-facts");
-  systemFacts.forEach(([label, value]) => {
-    const row = el("div", "system-fact");
-    row.append(el("p", "system-fact-label", label), el("p", "system-fact-value", value));
-    facts.append(row);
+  const rows = el("dl", "plain-state-list");
+  currentRows.forEach(([label, value]) => {
+    rows.append(el("dt", "", label), el("dd", "", value));
   });
+  section.append(rows);
 
-  section.append(titleBlock, facts);
+  const files = el("nav", "plain-file-links");
+  files.setAttribute("aria-label", "FluxCell files");
+  fileLinks.forEach((item) => files.append(createTextLink(item.title, item.href, "plain-file-link")));
+  section.append(files);
+
+  section.append(createDetailsPanel("Design record", createDesignLogBody()));
+  section.append(createDetailsPanel("Purchase list", createPurchaseBody()));
+  section.append(createDetailsPanel("Paper direction", createPaperDirectionBody()));
   return section;
 }
 
-function createGeneratedArtifactsSection() {
-  const section = el("section", "artifact-section");
-  const head = el("div", "section-head");
-  head.append(el("h2", "", "Generated artifacts"));
-  const grid = el("div", "artifact-grid");
-  generatedArtifacts.forEach((item) => {
-    const card = createTextLink("", item.href, "artifact-card");
-    const body = el("div", "item-body");
-    body.append(el("p", "item-title", item.title), el("p", "item-meta", item.detail));
-    card.append(body);
-    grid.append(card);
-  });
-  section.append(head, grid);
-  return section;
+function createDetailsPanel(label, body) {
+  const details = el("details", "plain-details");
+  details.append(el("summary", "", label), body);
+  return details;
 }
 
-function createDesignLogSection() {
-  const section = el("section", "design-log-section");
-  const head = el("div", "section-head");
-  head.append(el("h2", "", "Design log"));
+function createSectionDrawer(label, sectionNode) {
+  const details = el("details", "plain-details section-drawer");
+  const body = el("div", "plain-details-body");
+  body.append(sectionNode);
+  details.append(el("summary", "", label), body);
+  return details;
+}
+
+function createDesignLogBody() {
+  const body = el("div", "plain-details-body");
   const rows = el("div", "log-rows");
   designLog.forEach(([label, value]) => {
     const row = el("div", "log-row");
@@ -3201,18 +3187,13 @@ function createDesignLogSection() {
     figures.append(card);
   });
 
-  section.append(head, rows, figures);
-  return section;
+  body.append(rows, figures);
+  return body;
 }
 
-function createPurchaseSection() {
-  const section = el("section", "purchase-section");
-  const head = el("div", "section-head");
-  head.append(
-    el("h2", "", "Locked purchase list"),
-    el("p", "section-note", "Square pole plates + solid steel inserts + one-axis proof first + enough parts for 4 full two-axis cells. Approx total before shipping/tax: ~$456.65.")
-  );
-
+function createPurchaseBody() {
+  const body = el("div", "plain-details-body");
+  body.append(el("p", "section-note", "Locked: square pole plates, solid steel inserts, one-axis proof first, parts for 4 full two-axis cells. Approx total before shipping/tax: ~$456.65."));
   const scroll = el("div", "table-scroll");
   const table = el("table", "purchase-table");
   const thead = document.createElement("thead");
@@ -3230,27 +3211,23 @@ function createPurchaseSection() {
   });
   table.append(thead, tbody);
   scroll.append(table);
-  section.append(head, scroll);
-  return section;
+  body.append(scroll);
+  return body;
 }
 
-function createPortfolioSection() {
-  const section = el("section", "portfolio-section");
+function createPaperDirectionBody() {
+  const body = el("div", "plain-details-body");
   const blocks = [
     ["Paper story", "Pulse-programmed mechanical memory: a small robotic cell changes geometry with a short pulse and holds state without continuous power."],
     ["R&D/Imagineering relevance", "Portfolio-facing proof for physical computing, quiet show mechanisms, visible state change, repeatable reset, and evidence-rich iteration."],
     ["Demo target", "Four-cell kinetic surface: synchronized width trace, current trace, temperature note, and zero-current hold after each state change."],
   ];
-  const head = el("div", "section-head");
-  head.append(el("h2", "", "Paper direction"));
-  const grid = el("div", "portfolio-grid");
   blocks.forEach(([label, value]) => {
-    const block = el("article", "portfolio-block");
-    block.append(el("p", "portfolio-label", label), el("p", "portfolio-value", value));
-    grid.append(block);
+    const row = el("div", "log-row");
+    row.append(el("p", "log-label", label), el("p", "log-value", value));
+    body.append(row);
   });
-  section.append(head, grid);
-  return section;
+  return body;
 }
 
 function createTextLink(text, href, className) {
