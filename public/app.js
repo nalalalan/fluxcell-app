@@ -172,19 +172,19 @@ const purchaseRows = [
 
 const designFigures = [
   {
-    src: "/paper/figures/fixed-cartridge.png",
-    title: "Fixed cartridge",
-    detail: "EPM is fixed; the steel prongs and tongue move through the working gap.",
+    src: "/paper/figures/y-layer-states.png",
+    title: "Y layer states",
+    detail: 'Front/back axis: 3.0" expanded/off and 1.5" contracted/on.',
   },
   {
-    src: "/paper/figures/lane-layout.png",
-    title: "Lane layout",
-    detail: "Fork prongs outside, center tongue between Alnico and NdFeB.",
+    src: "/paper/figures/x-layer-states.png",
+    title: "X layer states",
+    detail: "Same geometry as the Y layer, rotated 90 degrees.",
   },
   {
-    src: "/assets/fluxcell-one-axis-summary.svg",
-    title: "One-axis overlap",
-    detail: '3.0" expanded/off and 1.5" contracted/on with controlled keeper overlap.',
+    src: "/paper/figures/opaque-assembled-view.png",
+    title: "Opaque assembled view",
+    detail: "External view hides A/N rods and internal gaps.",
   },
 ];
 
@@ -3145,6 +3145,7 @@ function createSystemViewSection() {
     rows.append(el("dt", "", label), el("dd", "", value));
   });
   section.append(rows);
+  section.append(createGeometryFigure());
 
   const files = el("nav", "plain-file-links");
   files.setAttribute("aria-label", "FluxCell files");
@@ -3152,6 +3153,17 @@ function createSystemViewSection() {
   section.append(files);
 
   return section;
+}
+
+function createGeometryFigure() {
+  const figure = el("figure", "home-geometry");
+  const img = document.createElement("img");
+  img.src = "/paper/figures/opaque-assembled-view.png";
+  img.alt = "Opaque assembled FluxCell view";
+  img.loading = "eager";
+  img.decoding = "async";
+  figure.append(img, el("figcaption", "", "Opaque assembled view."));
+  return figure;
 }
 
 function createDetailsPanel(label, body) {
