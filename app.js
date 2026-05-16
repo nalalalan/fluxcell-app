@@ -131,9 +131,64 @@ const recoveredFeedbackSeed = {
 
 const focus = {
   domain: "fluxcell.aolabs.io",
-  title: "Printed electropermanent actuation for Sarrus cells.",
-  current: "Integrated EPM actuation in one laterally expanding cell.",
+  title: "Electropermanent magnetic memory for Sarrus-cell motion.",
+  current: "One-axis proof first, then four two-axis FluxCell cells.",
 };
+
+const currentRows = [
+  ["Plan", "One-axis EPM proof first. Then four two-axis FluxCell cells."],
+  ["Design", "Square pole plates. Solid steel inserts. Supplier-cut steel."],
+  ["Proof data needed", "Stroke, release, hold, current, heat, repeatability."],
+  ["Paper state", "Draft exists. Results wait for bench data."],
+];
+
+const fileLinks = [
+  {
+    title: "Proof bundle",
+    href: "/api/generated/hbridge-bundle.md",
+  },
+];
+
+const designLog = [
+  ["State log", "FluxCell stores notes, files, design decisions, generated artifacts, and the current proof direction."],
+  ["EPM decision", "Fixed center cartridge. Moving steel inserts change magnetic overlap."],
+  ["Layout decision", "Center tongue between Alnico and NdFeB. Fork prongs outside the magnet pair."],
+  ["Dimension decision", '1.00" keepers, 1.25" square pole plates, 0.75" side stroke.'],
+  ["Build order", "One-axis proof before two-axis cell integration."],
+  ["Scale target", "Parts cover one proof, four two-axis cells, and spares."],
+];
+
+const purchaseRows = [
+  ["Alnico 5 rods", "12", '0.250" dia x 0.625" long, Alnico 5, axial', "CLMI", "https://clmi.us/shop/250-round-bar-magnets-alnico-grade-5/", "$23.88"],
+  ["NdFeB rods", "12", 'K&J D4A, 1/4" dia x 5/8" long, N42, axial', "K&J", "https://www.kjmagnetics.com/d4a-neodymium-cylinder-magnet", "~$15.00"],
+  ["Square pole plates", "16", '1018 steel rectangle bar, 0.25" thick x 1.25" wide, cut length 1.25"', "OnlineMetals", "https://www.onlinemetals.com/en/buy/carbon-steel/0-25-x-1-25-carbon-steel-rectangle-bar-1018-cold-finish/pid/7466", "~$56.00"],
+  ["Fork prong inserts", "24", 'A36 flat bar, 1/8" thick x 1/2" wide, cut length 1.00"', "All Metals", "https://allmetalsinc.com/products/steel-hot-rolled-flat-bar-1-8-x-1-2-grade-a36", "$167.28"],
+  ["Center tongue inserts", "12", '1018 flat bar, 1/4" thick x 1/2" wide, cut length 1.00"', "All Metals", "https://allmetalsinc.com/products/steel-cold-rolled-flat-bar-1-4-x-1-2-grade-1018", "$87.72"],
+  ["Magnet wire", "1 spool", "30 AWG enameled copper magnet wire, 4 oz", "BNTECHGO", "https://bntechgo.com/bntechgo-30-awg-magnet-wire-enameled-copper-wire-enameled-magnet-winding-wire-4-oz-0-0098-diameter-1-spool-coil-red-temperature-rating-155-degrees-celsius-widely-used-for-transformers-and-inductors/", "~$12.00"],
+  ["Kapton tape", "1 roll", '1/2" Kapton/polyimide tape', "Stellar", "https://stellartechnical.com/products/kapton-film-tape-1-2", "$8.75"],
+  ["Bench supply", "1", "0-30 V, 0-10 A adjustable DC supply", "Amazon/Walmart", "https://www.amazon.com/Adjustable-Switching-Regulated-Adjustments-Jesverty/dp/B09YSJQWRG", "~$60.00"],
+  ["Banana leads", "1 set", "4 mm banana plug to alligator clip leads, 10-15 A preferred", "Amazon", "https://www.amazon.com/s?k=banana+plug+to+alligator+clip+leads+15a", "~$12.00"],
+  ["Silicone wire", "1 kit", "24-28 AWG flexible silicone wire for coil pigtails", "Amazon", "https://www.amazon.com/s?k=24+awg+silicone+wire+kit", "~$10.00"],
+  ["Heat shrink", "1 kit", "Small heat-shrink tubing for coil strain relief", "Amazon", "https://www.amazon.com/s?k=heat+shrink+tubing+kit", "~$8.00"],
+];
+
+const designFigures = [
+  {
+    src: "/paper/figures/fixed-cartridge.png",
+    title: "Fixed cartridge",
+    detail: "EPM is fixed; the steel prongs and tongue move through the working gap.",
+  },
+  {
+    src: "/paper/figures/lane-layout.png",
+    title: "Lane layout",
+    detail: "Fork prongs outside, center tongue between Alnico and NdFeB.",
+  },
+  {
+    src: "/assets/fluxcell-one-axis-summary.svg",
+    title: "One-axis overlap",
+    detail: '3.0" expanded/off and 1.5" contracted/on with controlled keeper overlap.',
+  },
+];
 
 const paperGuideRules = [
   {
@@ -2397,7 +2452,7 @@ let tipWindowIndex = 0;
 let suppressCloudStateSave = false;
 let lastCloudStateSignature = "";
 const previewUrls = new Map();
-const visibleTipCount = 9;
+const visibleTipCount = 3;
 
 function loadState() {
   try {
@@ -3016,17 +3071,18 @@ function render() {
 }
 
 function createShell() {
+  const fragment = document.createDocumentFragment();
+  fragment.append(createTopbar(), createPaperStrip());
   const shell = el("main", "app-shell");
-  shell.append(createTopbar());
-  const codexOutput = createCodexOutputSection();
-  if (codexOutput) shell.append(codexOutput);
-  const focusLibrary = createFocusLibrary();
-  if (focusLibrary) shell.append(focusLibrary);
+  shell.append(createSystemViewSection());
   shell.append(createWorkspace());
   const notes = createNotesSection();
-  if (notes) shell.append(notes);
-  shell.append(createLibrary());
-  return shell;
+  if (notes) shell.append(createSectionDrawer(`Notes (${userNotes(state.notes).length})`, notes));
+  shell.append(createSectionDrawer("Backlog", createLibrary()));
+  const focusLibrary = createFocusLibrary();
+  if (focusLibrary) shell.append(createSectionDrawer("Saved research", focusLibrary));
+  fragment.append(shell);
+  return fragment;
 }
 
 function createTopbar() {
@@ -3060,8 +3116,140 @@ function createTopbar() {
   return topbar;
 }
 
+function createPaperStrip() {
+  const strip = el("header", "paper-strip");
+  strip.setAttribute("aria-label", "fluxcell paper");
+  const copy = el("div", "paper-copy");
+  copy.append(
+    el("span", "", "Paper"),
+    el("strong", "", "Pulse-programmed mechanical memory for Sarrus-cell robotic matter"),
+    el("p", "", "Fixed cartridge, moving keepers, one-axis proof boundary, and pending bench measurements.")
+  );
+  const actions = el("div", "paper-actions");
+  const pdf = el("a", "paper-button primary", "Open PDF");
+  pdf.href = "/paper.pdf";
+  pdf.download = "";
+  actions.append(pdf);
+  strip.append(copy, actions);
+  return strip;
+}
+
 function createStatusPill(text, className) {
   return el("span", className, text);
+}
+
+function createSystemViewSection() {
+  const section = el("section", "system-view plain-system-view");
+  section.append(
+    el("h1", "", "One-axis proof first."),
+    el("p", "plain-lede", "Then four two-axis FluxCell cells.")
+  );
+
+  const rows = el("dl", "plain-state-list");
+  currentRows.forEach(([label, value]) => {
+    rows.append(el("dt", "", label), el("dd", "", value));
+  });
+  section.append(rows);
+
+  const files = el("nav", "plain-file-links");
+  files.setAttribute("aria-label", "FluxCell files");
+  fileLinks.forEach((item) => files.append(createTextLink(item.title, item.href, "plain-file-link")));
+  section.append(files);
+
+  section.append(createDetailsPanel("Design record", createDesignLogBody()));
+  section.append(createDetailsPanel("Purchase list", createPurchaseBody()));
+  section.append(createDetailsPanel("Paper direction", createPaperDirectionBody()));
+  return section;
+}
+
+function createDetailsPanel(label, body) {
+  const details = el("details", "plain-details");
+  details.append(el("summary", "", label), body);
+  return details;
+}
+
+function createSectionDrawer(label, sectionNode) {
+  const details = el("details", "plain-details section-drawer");
+  const body = el("div", "plain-details-body");
+  body.append(sectionNode);
+  details.append(el("summary", "", label), body);
+  return details;
+}
+
+function createDesignLogBody() {
+  const body = el("div", "plain-details-body");
+  const rows = el("div", "log-rows");
+  designLog.forEach(([label, value]) => {
+    const row = el("div", "log-row");
+    row.append(el("p", "log-label", label), el("p", "log-value", value));
+    rows.append(row);
+  });
+
+  const figures = el("div", "design-figure-grid");
+  designFigures.forEach((figure) => {
+    const card = el("figure", "design-figure");
+    const img = document.createElement("img");
+    img.src = figure.src;
+    img.alt = figure.title;
+    img.loading = "lazy";
+    img.decoding = "async";
+    const caption = el("figcaption", "");
+    caption.append(el("strong", "", figure.title), document.createTextNode(` ${figure.detail}`));
+    card.append(img, caption);
+    figures.append(card);
+  });
+
+  body.append(rows, figures);
+  return body;
+}
+
+function createPurchaseBody() {
+  const body = el("div", "plain-details-body");
+  body.append(el("p", "section-note", "Locked: square pole plates, solid steel inserts, one-axis proof first, parts for 4 full two-axis cells. Approx total before shipping/tax: ~$456.65."));
+  const scroll = el("div", "table-scroll");
+  const table = el("table", "purchase-table");
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  ["Part", "Qty", "Spec", "Source", "Total"].forEach((label) => headRow.append(el("th", "", label)));
+  thead.append(headRow);
+  const tbody = document.createElement("tbody");
+  purchaseRows.forEach(([part, qty, spec, source, href, total]) => {
+    const row = document.createElement("tr");
+    row.append(el("td", "", part), el("td", "", qty), el("td", "", spec));
+    const sourceCell = document.createElement("td");
+    sourceCell.append(createTextLink(source, href, "inline-link"));
+    row.append(sourceCell, el("td", "", total));
+    tbody.append(row);
+  });
+  table.append(thead, tbody);
+  scroll.append(table);
+  body.append(scroll);
+  return body;
+}
+
+function createPaperDirectionBody() {
+  const body = el("div", "plain-details-body");
+  const blocks = [
+    ["Paper story", "Pulse-programmed mechanical memory: a small robotic cell changes geometry with a short pulse and holds state without continuous power."],
+    ["R&D/Imagineering relevance", "Portfolio-facing proof for physical computing, quiet show mechanisms, visible state change, repeatable reset, and evidence-rich iteration."],
+    ["Demo target", "Four-cell kinetic surface: synchronized width trace, current trace, temperature note, and zero-current hold after each state change."],
+  ];
+  blocks.forEach(([label, value]) => {
+    const row = el("div", "log-row");
+    row.append(el("p", "log-label", label), el("p", "log-value", value));
+    body.append(row);
+  });
+  return body;
+}
+
+function createTextLink(text, href, className) {
+  const link = el("a", className, text);
+  link.href = href;
+  if (/^https?:\/\//i.test(href)) {
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+  }
+  return link;
 }
 
 function currentPriorityLine() {
@@ -3231,21 +3419,17 @@ function syncLabel() {
 }
 
 function createWorkspace() {
-  const section = el("section", "workspace");
+  const section = el("section", "workspace capture-workspace");
 
   const capture = el("section", "capture-panel");
   capture.append(createIntro(), createCaptureForm());
-
-  const thinking = el("aside", "state-panel");
-  thinking.append(createProjectStatePanel());
-
-  section.append(capture, thinking);
+  section.append(capture);
   return section;
 }
 
 function createIntro() {
   const wrap = el("div", "intro");
-  wrap.append(el("h1", "", appName), el("p", "tagline", focus.title));
+  wrap.append(el("h2", "", "Capture log"), el("p", "tagline", "Notes, figures, PDFs, and build evidence stay attached to the project state."));
   return wrap;
 }
 
@@ -4375,9 +4559,9 @@ function createFocusLibrary() {
   const papers = focusPaperItems();
   if (!approvedIdeas.length && !approvedPapers.length && !ideas.length && !papers.length) return null;
 
-  const section = el("section", "focus-library useful-library top-feed");
+  const section = el("section", "focus-library useful-library backlog-library");
   const head = el("div", "section-head section-head-row");
-  const heading = projectStageProfile().id === "delegate" ? "Codex queue" : "Suggestions";
+  const heading = "Backlog";
   head.append(el("h2", "", heading), createFeedControls(ideas.length));
   section.append(head);
 
@@ -4411,7 +4595,7 @@ function createFeedControls(total) {
     const next = el("button", "refresh-button feed-next");
     next.type = "button";
     next.dataset.action = "next-tips";
-    next.title = "Show next tips";
+    next.title = "Show next backlog items";
     next.append(icon("skip"), document.createTextNode("Next"));
     controls.append(next);
   }
@@ -4461,7 +4645,7 @@ function createRefreshSuggestionsButton() {
   const button = el("button", "refresh-button");
   button.type = "button";
   button.dataset.action = "refresh-suggestions";
-  button.title = "Refresh suggestions";
+  button.title = "Refresh backlog";
   button.append(icon("refresh"), document.createTextNode("Refresh"));
   return button;
 }
@@ -5114,14 +5298,14 @@ async function refreshSuggestions() {
     toast("Refreshing AI feed.");
     await requestAiFeed({ force: true });
   } else {
-    toast(sync.status === "local" ? "Local suggestions refreshed. Add OPENAI_API_KEY for AI." : "Suggestions refreshed.");
+    toast(sync.status === "local" ? "Local backlog refreshed. Add OPENAI_API_KEY for AI." : "Backlog refreshed.");
   }
 }
 
 function scheduleAiFeedRefresh() {
   if (!aiBackendAvailable()) return;
   window.clearTimeout(aiRefreshTimer);
-  aiRefreshTimer = window.setTimeout(() => requestAiFeed({ force: false }), 350);
+  aiRefreshTimer = window.setTimeout(() => requestAiFeed({ force: false, quiet: true }), 350);
 }
 
 function aiBackendBase() {
@@ -5190,7 +5374,7 @@ function aiFeedPayload() {
   };
 }
 
-async function requestAiFeed({ force = false } = {}) {
+async function requestAiFeed({ force = false, quiet = false } = {}) {
   const base = aiBackendBase();
   if (!base) return false;
   if (!force && aiFeed.status === "loading") return false;
@@ -5203,7 +5387,7 @@ async function requestAiFeed({ force = false } = {}) {
       aiFeed = normalizeAiFeed({ ...response, status: "idle" });
       saveAiFeed();
       render();
-      toast(response.error || "AI is not configured.");
+      if (!quiet) toast(response.error || "AI is not configured.");
       return false;
     }
     aiFeed = normalizeAiFeed({
@@ -5219,14 +5403,14 @@ async function requestAiFeed({ force = false } = {}) {
     aiFeed.ideas.forEach(rememberCustomIdea);
     saveAiFeed();
     render();
-    toast("AI feed updated.");
+    if (!quiet) toast("AI feed updated.");
     return true;
   } catch (error) {
     console.error(error);
     aiFeed = normalizeAiFeed({ ...aiFeed, status: "idle", error: error.message || "AI request failed" });
     saveAiFeed();
     render();
-    toast(aiFeed.error);
+    if (!quiet) toast(aiFeed.error);
     return false;
   }
 }
