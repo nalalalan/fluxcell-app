@@ -160,7 +160,7 @@ a {
 }
 
 .app-shell {
-  width: min(calc(100% - 32px), 960px);
+  width: min(calc(100% - 32px), 720px);
   min-height: 100vh;
   margin: 0 auto;
   padding: 0 0 72px;
@@ -502,7 +502,7 @@ a {
 
 .plain-system-view {
   display: block;
-  padding: 24px 0 18px;
+  padding: 28px 0 12px;
 }
 
 .plain-system-view h1 {
@@ -522,7 +522,7 @@ a {
 .plain-state-list {
   display: grid;
   grid-template-columns: 150px minmax(0, 1fr);
-  margin: 18px 0 0;
+  margin: 16px 0 0;
   border-top: 1px solid var(--line);
   color: var(--ink);
 }
@@ -565,7 +565,7 @@ a {
 }
 
 .plain-details {
-  margin-top: 14px;
+  margin-top: 8px;
   border-top: 1px solid var(--line);
 }
 
@@ -585,6 +585,7 @@ a {
 
 .section-drawer {
   border-bottom: 1px solid var(--line);
+  margin-top: 0;
 }
 
 .section-drawer > .plain-details-body > section {
@@ -593,6 +594,11 @@ a {
 
 .section-drawer .section-head {
   display: none;
+}
+
+.records-section {
+  display: grid;
+  gap: 0;
 }
 
 .plain-details-body > .log-row {

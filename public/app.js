@@ -136,13 +136,15 @@ const focus = {
 };
 
 const currentRows = [
-  ["Plan", "One-axis EPM proof first. Then four two-axis FluxCell cells."],
-  ["Design", "Square pole plates. Solid steel inserts. Supplier-cut steel."],
-  ["Proof data needed", "Stroke, release, hold, current, heat, repeatability."],
-  ["Paper state", "Draft exists. Results wait for bench data."],
+  ["Now", "One-axis EPM proof first."],
+  ["Locked", "Square pole plates. Solid steel inserts. Supplier-cut steel."],
 ];
 
 const fileLinks = [
+  {
+    title: "Paper PDF",
+    href: "/paper.pdf",
+  },
   {
     title: "Proof bundle",
     href: "/api/generated/hbridge-bundle.md",
@@ -3072,15 +3074,12 @@ function render() {
 
 function createShell() {
   const fragment = document.createDocumentFragment();
-  fragment.append(createTopbar(), createPaperStrip());
+  fragment.append(createTopbar());
   const shell = el("main", "app-shell");
   shell.append(createSystemViewSection());
-  shell.append(createWorkspace());
   const notes = createNotesSection();
-  if (notes) shell.append(createSectionDrawer(`Notes (${userNotes(state.notes).length})`, notes));
-  shell.append(createSectionDrawer("Backlog", createLibrary()));
   const focusLibrary = createFocusLibrary();
-  if (focusLibrary) shell.append(createSectionDrawer("Saved research", focusLibrary));
+  shell.append(createSectionDrawer("More", createMoreSection(notes, focusLibrary)));
   fragment.append(shell);
   return fragment;
 }
@@ -3142,7 +3141,7 @@ function createSystemViewSection() {
   const section = el("section", "system-view plain-system-view");
   section.append(
     el("h1", "", "One-axis proof first."),
-    el("p", "plain-lede", "Then four two-axis FluxCell cells.")
+    el("p", "plain-lede", "Then four two-axis cells.")
   );
 
   const rows = el("dl", "plain-state-list");
@@ -3156,9 +3155,6 @@ function createSystemViewSection() {
   fileLinks.forEach((item) => files.append(createTextLink(item.title, item.href, "plain-file-link")));
   section.append(files);
 
-  section.append(createDetailsPanel("Design record", createDesignLogBody()));
-  section.append(createDetailsPanel("Purchase list", createPurchaseBody()));
-  section.append(createDetailsPanel("Paper direction", createPaperDirectionBody()));
   return section;
 }
 
@@ -3174,6 +3170,25 @@ function createSectionDrawer(label, sectionNode) {
   body.append(sectionNode);
   details.append(el("summary", "", label), body);
   return details;
+}
+
+function createMoreSection(notes, focusLibrary) {
+  const section = el("section", "records-section");
+  section.append(createWorkspace());
+  const records = createRecordsSection(notes, focusLibrary);
+  if (records) section.append(records);
+  return section;
+}
+
+function createRecordsSection(notes, focusLibrary) {
+  const section = el("section", "records-section");
+  section.append(createDetailsPanel("Design record", createDesignLogBody()));
+  section.append(createDetailsPanel("Purchase list", createPurchaseBody()));
+  section.append(createDetailsPanel("Paper direction", createPaperDirectionBody()));
+  if (notes) section.append(notes);
+  section.append(createLibrary());
+  if (focusLibrary) section.append(focusLibrary);
+  return section;
 }
 
 function createDesignLogBody() {
