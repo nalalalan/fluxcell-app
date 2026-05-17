@@ -135,30 +135,32 @@ const focus = {
   current: "One-axis proof first, then four two-axis FluxCell cells.",
 };
 
-const todos = [
+const proofEvidenceFeatureStart = Date.parse("2026-05-17T06:55:00.000Z");
+
+const currentIssueRows = [
   {
-    title: "Order the current parts list.",
-    detail: "Square pole plates, solid inserts, rods, magnet wire, Kapton, supply, leads, pigtails, heat shrink.",
+    title: "No recorded proof result.",
+    detail: "FluxCell has no new synced note or file saying the one-axis proof worked, failed, moved, held, released, or overheated.",
   },
   {
-    title: "Print the one-axis fit frame.",
-    detail: "Use PLA/PETG to check carrier travel, keeper clearance, and the 3.0 inch to 1.5 inch stroke envelope.",
+    title: "Bench data are empty.",
+    detail: "The paper has geometry, figures, and a parts list, but no width, current, temperature, hold, or release record.",
   },
   {
-    title: "Set up the pulse driver.",
-    detail: "Arduino, H-bridge, current-limited supply, and a reversible pulse script tested before the coil exists.",
+    title: "Mechanical risk is unknown.",
+    detail: "The keepers may bind, twist, or stick; the current diagram only proves the intended layout.",
   },
   {
-    title: "Make the measurement view.",
-    detail: "Phone/camera overhead, ruler visible, supply display visible, and a simple temperature check location.",
+    title: "Electronics risk is unmeasured.",
+    detail: "Pulse current, pulse time, and heat are not tied to actual motion yet.",
   },
   {
-    title: "Write the bench-test sheet.",
-    detail: "One page: pulse polarity, pulse time, current limit, width before/after, zero-current hold, reverse release, heat note.",
+    title: "Two-axis cells still inherit an assumption.",
+    detail: "The four-cell direction depends on one layer producing a recorded result first.",
   },
   {
-    title: "Keep the paper ready for data.",
-    detail: "Leave placeholders for the first width trace, current trace, temperature note, and failure mode.",
+    title: "The physical-experience story has no object yet.",
+    detail: "The R&D value depends on visible quiet motion and reset, not only the diagram or manuscript.",
   },
 ];
 
@@ -3136,13 +3138,14 @@ function createStatusPill(text, className) {
 
 function createSystemViewSection() {
   const section = el("section", "system-view plain-system-view");
+  const proofState = currentProofState();
   section.append(
-    el("h1", "", "One-axis proof first."),
-    el("p", "plain-lede", "Then four two-axis cells.")
+    el("h1", "", proofState.title),
+    el("p", "plain-lede", proofState.detail)
   );
 
   section.append(createGeometryFigure());
-  section.append(createTodosSection());
+  section.append(createCurrentIssuesSection(proofState));
 
   return section;
 }
@@ -3159,17 +3162,98 @@ function createGeometryFigure() {
   return figure;
 }
 
-function createTodosSection() {
-  const section = el("section", "todos-section");
-  section.append(el("h2", "", "todos"));
-  const list = el("ol", "todo-list");
-  todos.forEach((item) => {
-    const row = el("li", "todo-item");
+function createCurrentIssuesSection(proofState) {
+  const section = el("section", "issues-section");
+  section.append(el("h2", "", "current issues"));
+  const list = el("div", "issue-list");
+  currentIssues(proofState).forEach((item) => {
+    const row = el("article", "issue-item");
     row.append(el("strong", "", item.title), el("span", "", item.detail));
     list.append(row);
   });
   section.append(list);
   return section;
+}
+
+function currentProofState() {
+  const evidence = proofEvidenceState();
+  if (evidence.stage === "complete") {
+    return {
+      stage: "complete",
+      title: "One-axis proof recorded.",
+      detail: "Four two-axis cells can start from the recorded width, hold, release, current, and heat evidence.",
+    };
+  }
+  if (evidence.stage === "result") {
+    return {
+      stage: "result",
+      title: "One-axis result recorded.",
+      detail: "The blocker is now what the result proves, not whether the system noticed it.",
+    };
+  }
+  return {
+    stage: "pending",
+    title: "One-axis proof first.",
+    detail: "Then four two-axis cells.",
+  };
+}
+
+function proofEvidenceState() {
+  const text = proofEvidenceText();
+  if (!text) return { stage: "pending" };
+  const resultContext = /\bone[-\s]?axis\b|\b1[-\s]?axis\b|\bproof result\b|\bbench result\b|\bwidth trace\b|\bcurrent trace\b|\bzero[-\s]?current hold\b|\breverse[-\s]?pulse release\b/i;
+  const hasContext = resultContext.test(text);
+  if (!hasContext) return { stage: "pending" };
+  const hasFailure = /\b(proof|bench|one[-\s]?axis).{0,80}(failed|failure|no motion|did not move|stuck|overheat|overheated|too hot|friction|weak flux|twist|sticking|poor release)\b/i.test(text);
+  const hasMotion = /\b(proof|bench|one[-\s]?axis).{0,80}(worked|works|passed|success|moved|contracted|expanded|width changed|changed width|held|released)\b|\bwidth.{0,40}(changed|trace|before\/after|measured)\b|\bzero[-\s]?current.{0,40}(hold|held)\b|\breverse[-\s]?pulse.{0,40}(release|released)\b/i.test(text);
+  const hasTrace = /\bcurrent trace\b|\btemperature (trace|note)\b|\bheat (trace|note)\b|\bwidth trace\b|\bbefore\/after\b|\bvideo\b|\bclip\b|\bzero[-\s]?current hold\b|\breverse[-\s]?pulse release\b/i.test(text);
+  if (hasMotion && hasTrace && !hasFailure) return { stage: "complete" };
+  if (hasMotion || hasFailure) return { stage: "result" };
+  return { stage: "pending" };
+}
+
+function proofEvidenceText() {
+  const notes = userNotes(state.notes)
+    .filter(isFreshProofEvidenceRecord)
+    .map((note) => note.text)
+    .join(" ");
+  const files = state.files
+    .filter((file) => !isPaperFile(file) && file.kind !== "paper")
+    .filter(isFreshProofEvidenceRecord)
+    .map((file) => `${file.name || ""} ${file.paperTitle || ""} ${file.detectedTitle || ""} ${file.title || ""}`)
+    .join(" ");
+  return `${notes} ${files}`.toLowerCase();
+}
+
+function isFreshProofEvidenceRecord(record) {
+  const time = Math.max(
+    feedbackTime(record.createdAt),
+    feedbackTime(record.updatedAt),
+    feedbackTime(record.previewUpdatedAt)
+  );
+  return Boolean(time && time >= proofEvidenceFeatureStart);
+}
+
+function currentIssues(proofState) {
+  if (proofState.stage === "complete") {
+    return [
+      {
+        title: "The result needs interpretation.",
+        detail: "FluxCell found completion evidence; the project still needs the result translated into a claim boundary.",
+      },
+      ...currentIssueRows.slice(1),
+    ];
+  }
+  if (proofState.stage === "result") {
+    return [
+      {
+        title: "The proof loop is no longer blank.",
+        detail: "FluxCell found result evidence; the project now depends on whether that evidence shows motion, failure, or an ambiguous partial result.",
+      },
+      ...currentIssueRows.slice(1),
+    ];
+  }
+  return currentIssueRows;
 }
 
 function createDetailsPanel(label, body) {
@@ -3195,6 +3279,7 @@ function createMoreSection(notes, focusLibrary) {
 
 function createRecordsSection(notes, focusLibrary) {
   const section = el("section", "records-section");
+  section.append(createDetailsPanel("Evidence", createCaptureForm()));
   section.append(createDetailsPanel("Purchase list", createPurchaseBody()));
   if (notes) section.append(notes);
   section.append(createLibrary());
@@ -4760,8 +4845,13 @@ function importantStopWords() {
 }
 
 function feedbackTime(value) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+  const raw = String(value || "").trim();
+  const date = new Date(raw);
+  if (!Number.isNaN(date.getTime())) return date.getTime();
+  const normalized = raw.replace(/(\.\d{3})\d+(Z|[+-]\d\d:?\d\d)$/i, "$1$2");
+  const fallback = new Date(normalized);
+  if (!Number.isNaN(fallback.getTime())) return fallback.getTime();
+  return 0;
 }
 
 function fileMeta(file) {
