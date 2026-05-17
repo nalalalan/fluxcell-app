@@ -135,25 +135,31 @@ const focus = {
   current: "One-axis proof first, then four two-axis FluxCell cells.",
 };
 
-const currentRows = [
-  ["Now", "One-axis EPM proof first."],
-  ["Locked", "Square pole plates. Solid steel inserts. Supplier-cut steel."],
-];
-
-const fileLinks = [
+const todos = [
   {
-    title: "Proof bundle",
-    href: "/api/generated/hbridge-bundle.md",
+    title: "Order the current parts list.",
+    detail: "Square pole plates, solid inserts, rods, magnet wire, Kapton, supply, leads, pigtails, heat shrink.",
   },
-];
-
-const designLog = [
-  ["State log", "FluxCell stores notes, files, design decisions, generated artifacts, and the current proof direction."],
-  ["EPM decision", "Fixed center cartridge. Moving steel inserts change magnetic overlap."],
-  ["Layout decision", "Center tongue between Alnico and NdFeB. Fork prongs outside the magnet pair."],
-  ["Dimension decision", '1.00" keepers, 1.25" square pole plates, 0.75" side stroke.'],
-  ["Build order", "One-axis proof before two-axis cell integration."],
-  ["Scale target", "Parts cover one proof, four two-axis cells, and spares."],
+  {
+    title: "Print the one-axis fit frame.",
+    detail: "Use PLA/PETG to check carrier travel, keeper clearance, and the 3.0 inch to 1.5 inch stroke envelope.",
+  },
+  {
+    title: "Set up the pulse driver.",
+    detail: "Arduino, H-bridge, current-limited supply, and a reversible pulse script tested before the coil exists.",
+  },
+  {
+    title: "Make the measurement view.",
+    detail: "Phone/camera overhead, ruler visible, supply display visible, and a simple temperature check location.",
+  },
+  {
+    title: "Write the bench-test sheet.",
+    detail: "One page: pulse polarity, pulse time, current limit, width before/after, zero-current hold, reverse release, heat note.",
+  },
+  {
+    title: "Keep the paper ready for data.",
+    detail: "Leave placeholders for the first width trace, current trace, temperature note, and failure mode.",
+  },
 ];
 
 const purchaseRows = [
@@ -168,24 +174,6 @@ const purchaseRows = [
   ["Banana leads", "1 set", "4 mm banana plug to alligator clip leads, 10-15 A preferred", "Amazon", "https://www.amazon.com/s?k=banana+plug+to+alligator+clip+leads+15a", "~$12.00"],
   ["Silicone wire", "1 kit", "24-28 AWG flexible silicone wire for coil pigtails", "Amazon", "https://www.amazon.com/s?k=24+awg+silicone+wire+kit", "~$10.00"],
   ["Heat shrink", "1 kit", "Small heat-shrink tubing for coil strain relief", "Amazon", "https://www.amazon.com/s?k=heat+shrink+tubing+kit", "~$8.00"],
-];
-
-const designFigures = [
-  {
-    src: "/paper/figures/y-layer-states.png",
-    title: "Y layer states",
-    detail: 'Front/back axis: 3.0" expanded/off and 1.5" contracted/on.',
-  },
-  {
-    src: "/paper/figures/x-layer-states.png",
-    title: "X layer states",
-    detail: "Same geometry as the Y layer, rotated 90 degrees.",
-  },
-  {
-    src: "/paper/figures/opaque-assembled-view.png",
-    title: "Opaque assembled view",
-    detail: "External view hides A/N rods and internal gaps.",
-  },
 ];
 
 const cadFigures = [
@@ -3130,7 +3118,7 @@ function createPaperStrip() {
   const copy = el("div", "paper-copy");
   copy.append(
     el("span", "", "Paper"),
-    el("strong", "", "Pulse-programmed mechanical memory for zero-standby robotic matter"),
+    el("strong", "", "Pulse-programmed mechanical memory in an electropermanent robotic cell"),
     el("p", "", "Fixed cartridge, moving keepers, one-axis proof boundary, and pending bench measurements.")
   );
   const actions = el("div", "paper-actions");
@@ -3153,17 +3141,8 @@ function createSystemViewSection() {
     el("p", "plain-lede", "Then four two-axis cells.")
   );
 
-  const rows = el("dl", "plain-state-list");
-  currentRows.forEach(([label, value]) => {
-    rows.append(el("dt", "", label), el("dd", "", value));
-  });
-  section.append(rows);
   section.append(createGeometryFigure());
-
-  const files = el("nav", "plain-file-links");
-  files.setAttribute("aria-label", "FluxCell files");
-  fileLinks.forEach((item) => files.append(createTextLink(item.title, item.href, "plain-file-link")));
-  section.append(files);
+  section.append(createTodosSection());
 
   return section;
 }
@@ -3178,6 +3157,19 @@ function createGeometryFigure() {
   img.decoding = "async";
   figure.append(img, el("figcaption", "", item.title));
   return figure;
+}
+
+function createTodosSection() {
+  const section = el("section", "todos-section");
+  section.append(el("h2", "", "todos"));
+  const list = el("ol", "todo-list");
+  todos.forEach((item) => {
+    const row = el("li", "todo-item");
+    row.append(el("strong", "", item.title), el("span", "", item.detail));
+    list.append(row);
+  });
+  section.append(list);
+  return section;
 }
 
 function createDetailsPanel(label, body) {
@@ -3196,7 +3188,6 @@ function createSectionDrawer(label, sectionNode) {
 
 function createMoreSection(notes, focusLibrary) {
   const section = el("section", "records-section");
-  section.append(createWorkspace());
   const records = createRecordsSection(notes, focusLibrary);
   if (records) section.append(records);
   return section;
@@ -3204,45 +3195,16 @@ function createMoreSection(notes, focusLibrary) {
 
 function createRecordsSection(notes, focusLibrary) {
   const section = el("section", "records-section");
-  section.append(createDetailsPanel("Design record", createDesignLogBody()));
   section.append(createDetailsPanel("Purchase list", createPurchaseBody()));
-  section.append(createDetailsPanel("Paper direction", createPaperDirectionBody()));
   if (notes) section.append(notes);
   section.append(createLibrary());
   if (focusLibrary) section.append(focusLibrary);
   return section;
 }
 
-function createDesignLogBody() {
-  const body = el("div", "plain-details-body");
-  const rows = el("div", "log-rows");
-  designLog.forEach(([label, value]) => {
-    const row = el("div", "log-row");
-    row.append(el("p", "log-label", label), el("p", "log-value", value));
-    rows.append(row);
-  });
-
-  const figures = el("div", "design-figure-grid");
-  designFigures.forEach((figure) => {
-    const card = el("figure", "design-figure");
-    const img = document.createElement("img");
-    img.src = figure.src;
-    img.alt = figure.title;
-    img.loading = "lazy";
-    img.decoding = "async";
-    const caption = el("figcaption", "");
-    caption.append(el("strong", "", figure.title), document.createTextNode(` ${figure.detail}`));
-    card.append(img, caption);
-    figures.append(card);
-  });
-
-  body.append(rows, figures);
-  return body;
-}
-
 function createPurchaseBody() {
   const body = el("div", "plain-details-body");
-  body.append(el("p", "section-note", "Locked: square pole plates, solid steel inserts, one-axis proof first, parts for 4 full two-axis cells. Approx total before shipping/tax: ~$456.65."));
+  body.append(el("p", "section-note", "Current parts list: square pole plates, solid steel inserts, one-axis proof first, parts for 4 full two-axis cells. Approx total before shipping/tax: ~$456.65."));
   const scroll = el("div", "table-scroll");
   const table = el("table", "purchase-table");
   const thead = document.createElement("thead");
@@ -3261,21 +3223,6 @@ function createPurchaseBody() {
   table.append(thead, tbody);
   scroll.append(table);
   body.append(scroll);
-  return body;
-}
-
-function createPaperDirectionBody() {
-  const body = el("div", "plain-details-body");
-  const blocks = [
-    ["Paper story", "Pulse-programmed mechanical memory: a small robotic cell changes geometry with a short pulse and holds state without continuous power."],
-    ["R&D/Imagineering relevance", "Portfolio-facing proof for physical computing, quiet show mechanisms, visible state change, repeatable reset, and evidence-rich iteration."],
-    ["Demo target", "Four-cell kinetic surface: synchronized width trace, current trace, temperature note, and zero-current hold after each state change."],
-  ];
-  blocks.forEach(([label, value]) => {
-    const row = el("div", "log-row");
-    row.append(el("p", "log-label", label), el("p", "log-value", value));
-    body.append(row);
-  });
   return body;
 }
 
@@ -3453,21 +3400,6 @@ function syncLabel() {
   if (sync.status === "local") return "cloud sync";
   if (sync.status === "browser") return "browser vault";
   return "checking";
-}
-
-function createWorkspace() {
-  const section = el("section", "workspace capture-workspace");
-
-  const capture = el("section", "capture-panel");
-  capture.append(createIntro(), createCaptureForm());
-  section.append(capture);
-  return section;
-}
-
-function createIntro() {
-  const wrap = el("div", "intro");
-  wrap.append(el("h2", "", "Capture log"), el("p", "tagline", "Notes, figures, PDFs, and build evidence stay attached to the project state."));
-  return wrap;
 }
 
 function createCaptureForm() {
@@ -4267,7 +4199,7 @@ function approvalDrivenIdeaCandidates() {
     },
     {
       id: `adaptive-fixture-${slugify(magnetic)}`,
-      text: `Make the next fixture isolate ${magnetic}; every other dimension should stay locked.`,
+      text: `Make the next fixture isolate ${magnetic}; every other dimension should stay fixed.`,
       reason: "fixture",
       keywords: [magnetic, "fixture", "variable", "repeatable", "test"],
       core: true,

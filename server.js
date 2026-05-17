@@ -75,19 +75,19 @@ function openAiKey() {
 }
 
 function generatedHBridgeBundleMarkdown() {
-  return `# FluxCell Proof Bundle
+  return `# FluxCell Bench Files
 
-Location: FluxCell > Generated artifacts > Proof bundle
+Location: FluxCell > bench files
 
-## Locked plan
+## Current plan
 
 - Square pole plates.
 - Solid steel fork and tongue inserts.
 - One-axis proof before full two-axis integration.
 - Purchase quantities support the one-axis proof, four full two-axis cells, and spares.
-- Steel suppliers cut the pole plates and inserts to length; no home cutting is part of the locked plan.
+- Steel suppliers cut the pole plates and inserts to length; no home cutting is part of the current plan.
 
-## Geometry lock
+## Current dimensions
 
 - Pole plates: 1.25" x 1.25" x 0.25" from 1018 steel rectangle bar.
 - Keeper inserts: 1.00" long, not 1-1/8".
@@ -107,7 +107,7 @@ Location: FluxCell > Generated artifacts > Proof bundle
 - 30 AWG magnet wire, Kapton wrap, silicone pigtails, heat shrink.
 - Printed proof frame.
 
-## Full purchase lock
+## Full current parts list
 
 | Part | Qty | Spec |
 | --- | ---: | --- |
