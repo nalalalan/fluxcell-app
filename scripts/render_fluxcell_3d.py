@@ -433,12 +433,12 @@ def draw_state_panel(
     box((0.34, keeper_inner, 0.34 + prong_w, top_inner), DARK_STEEL, (22, 23, 22), 255)
     box((-tongue_w / 2, bottom_inner, tongue_w / 2, -keeper_inner), DARK_STEEL, (22, 23, 22), 255)
 
-    # Magnet rods. Two pairs are shown because a full two-axis cell has one
-    # Alnico/NdFeB pair per axis.
-    rod(-0.23, 0.17, ALNICO, "A")
-    rod(0.23, 0.17, NDFEB, "N")
-    rod(-0.17, -0.25, ALNICO, "A")
-    rod(0.17, -0.25, NDFEB, "N")
+    # Magnet rods. The Y-layer A/N pair is left-right; the rotated X-layer A/N
+    # pair is top-bottom.
+    rod(-0.30, 0.00, ALNICO, "A")
+    rod(0.30, 0.00, NDFEB, "N")
+    rod(0.00, 0.30, ALNICO, "A")
+    rod(0.00, -0.30, NDFEB, "N")
 
     # Dimension line.
     dim_y = y0 + 112
