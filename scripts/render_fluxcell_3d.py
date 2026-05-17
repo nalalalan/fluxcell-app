@@ -385,7 +385,13 @@ def draw_state_panel(
         if shadow:
             off = [(px + 8, py + 8) for px, py in pts]
             draw.polygon(off, fill=(0, 0, 0, 24))
-        draw.polygon(pts, fill=fill + (alpha,), outline=outline)
+        if alpha < 255:
+            overlay = Image.new("RGBA", draw._image.size, (0, 0, 0, 0))
+            overlay_draw = ImageDraw.Draw(overlay)
+            overlay_draw.polygon(pts, fill=fill + (alpha,), outline=outline + (alpha,))
+            draw._image.alpha_composite(overlay)
+        else:
+            draw.polygon(pts, fill=fill + (alpha,), outline=outline)
 
     def rod(x: float, y: float, color: tuple[int, int, int], letter: str) -> None:
         px, py = pt(x, y)
@@ -393,15 +399,6 @@ def draw_state_panel(
         draw.ellipse((px - r - 4, py - r - 4, px + r + 4, py + r + 4), fill=(255, 255, 252, 235))
         draw.ellipse((px - r, py - r, px + r, py + r), fill=color + (255,), outline=shade(color, 0.55), width=4)
         draw.text((px - 7, py - 13), letter, fill=(20, 20, 18), font=font(23, True))
-
-    # Layer plates: the two orthogonal magnetic gaps share the same footprint, so
-    # the schematic offsets them slightly in drawing space while preserving scale.
-    ox = 0.11
-    oy = -0.11
-    box((-0.625 + ox, -0.625 + oy, 0.625 + ox, 0.625 + oy), X_LAYER, (64, 93, 119), 210, True)
-    box((-0.625 - ox, -0.625 - oy, 0.625 - ox, 0.625 - oy), Y_LAYER, (132, 112, 45), 210, False)
-    draw.text(pt(-0.69, 0.67), "Y", fill=(106, 89, 34), font=font(18, True))
-    draw.text(pt(0.59, -0.76), "X", fill=(47, 78, 105), font=font(18, True))
 
     carrier_t = 0.14
     prong_w = 0.10
@@ -419,12 +416,25 @@ def draw_state_panel(
     top_inner = carrier_inner
     bottom_inner = -carrier_inner
 
+    # Layer plates: draw the lower X layer first, then lay the translucent Y
+    # surface over it so the stack reads as top layer over bottom layer.
+    ox = 0.11
+    oy = -0.11
+    box((-0.625 + ox, -0.625 + oy, 0.625 + ox, 0.625 + oy), X_LAYER, (64, 93, 119), 210, True)
+
     # X layer, lower plate level: left center tongue, right fork prongs.
     box((-carrier_outer, -0.58, left_inner, 0.58), CARRIER, (37, 82, 116), 255, True)
     box((right_inner, -0.58, carrier_outer, 0.58), CARRIER, (37, 82, 116), 255, True)
     box((left_inner, -tongue_w / 2, -keeper_inner, tongue_w / 2), DARK_STEEL, (22, 23, 22), 255)
     box((keeper_inner, 0.33, right_inner, 0.33 + prong_w), DARK_STEEL, (22, 23, 22), 255)
     box((keeper_inner, -0.33 - prong_w, right_inner, -0.33), DARK_STEEL, (22, 23, 22), 255)
+
+    # Rotated X-layer magnet pair is in the bottom layer, so it is seen through
+    # the top yellow layer.
+    rod(0.00, 0.30, ALNICO, "A")
+    rod(0.00, -0.30, NDFEB, "N")
+
+    box((-0.625 - ox, -0.625 - oy, 0.625 - ox, 0.625 - oy), Y_LAYER, (132, 112, 45), 168, False)
 
     # Y layer, upper plate level: top fork prongs, bottom center tongue.
     box((-0.58, top_inner, 0.58, carrier_outer), CARRIER, (37, 82, 116), 255, True)
@@ -433,12 +443,12 @@ def draw_state_panel(
     box((0.34, keeper_inner, 0.34 + prong_w, top_inner), DARK_STEEL, (22, 23, 22), 255)
     box((-tongue_w / 2, bottom_inner, tongue_w / 2, -keeper_inner), DARK_STEEL, (22, 23, 22), 255)
 
-    # Magnet rods. The Y-layer A/N pair is left-right; the rotated X-layer A/N
-    # pair is top-bottom.
+    # Y-layer magnet pair is on the upper layer.
     rod(-0.30, 0.00, ALNICO, "A")
     rod(0.30, 0.00, NDFEB, "N")
-    rod(0.00, 0.30, ALNICO, "A")
-    rod(0.00, -0.30, NDFEB, "N")
+
+    draw.text(pt(-0.69, 0.67), "Y", fill=(106, 89, 34), font=font(18, True))
+    draw.text(pt(0.59, -0.76), "X", fill=(47, 78, 105), font=font(18, True))
 
     # Dimension line.
     dim_y = y0 + 112
