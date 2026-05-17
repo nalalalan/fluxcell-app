@@ -401,7 +401,8 @@ def draw_state_panel(
         draw.text((px - 7, py - 13), letter, fill=(20, 20, 18), font=font(23, True))
 
     carrier_t = 0.14
-    prong_w = 0.10
+    prong_w = 0.09
+    prong_lane = 0.50
     tongue_w = 0.22
     if expanded:
         carrier_outer = 1.50
@@ -426,28 +427,28 @@ def draw_state_panel(
     box((-carrier_outer, -0.58, left_inner, 0.58), CARRIER, (37, 82, 116), 255, True)
     box((right_inner, -0.58, carrier_outer, 0.58), CARRIER, (37, 82, 116), 255, True)
     box((left_inner, -tongue_w / 2, -keeper_inner, tongue_w / 2), DARK_STEEL, (22, 23, 22), 255)
-    box((keeper_inner, 0.33, right_inner, 0.33 + prong_w), DARK_STEEL, (22, 23, 22), 255)
-    box((keeper_inner, -0.33 - prong_w, right_inner, -0.33), DARK_STEEL, (22, 23, 22), 255)
+    box((keeper_inner, prong_lane, right_inner, prong_lane + prong_w), DARK_STEEL, (22, 23, 22), 255)
+    box((keeper_inner, -prong_lane - prong_w, right_inner, -prong_lane), DARK_STEEL, (22, 23, 22), 255)
 
     # Rotated X-layer magnet pair is in the bottom layer, so it is seen through
     # the top yellow layer.
     rod(0.00, 0.30, ALNICO, "A")
     rod(0.00, -0.30, NDFEB, "N")
 
-    box((-0.625 - ox, -0.625 - oy, 0.625 - ox, 0.625 - oy), Y_LAYER, (132, 112, 45), 168, False)
+    box((-0.625, -0.625, 0.625, 0.625), Y_LAYER, (132, 112, 45), 190, False)
 
     # Y layer, upper plate level: top fork prongs, bottom center tongue.
     box((-0.58, top_inner, 0.58, carrier_outer), CARRIER, (37, 82, 116), 255, True)
     box((-0.58, -carrier_outer, 0.58, bottom_inner), CARRIER, (37, 82, 116), 255, True)
-    box((-0.34 - prong_w, keeper_inner, -0.34, top_inner), DARK_STEEL, (22, 23, 22), 255)
-    box((0.34, keeper_inner, 0.34 + prong_w, top_inner), DARK_STEEL, (22, 23, 22), 255)
+    box((-prong_lane - prong_w, keeper_inner, -prong_lane, top_inner), DARK_STEEL, (22, 23, 22), 255)
+    box((prong_lane, keeper_inner, prong_lane + prong_w, top_inner), DARK_STEEL, (22, 23, 22), 255)
     box((-tongue_w / 2, bottom_inner, tongue_w / 2, -keeper_inner), DARK_STEEL, (22, 23, 22), 255)
 
     # Y-layer magnet pair is on the upper layer.
     rod(-0.30, 0.00, ALNICO, "A")
     rod(0.30, 0.00, NDFEB, "N")
 
-    draw.text(pt(-0.69, 0.67), "Y", fill=(106, 89, 34), font=font(18, True))
+    draw.text(pt(-0.59, 0.59), "Y", fill=(106, 89, 34), font=font(18, True))
     draw.text(pt(0.59, -0.76), "X", fill=(47, 78, 105), font=font(18, True))
 
     # Dimension line.
