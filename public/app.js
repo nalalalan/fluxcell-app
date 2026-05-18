@@ -136,6 +136,20 @@ const focus = {
 };
 
 const proofEvidenceFeatureStart = Date.parse("2026-05-17T06:55:00.000Z");
+const progressEvidenceFeatureStart = Date.parse("2026-05-18T19:27:00.000Z");
+
+const classifiedEvidence = {
+  "00962251-579b-4e90-91ff-108c50e98e57": {
+    type: "bench-supply-purchase",
+    title: "Bench supply order placed.",
+    detail: "Amazon order screenshot; estimated delivery May 19.",
+  },
+  "06b42849-8b02-496d-9a32-6f001e58bc4c": {
+    type: "bench-supply-purchase",
+    title: "Bench supply choice recorded.",
+    detail: "Jesverty SPS-3010V, 0-32 V / 0-10 A, selected for short EPM pulses.",
+  },
+};
 
 const currentIssueRows = [
   {
@@ -153,6 +167,7 @@ const currentIssueRows = [
   {
     title: "Electronics risk is unmeasured.",
     detail: "Pulse current, pulse time, and heat are not tied to actual motion yet.",
+    key: "electronics",
   },
   {
     title: "Two-axis cells still inherit an assumption.",
@@ -3139,13 +3154,15 @@ function createStatusPill(text, className) {
 function createSystemViewSection() {
   const section = el("section", "system-view plain-system-view");
   const proofState = currentProofState();
+  const evidenceProgress = currentEvidenceProgress();
   section.append(
     el("h1", "", proofState.title),
     el("p", "plain-lede", proofState.detail)
   );
 
   section.append(createGeometryFigure());
-  section.append(createCurrentIssuesSection(proofState));
+  section.append(createProgressSection(evidenceProgress));
+  section.append(createCurrentIssuesSection(proofState, evidenceProgress));
 
   return section;
 }
@@ -3162,17 +3179,95 @@ function createGeometryFigure() {
   return figure;
 }
 
-function createCurrentIssuesSection(proofState) {
+function createProgressSection(evidenceProgress) {
+  if (!evidenceProgress.rows.length) return document.createDocumentFragment();
+  const section = el("section", "progress-section");
+  section.append(el("h2", "", "progress"));
+  const list = el("div", "progress-list");
+  evidenceProgress.rows.forEach((item) => {
+    const row = el("article", "progress-item");
+    row.append(el("strong", "", item.title), el("span", "", item.detail));
+    list.append(row);
+  });
+  section.append(list);
+  return section;
+}
+
+function createCurrentIssuesSection(proofState, evidenceProgress) {
   const section = el("section", "issues-section");
   section.append(el("h2", "", "current issues"));
   const list = el("div", "issue-list");
-  currentIssues(proofState).forEach((item) => {
+  currentIssues(proofState, evidenceProgress).forEach((item) => {
     const row = el("article", "issue-item");
     row.append(el("strong", "", item.title), el("span", "", item.detail));
     list.append(row);
   });
   section.append(list);
   return section;
+}
+
+function currentEvidenceProgress() {
+  const evidenceRecords = evidenceProgressRecords();
+  const rows = [];
+  const hasSupplyPurchase = evidenceRecords.some((record) => record.classification?.type === "bench-supply-purchase");
+  if (hasSupplyPurchase) {
+    rows.push({
+      title: "Power supply purchase recorded.",
+      detail: "Amazon order screenshot and SPS-3010V discussion are in Evidence.",
+      key: "bench-supply-purchase",
+    });
+  }
+
+  const latest = evidenceRecords[0];
+  if (latest) {
+    const count = evidenceRecords.length;
+    rows.push({
+      title: `Evidence changed ${formatDate(latest.time)}.`,
+      detail: `${count} fresh ${count === 1 ? "record" : "records"} in Evidence since this view started tracking progress.`,
+      key: "fresh-evidence",
+    });
+  }
+
+  return {
+    rows,
+    hasSupplyPurchase,
+    latestTime: latest?.time || 0,
+    freshCount: evidenceRecords.length,
+  };
+}
+
+function evidenceProgressRecords() {
+  return [
+    ...userNotes(state.notes).map((note) => ({
+      source: "note",
+      id: note.id,
+      text: note.text,
+      time: latestRecordTime(note),
+      classification: classifyEvidenceRecord(note),
+    })),
+    ...state.files.filter((file) => !isPaperFile(file) && file.kind !== "paper").map((file) => ({
+      source: "file",
+      id: file.id,
+      text: `${file.name || ""} ${file.paperTitle || ""} ${file.detectedTitle || ""} ${file.title || ""}`,
+      time: latestRecordTime(file),
+      classification: classifyEvidenceRecord(file),
+    })),
+  ]
+    .filter((record) => record.time >= progressEvidenceFeatureStart)
+    .sort((a, b) => b.time - a.time);
+}
+
+function classifyEvidenceRecord(record) {
+  if (classifiedEvidence[record?.id]) return classifiedEvidence[record.id];
+  const text = `${record?.text || ""} ${record?.name || ""} ${record?.title || ""}`.toLowerCase();
+  if (/\b(power supply|bench supply|jesverty|sps[-\s]?3010|0[-\s]?30v|0[-\s]?32v|0[-\s]?10a|amazon order|order placed)\b/i.test(text)) {
+    return {
+      type: "bench-supply-purchase",
+      title: "Bench supply evidence recorded.",
+      detail: "Evidence mentions a bench supply, order, or 0-10 A pulse-capable supply.",
+    };
+  }
+  return null;
 }
 
 function currentProofState() {
@@ -3226,22 +3321,36 @@ function proofEvidenceText() {
 }
 
 function isFreshProofEvidenceRecord(record) {
-  const time = Math.max(
-    feedbackTime(record.createdAt),
-    feedbackTime(record.updatedAt),
-    feedbackTime(record.previewUpdatedAt)
-  );
+  const time = latestRecordTime(record);
   return Boolean(time && time >= proofEvidenceFeatureStart);
 }
 
-function currentIssues(proofState) {
+function latestRecordTime(record) {
+  return Math.max(
+    feedbackTime(record?.createdAt),
+    feedbackTime(record?.updatedAt),
+    feedbackTime(record?.previewUpdatedAt)
+  );
+}
+
+function currentIssues(proofState, evidenceProgress = currentEvidenceProgress()) {
+  const baseRows = currentIssueRows.map((row) => {
+    if (row.key === "electronics" && evidenceProgress.hasSupplyPurchase) {
+      return {
+        title: "Pulse behavior is still unmeasured.",
+        detail: "The supply purchase is recorded; current, pulse time, heat, and motion are still blank.",
+        key: row.key,
+      };
+    }
+    return row;
+  });
   if (proofState.stage === "complete") {
     return [
       {
         title: "The result needs interpretation.",
         detail: "FluxCell found completion evidence; the project still needs the result translated into a claim boundary.",
       },
-      ...currentIssueRows.slice(1),
+      ...baseRows.slice(1),
     ];
   }
   if (proofState.stage === "result") {
@@ -3250,10 +3359,10 @@ function currentIssues(proofState) {
         title: "The proof loop is no longer blank.",
         detail: "FluxCell found result evidence; the project now depends on whether that evidence shows motion, failure, or an ambiguous partial result.",
       },
-      ...currentIssueRows.slice(1),
+      ...baseRows.slice(1),
     ];
   }
-  return currentIssueRows;
+  return baseRows;
 }
 
 function createDetailsPanel(label, body) {

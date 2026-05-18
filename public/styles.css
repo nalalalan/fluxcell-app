@@ -588,10 +588,12 @@ a {
   font-weight: 560;
 }
 
+.progress-section,
 .issues-section {
   padding: 16px 0 6px;
 }
 
+.progress-section h2,
 .issues-section h2 {
   margin: 0 0 10px;
   color: var(--ink);
@@ -601,6 +603,7 @@ a {
   text-transform: none;
 }
 
+.progress-list,
 .issue-list {
   display: grid;
   gap: 0;
@@ -609,6 +612,7 @@ a {
   border-top: 1px solid var(--line);
 }
 
+.progress-item,
 .issue-item {
   display: grid;
   grid-template-columns: minmax(190px, .38fr) minmax(0, 1fr);
@@ -618,6 +622,7 @@ a {
   border-bottom: 1px solid var(--line);
 }
 
+.progress-item strong,
 .issue-item strong {
   color: var(--ink);
   font-size: 14px;
@@ -625,6 +630,7 @@ a {
   line-height: 1.34;
 }
 
+.progress-item span,
 .issue-item span {
   color: var(--muted);
   font-size: 14px;
@@ -1590,6 +1596,7 @@ svg {
     gap: 5px;
   }
 
+  .progress-item,
   .issue-item {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
