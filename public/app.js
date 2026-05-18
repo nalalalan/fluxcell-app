@@ -3277,15 +3277,6 @@ function currentEvidenceProgress() {
   }
 
   const latest = evidenceRecords[0];
-  if (latest) {
-    const count = evidenceRecords.length;
-    rows.push({
-      time: formatDateTime(latest.time),
-      description: `Evidence changed. ${count} fresh ${count === 1 ? "record" : "records"} in Evidence since this view started tracking progress.`,
-      location: formatProgressLocation(latest),
-      key: "fresh-evidence",
-    });
-  }
 
   return {
     rows,
