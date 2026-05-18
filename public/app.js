@@ -2849,6 +2849,7 @@ function normalizeNoteRecord(note) {
     text,
     createdAt: record.createdAt || record.updatedAt || new Date().toISOString(),
     updatedAt: record.updatedAt || record.createdAt || "",
+    ...(normalizeEvidenceLocation(record.location) ? { location: normalizeEvidenceLocation(record.location) } : {}),
   };
 }
 
@@ -2992,6 +2993,37 @@ function formatDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
+}
+
+function formatDateTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+  }).format(date)} ET`;
+}
+
+function formatEvidenceLocation(location) {
+  const clean = normalizeEvidenceLocation(location);
+  if (!clean) return "not saved";
+  return `near ${clean.latitude.toFixed(3)}, ${clean.longitude.toFixed(3)}`;
+}
+
+function normalizeEvidenceLocation(value) {
+  const record = objectRecord(value);
+  const latitude = Number(record.latitude ?? record.lat);
+  const longitude = Number(record.longitude ?? record.lng ?? record.lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  return {
+    latitude: Number(latitude.toFixed(3)),
+    longitude: Number(longitude.toFixed(3)),
+    capturedAt: record.capturedAt || "",
+    precision: "rounded",
+  };
 }
 
 function formatSize(bytes) {
@@ -3209,11 +3241,12 @@ function createCurrentIssuesSection(proofState, evidenceProgress) {
 function currentEvidenceProgress() {
   const evidenceRecords = evidenceProgressRecords();
   const rows = [];
-  const hasSupplyPurchase = evidenceRecords.some((record) => record.classification?.type === "bench-supply-purchase");
+  const supplyRecord = evidenceRecords.find((record) => record.classification?.type === "bench-supply-purchase");
+  const hasSupplyPurchase = Boolean(supplyRecord);
   if (hasSupplyPurchase) {
     rows.push({
-      title: "Power supply purchase recorded.",
-      detail: "Amazon order screenshot and SPS-3010V discussion are in Evidence.",
+      title: `Power supply purchase recorded ${formatDateTime(supplyRecord.time)}.`,
+      detail: `Amazon order screenshot and SPS-3010V discussion are in Evidence. Location: ${formatEvidenceLocation(supplyRecord.location)}.`,
       key: "bench-supply-purchase",
     });
   }
@@ -3222,8 +3255,8 @@ function currentEvidenceProgress() {
   if (latest) {
     const count = evidenceRecords.length;
     rows.push({
-      title: `Evidence changed ${formatDate(latest.time)}.`,
-      detail: `${count} fresh ${count === 1 ? "record" : "records"} in Evidence since this view started tracking progress.`,
+      title: `Evidence changed ${formatDateTime(latest.time)}.`,
+      detail: `${count} fresh ${count === 1 ? "record" : "records"} in Evidence since this view started tracking progress. Latest location: ${formatEvidenceLocation(latest.location)}.`,
       key: "fresh-evidence",
     });
   }
@@ -3243,6 +3276,7 @@ function evidenceProgressRecords() {
       id: note.id,
       text: note.text,
       time: latestRecordTime(note),
+      location: normalizeEvidenceLocation(note.location),
       classification: classifyEvidenceRecord(note),
     })),
     ...state.files.filter((file) => !isPaperFile(file) && file.kind !== "paper").map((file) => ({
@@ -3250,6 +3284,7 @@ function evidenceProgressRecords() {
       id: file.id,
       text: `${file.name || ""} ${file.paperTitle || ""} ${file.detectedTitle || ""} ${file.title || ""}`,
       time: latestRecordTime(file),
+      location: normalizeEvidenceLocation(file.location),
       classification: classifyEvidenceRecord(file),
     })),
   ]
@@ -5322,8 +5357,10 @@ async function saveCapture(event) {
   }
 
   const now = new Date().toISOString();
+  const evidenceLocation = await captureEvidenceLocation();
+  const locationField = evidenceLocation ? { location: evidenceLocation } : {};
   if (text) {
-    const note = { id: createId(), text, createdAt: now };
+    const note = { id: createId(), text, createdAt: now, ...locationField };
     state.notes.unshift(note);
   }
 
@@ -5337,6 +5374,7 @@ async function saveCapture(event) {
           mime: file.type || "application/octet-stream",
           dataUrl,
           kind,
+          ...locationField,
         });
         upsertFile(normalizeSyncFile(response.file));
       } else {
@@ -5349,6 +5387,7 @@ async function saveCapture(event) {
           source: "browser",
           kind,
           createdAt: now,
+          ...locationField,
         };
         await putBrowserFile({ ...record, blob: file });
         upsertFile(record);
@@ -5376,6 +5415,26 @@ function readFileAsDataUrl(file) {
   });
 }
 
+async function captureEvidenceLocation() {
+  if (!navigator.geolocation) return null;
+  try {
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: false,
+        maximumAge: 5 * 60 * 1000,
+        timeout: 3000,
+      });
+    });
+    return normalizeEvidenceLocation({
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      capturedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    return null;
+  }
+}
+
 async function postJson(url, payload) {
   const response = await fetch(url, {
     method: "POST",
@@ -5399,6 +5458,7 @@ function normalizeSyncFile(file) {
     paperTitle: file.paperTitle || file.detectedTitle || "",
     hasPreview: Boolean(file.previewRelativePath),
     previewUpdatedAt: file.previewUpdatedAt || "",
+    ...(normalizeEvidenceLocation(file.location) ? { location: normalizeEvidenceLocation(file.location) } : {}),
   };
 }
 

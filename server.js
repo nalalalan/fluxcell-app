@@ -242,15 +242,30 @@ function objectRecord(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
+function cleanEvidenceLocation(value) {
+  const record = objectRecord(value);
+  const latitude = Number(record.latitude ?? record.lat);
+  const longitude = Number(record.longitude ?? record.lng ?? record.lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  return {
+    latitude: Number(latitude.toFixed(3)),
+    longitude: Number(longitude.toFixed(3)),
+    capturedAt: record.capturedAt || "",
+    precision: "rounded",
+  };
+}
+
 function cleanNote(note) {
   const record = objectRecord(note);
   const text = String(record.text || "").trim();
+  const location = cleanEvidenceLocation(record.location);
   if (!text) return null;
   return {
     id: String(record.id || crypto.randomUUID()).slice(0, 160),
     text,
     createdAt: record.createdAt || new Date().toISOString(),
     updatedAt: record.updatedAt || record.createdAt || "",
+    ...(location ? { location } : {}),
   };
 }
 
@@ -809,7 +824,7 @@ async function enrichPdfEntries(files) {
   return nextFiles;
 }
 
-async function saveTrackedFile({ name, mime, buffer, kind = "file" }) {
+async function saveTrackedFile({ name, mime, buffer, kind = "file", location = null }) {
   if (buffer.length > maxUploadBytes) {
     const maxMb = Math.round(maxUploadBytes / 1024 / 1024);
     throw new Error(`File exceeds ${maxMb} MB`);
@@ -831,6 +846,7 @@ async function saveTrackedFile({ name, mime, buffer, kind = "file" }) {
   await fsp.mkdir(folderPath, { recursive: true });
   await fsp.writeFile(filePath, buffer);
 
+  const cleanLocation = cleanEvidenceLocation(location);
   const entry = {
     id,
     name: originalName,
@@ -839,6 +855,7 @@ async function saveTrackedFile({ name, mime, buffer, kind = "file" }) {
     kind,
     relativePath: path.relative(storageRoot, filePath).split(path.sep).join("/"),
     createdAt: now,
+    ...(cleanLocation ? { location: cleanLocation } : {}),
   };
 
   const files = await readIndex();
@@ -1124,6 +1141,7 @@ async function handleApi(req, res, requestUrl) {
       kind: payload.kind === "paper" || /\.pdf$/i.test(payload.name || "") || /pdf/i.test(payload.mime || decoded.mime)
         ? "paper"
         : "file",
+      location: payload.location,
     });
     const files = await enrichPdfEntries(await readIndex());
     const entry = files.find((file) => file.id === saved.id) || saved;
@@ -1143,6 +1161,7 @@ async function handleApi(req, res, requestUrl) {
       id: payload.id || crypto.randomUUID(),
       text,
       createdAt: payload.createdAt || new Date().toISOString(),
+      location: payload.location,
     });
     appState.deletedNoteIds = (appState.deletedNoteIds || []).filter((id) => id !== note.id);
     appState.notes = [note, ...appState.notes.filter((item) => item.id !== note.id)];
