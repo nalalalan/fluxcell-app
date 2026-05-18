@@ -143,11 +143,13 @@ const classifiedEvidence = {
     type: "bench-supply-purchase",
     title: "Bench supply order placed.",
     detail: "Amazon order screenshot; estimated delivery May 19.",
+    location: "Salisbury Labs, WPI",
   },
   "06b42849-8b02-496d-9a32-6f001e58bc4c": {
     type: "bench-supply-purchase",
     title: "Bench supply choice recorded.",
     detail: "Jesverty SPS-3010V, 0-32 V / 0-10 A, selected for short EPM pulses.",
+    location: "Salisbury Labs, WPI",
   },
 };
 
@@ -3008,9 +3010,17 @@ function formatDateTime(value) {
 }
 
 function formatEvidenceLocation(location) {
-  const clean = normalizeEvidenceLocation(location);
+  if (typeof location === "string" && location.trim()) return location.trim();
+  const locationRecord = objectRecord(location);
+  if (typeof locationRecord.label === "string" && locationRecord.label.trim()) return locationRecord.label.trim();
+  if (typeof locationRecord.place === "string" && locationRecord.place.trim()) return locationRecord.place.trim();
+  const clean = normalizeEvidenceLocation(locationRecord);
   if (!clean) return "not saved";
   return `near ${clean.latitude.toFixed(3)}, ${clean.longitude.toFixed(3)}`;
+}
+
+function formatProgressLocation(record) {
+  return formatEvidenceLocation(record?.classification?.location || record?.location);
 }
 
 function normalizeEvidenceLocation(value) {
@@ -3215,13 +3225,27 @@ function createProgressSection(evidenceProgress) {
   if (!evidenceProgress.rows.length) return document.createDocumentFragment();
   const section = el("section", "progress-section");
   section.append(el("h2", "", "progress"));
-  const list = el("div", "progress-list");
-  evidenceProgress.rows.forEach((item) => {
-    const row = el("article", "progress-item");
-    row.append(el("strong", "", item.title), el("span", "", item.detail));
-    list.append(row);
+  const table = el("table", "progress-table");
+  const thead = document.createElement("thead");
+  const header = document.createElement("tr");
+  ["date/time", "description", "exact location"].forEach((label) => {
+    header.append(el("th", "", label));
   });
-  section.append(list);
+  thead.append(header);
+  const tbody = document.createElement("tbody");
+  evidenceProgress.rows.forEach((item) => {
+    const row = document.createElement("tr");
+    const time = el("td", "progress-time", item.time);
+    time.setAttribute("data-label", "date/time");
+    const description = el("td", "progress-description", item.description);
+    description.setAttribute("data-label", "description");
+    const location = el("td", "progress-location", item.location);
+    location.setAttribute("data-label", "exact location");
+    row.append(time, description, location);
+    tbody.append(row);
+  });
+  table.append(thead, tbody);
+  section.append(table);
   return section;
 }
 
@@ -3245,8 +3269,9 @@ function currentEvidenceProgress() {
   const hasSupplyPurchase = Boolean(supplyRecord);
   if (hasSupplyPurchase) {
     rows.push({
-      title: `Power supply purchase recorded ${formatDateTime(supplyRecord.time)}.`,
-      detail: `Amazon order screenshot and SPS-3010V discussion are in Evidence. Location: ${formatEvidenceLocation(supplyRecord.location)}.`,
+      time: formatDateTime(supplyRecord.time),
+      description: "Power supply purchase recorded. Amazon order screenshot and SPS-3010V discussion are in Evidence.",
+      location: formatProgressLocation(supplyRecord),
       key: "bench-supply-purchase",
     });
   }
@@ -3255,8 +3280,9 @@ function currentEvidenceProgress() {
   if (latest) {
     const count = evidenceRecords.length;
     rows.push({
-      title: `Evidence changed ${formatDateTime(latest.time)}.`,
-      detail: `${count} fresh ${count === 1 ? "record" : "records"} in Evidence since this view started tracking progress. Latest location: ${formatEvidenceLocation(latest.location)}.`,
+      time: formatDateTime(latest.time),
+      description: `Evidence changed. ${count} fresh ${count === 1 ? "record" : "records"} in Evidence since this view started tracking progress.`,
+      location: formatProgressLocation(latest),
       key: "fresh-evidence",
     });
   }

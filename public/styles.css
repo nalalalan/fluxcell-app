@@ -603,16 +603,67 @@ a {
   text-transform: none;
 }
 
-.progress-list,
+.progress-table,
 .issue-list {
-  display: grid;
-  gap: 0;
   margin: 0;
   padding: 0;
+}
+
+.progress-table {
+  width: 100%;
+  border-collapse: collapse;
   border-top: 1px solid var(--line);
 }
 
-.progress-item,
+.progress-table th,
+.progress-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.progress-table th {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.progress-table th + th,
+.progress-table td + td {
+  padding-left: 18px;
+}
+
+.progress-time {
+  width: 150px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 720;
+  line-height: 1.34;
+}
+
+.progress-description {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 540;
+  line-height: 1.38;
+}
+
+.progress-location {
+  width: 165px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.34;
+}
+
+.issue-list {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
 .issue-item {
   display: grid;
   grid-template-columns: minmax(190px, .38fr) minmax(0, 1fr);
@@ -622,7 +673,6 @@ a {
   border-bottom: 1px solid var(--line);
 }
 
-.progress-item strong,
 .issue-item strong {
   color: var(--ink);
   font-size: 14px;
@@ -630,7 +680,6 @@ a {
   line-height: 1.34;
 }
 
-.progress-item span,
 .issue-item span {
   color: var(--muted);
   font-size: 14px;
@@ -1596,11 +1645,40 @@ svg {
     gap: 5px;
   }
 
-  .progress-item,
   .issue-item {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
     align-items: start;
+  }
+
+  .progress-table thead {
+    display: none;
+  }
+
+  .progress-table,
+  .progress-table tbody,
+  .progress-table tr,
+  .progress-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .progress-table tr {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .progress-table td {
+    border-bottom: 0;
+    padding: 2px 0;
+  }
+
+  .progress-table td + td {
+    padding-left: 0;
+  }
+
+  .progress-location {
+    color: var(--muted);
   }
 
   .table-scroll {
