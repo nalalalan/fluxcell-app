@@ -161,11 +161,11 @@ function unlockPage(error = "") {
   <style>
     * { box-sizing: border-box; }
     :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f7f3ea; color: #251f19; }
-    body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 24px; }
-    main { width: min(100%, 360px); }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; overflow-x: hidden; padding: 24px; }
+    main { width: min(calc(100vw - 48px), 360px); }
     h1 { margin: 0 0 14px; font-size: 24px; line-height: 1.1; }
     form { display: grid; gap: 10px; }
-    input, button { width: 100%; min-height: 44px; border-radius: 6px; font: inherit; }
+    input, button { width: 100%; min-width: 0; min-height: 44px; border-radius: 6px; font: inherit; }
     input { border: 1px solid rgba(45, 36, 28, .22); padding: 0 12px; background: rgba(255,255,255,.72); color: #251f19; }
     button { border: 1px solid rgba(209, 172, 81, .46); background: #e7bd66; color: #21140d; font-weight: 850; }
     p { margin: 0 0 14px; color: #6f665d; font-size: 14px; line-height: 1.35; }
