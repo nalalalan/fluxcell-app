@@ -3181,10 +3181,9 @@ function createPaperStrip() {
     el("p", "", "Fixed cartridge, moving keepers, one-axis proof boundary, and pending bench measurements.")
   );
   const actions = el("div", "paper-actions");
-  const pdf = el("a", "paper-button primary", "Open PDF");
-  pdf.href = "/paper.pdf";
-  pdf.download = "";
-  actions.append(pdf);
+  const paper = el("a", "paper-button primary", "Open paper");
+  paper.href = "/paper.html";
+  actions.append(paper);
   strip.append(copy, actions);
   return strip;
 }

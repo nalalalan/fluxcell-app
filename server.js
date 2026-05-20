@@ -12,6 +12,8 @@ const focusedStorageRoot = path.join(os.homedir(), "Documents", "research", "PhD
 const configuredStorageRoot = process.env.FLUXCELL_STORAGE_DIR;
 const storageRoot = path.resolve(configuredStorageRoot || focusedStorageRoot);
 const deletePassword = process.env.FLUXCELL_DELETE_PASSWORD || "";
+const paperPassword = process.env.FLUXCELL_PAPER_PASSWORD || "031120";
+const paperCookieName = "fluxcell_paper_access";
 const maxUploadBytes = Number(process.env.FLUXCELL_MAX_UPLOAD_MB || 100) * 1024 * 1024;
 const openAiModel = process.env.FLUXCELL_OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-5-mini";
 const focusedIndexPath = path.join(storageRoot, ".fluxcell-files.json");
@@ -68,6 +70,157 @@ function sendMarkdown(res, status, text) {
     "Cache-Control": "no-store",
   });
   res.end(text);
+}
+
+function parseCookies(req) {
+  const header = String(req.headers.cookie || "");
+  const cookies = {};
+  header.split(";").forEach((part) => {
+    const trimmed = part.trim();
+    if (!trimmed) return;
+    const splitAt = trimmed.indexOf("=");
+    if (splitAt <= 0) return;
+    const key = trimmed.slice(0, splitAt).trim();
+    const value = trimmed.slice(splitAt + 1).trim();
+    cookies[key] = decodeURIComponent(value);
+  });
+  return cookies;
+}
+
+function hasPaperAccess(req) {
+  return parseCookies(req)[paperCookieName] === "granted";
+}
+
+function isPaperPath(pathname) {
+  return pathname === "/paper" || pathname === "/paper/" || pathname === "/paper.html" || pathname === "/paper.pdf" || pathname.startsWith("/paper/");
+}
+
+function safePaperNext(nextPath) {
+  const value = String(nextPath || "/paper.html");
+  if (!value.startsWith("/")) return "/paper.html";
+  if (value.startsWith("//")) return "/paper.html";
+  return value;
+}
+
+function sendPaperGate(res, nextPath) {
+  const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>fluxcell paper access</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090b0d;
+        --panel: #11161c;
+        --line: rgba(255,255,255,.12);
+        --text: #f5f1e8;
+        --muted: rgba(245,241,232,.72);
+        --accent: #f1d18a;
+        --danger: #ff9f9f;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.45 Inter, ui-sans-serif, system-ui, sans-serif;
+        padding: 24px;
+      }
+      main {
+        width: min(100%, 420px);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 24px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        line-height: 1.05;
+      }
+      p {
+        margin: 0 0 16px;
+        color: var(--muted);
+      }
+      form {
+        display: grid;
+        gap: 12px;
+      }
+      input {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(255,255,255,.03);
+        color: var(--text);
+        padding: 0 14px;
+        font: inherit;
+      }
+      button {
+        min-height: 46px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--accent);
+        color: #111;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .error {
+        min-height: 20px;
+        color: var(--danger);
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>FluxCell paper</h1>
+      <p>Enter the paper code.</p>
+      <form id="paper-gate">
+        <input id="paper-password" type="password" inputmode="numeric" autocomplete="current-password" aria-label="Paper code">
+        <button type="submit">Open paper</button>
+        <div id="paper-error" class="error" aria-live="polite"></div>
+      </form>
+    </main>
+    <script>
+      const form = document.getElementById("paper-gate");
+      const input = document.getElementById("paper-password");
+      const error = document.getElementById("paper-error");
+      const next = ${JSON.stringify(safePaperNext(nextPath))};
+      input.focus();
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        error.textContent = "";
+        try {
+          const response = await fetch("/api/paper-auth", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: input.value, next }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok || !payload.ok) {
+            error.textContent = payload.error || "Wrong paper code";
+            return;
+          }
+          window.location.href = payload.next || next;
+        } catch (err) {
+          error.textContent = "Paper access failed";
+        }
+      });
+    </script>
+  </body>
+</html>`;
+  res.writeHead(401, {
+    "Content-Type": "text/html; charset=utf-8",
+    "Cache-Control": "no-store",
+  });
+  res.end(html);
 }
 
 function openAiKey() {
@@ -1122,6 +1275,18 @@ async function handleApi(req, res, requestUrl) {
     return;
   }
 
+  if (requestUrl.pathname === "/api/paper-auth" && req.method === "POST") {
+    const payload = await readJsonBody(req, 16 * 1024).catch(() => ({}));
+    if (String(payload.password || "") !== paperPassword) {
+      sendJson(res, 403, { error: "Wrong paper code" });
+      return;
+    }
+    const next = safePaperNext(payload.next);
+    res.setHeader("Set-Cookie", `${paperCookieName}=granted; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+    sendJson(res, 200, { ok: true, next });
+    return;
+  }
+
   if (requestUrl.pathname === "/api/files" && req.method === "GET") {
     sendJson(res, 200, { files: await enrichPdfEntries(await readIndex()) });
     return;
@@ -1273,6 +1438,11 @@ async function handleRequest(req, res) {
   }
 
   let pathname = decodeURIComponent(requestUrl.pathname);
+  if (pathname === "/paper" || pathname === "/paper/") pathname = "/paper.html";
+  if (isPaperPath(pathname) && !hasPaperAccess(req)) {
+    sendPaperGate(res, `${pathname}${requestUrl.search || ""}`);
+    return;
+  }
   if (pathname === "/") pathname = "/index.html";
 
   const normalizedPath = path.normalize(pathname).replace(/^(\.\.[/\\])+/, "");
