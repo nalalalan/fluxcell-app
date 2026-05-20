@@ -12,10 +12,6 @@ const focusedStorageRoot = path.join(os.homedir(), "Documents", "research", "PhD
 const configuredStorageRoot = process.env.FLUXCELL_STORAGE_DIR;
 const storageRoot = path.resolve(configuredStorageRoot || focusedStorageRoot);
 const deletePassword = process.env.FLUXCELL_DELETE_PASSWORD || "";
-const sitePassword = process.env.FLUXCELL_SITE_PASSWORD || "";
-const siteAuthSecret = process.env.FLUXCELL_AUTH_SECRET || deletePassword || sitePassword;
-const siteAuthCookie = "fluxcell_auth";
-const siteAuthMaxAgeSeconds = 60 * 60 * 24 * 30;
 const maxUploadBytes = Number(process.env.FLUXCELL_MAX_UPLOAD_MB || 100) * 1024 * 1024;
 const openAiModel = process.env.FLUXCELL_OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-5-mini";
 const focusedIndexPath = path.join(storageRoot, ".fluxcell-files.json");
@@ -65,15 +61,6 @@ function sendText(res, status, text) {
   res.end(text);
 }
 
-function sendHtml(res, status, html, headers = {}) {
-  res.writeHead(status, {
-    "Content-Type": "text/html; charset=utf-8",
-    "Cache-Control": "no-store",
-    ...headers,
-  });
-  res.end(html);
-}
-
 function sendMarkdown(res, status, text) {
   setCors(res);
   res.writeHead(status, {
@@ -81,109 +68,6 @@ function sendMarkdown(res, status, text) {
     "Cache-Control": "no-store",
   });
   res.end(text);
-}
-
-function readTextBody(req, limitBytes) {
-  return new Promise((resolve, reject) => {
-    let size = 0;
-    const chunks = [];
-    req.on("data", (chunk) => {
-      size += chunk.length;
-      if (size > limitBytes) {
-        reject(new Error("Request body is too large"));
-        req.destroy();
-        return;
-      }
-      chunks.push(chunk);
-    });
-    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
-    req.on("error", reject);
-  });
-}
-
-function parseCookies(req) {
-  return String(req.headers.cookie || "").split(";").reduce((cookies, part) => {
-    const index = part.indexOf("=");
-    if (index === -1) return cookies;
-    const key = part.slice(0, index).trim();
-    if (!key) return cookies;
-    cookies[key] = decodeURIComponent(part.slice(index + 1).trim());
-    return cookies;
-  }, {});
-}
-
-function safeEqual(left, right) {
-  const a = Buffer.from(String(left || ""));
-  const b = Buffer.from(String(right || ""));
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
-
-function siteAuthSignature(expiresAt) {
-  return crypto
-    .createHmac("sha256", siteAuthSecret)
-    .update(`${expiresAt}`)
-    .digest("hex");
-}
-
-function siteAuthCookieValue() {
-  const expiresAt = Date.now() + siteAuthMaxAgeSeconds * 1000;
-  return `${expiresAt}.${siteAuthSignature(expiresAt)}`;
-}
-
-function secureCookieFlag(req) {
-  return req.headers["x-forwarded-proto"] === "https" || req.socket.encrypted ? "; Secure" : "";
-}
-
-function siteAuthSetCookie(req) {
-  return `${siteAuthCookie}=${encodeURIComponent(siteAuthCookieValue())}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${siteAuthMaxAgeSeconds}${secureCookieFlag(req)}`;
-}
-
-function siteAuthClearCookie(req) {
-  return `${siteAuthCookie}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secureCookieFlag(req)}`;
-}
-
-function isSiteAuthorized(req) {
-  if (!sitePassword) return true;
-  const value = parseCookies(req)[siteAuthCookie];
-  const [expiresAtText, signature] = String(value || "").split(".");
-  const expiresAt = Number(expiresAtText);
-  if (!Number.isFinite(expiresAt) || expiresAt <= Date.now() || !signature) return false;
-  return safeEqual(signature, siteAuthSignature(expiresAt));
-}
-
-function unlockPage(error = "") {
-  return `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>fluxcell locked</title>
-  <style>
-    * { box-sizing: border-box; }
-    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f7f3ea; color: #251f19; }
-    body { min-height: 100vh; margin: 0; display: grid; place-items: center; overflow-x: hidden; padding: 24px; }
-    main { width: min(calc(100vw - 48px), 360px); }
-    h1 { margin: 0 0 14px; font-size: 24px; line-height: 1.1; }
-    form { display: grid; gap: 10px; }
-    input, button { width: 100%; min-width: 0; min-height: 44px; border-radius: 6px; font: inherit; }
-    input { border: 1px solid rgba(45, 36, 28, .22); padding: 0 12px; background: rgba(255,255,255,.72); color: #251f19; }
-    button { border: 1px solid rgba(209, 172, 81, .46); background: #e7bd66; color: #21140d; font-weight: 850; }
-    p { margin: 0 0 14px; color: #6f665d; font-size: 14px; line-height: 1.35; }
-    .error { color: #a84539; font-weight: 750; }
-  </style>
-</head>
-<body>
-  <main>
-    <h1>fluxcell locked</h1>
-    <p>Enter passcode.</p>
-    ${error ? `<p class="error">${error}</p>` : ""}
-    <form method="post" action="/auth/login">
-      <input name="password" type="password" inputmode="numeric" autocomplete="current-password" autofocus>
-      <button type="submit">Unlock</button>
-    </form>
-  </main>
-</body>
-</html>`;
 }
 
 function openAiKey() {
@@ -1377,49 +1261,8 @@ function sendFile(res, filePath) {
   });
 }
 
-async function handleAuthRoute(req, res, requestUrl) {
-  if (!sitePassword) return false;
-
-  if (requestUrl.pathname === "/auth/login" && req.method === "POST") {
-    const body = await readTextBody(req, 16 * 1024);
-    const params = new URLSearchParams(body);
-    if (safeEqual(params.get("password") || "", sitePassword)) {
-      res.writeHead(303, {
-        "Set-Cookie": siteAuthSetCookie(req),
-        Location: "/",
-      });
-      res.end();
-      return true;
-    }
-    sendHtml(res, 401, unlockPage("Wrong passcode."));
-    return true;
-  }
-
-  if (requestUrl.pathname === "/auth/logout" && req.method === "POST") {
-    res.writeHead(303, {
-      "Set-Cookie": siteAuthClearCookie(req),
-      Location: "/",
-    });
-    res.end();
-    return true;
-  }
-
-  return false;
-}
-
 async function handleRequest(req, res) {
   const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
-
-  if (await handleAuthRoute(req, res, requestUrl)) return;
-
-  if (!isSiteAuthorized(req)) {
-    if (requestUrl.pathname.startsWith("/api/")) {
-      sendJson(res, 401, { error: "Locked" });
-      return;
-    }
-    sendHtml(res, 401, unlockPage());
-    return;
-  }
 
   if (requestUrl.pathname.startsWith("/api/")) {
     handleApi(req, res, requestUrl).catch((error) => {
