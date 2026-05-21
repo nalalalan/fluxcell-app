@@ -197,12 +197,12 @@ const purchaseRows = [
 
 const cadFigures = [
   {
-    src: "/paper/figures/cell-3d-states.png",
+    src: "/assets/cell-3d-states.png",
     title: "Expanded and contracted state",
     detail: "Both layers together, Alnico/NdFeB rods visible, keeper overlap shown.",
   },
   {
-    src: "/paper/figures/cell-3d-exploded.png",
+    src: "/assets/cell-3d-exploded.png",
     title: "Exploded stack",
     detail: "Top-down stack: center tongue between rods, fork prongs outside.",
   },
