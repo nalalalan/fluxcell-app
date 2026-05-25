@@ -3131,7 +3131,6 @@ function render() {
 
 function createShell() {
   const fragment = document.createDocumentFragment();
-  fragment.append(createTopbar());
   const shell = el("main", "app-shell memory-shell");
   shell.append(createMemoryWallSection());
   fragment.append(shell);
@@ -3168,19 +3167,8 @@ function createTopbar() {
 
 function createMemoryWallSection() {
   const section = el("section", "memory-wall");
-  const hero = el("div", "memory-hero");
-  const copy = el("div", "memory-hero-copy");
-  copy.append(
-    el("h1", "", "fluxcell"),
-    el("p", "memory-lede", "Saved ideas, images, links, and references. Newest first.")
-  );
-  const counts = el("div", "memory-counts");
-  counts.append(
-    createMemoryCount(memoryWallFiles().filter(isImageFile).length, "image"),
-    createMemoryCount(memoryWallNotes().length, "thought")
-  );
-  hero.append(copy, counts);
-  section.append(hero, createMemoryGallery(), createMemoryCapturePanel());
+  section.setAttribute("aria-label", "fluxcell saved ideas and images");
+  section.append(createMemoryGallery(), createMemoryCapturePanel());
   return section;
 }
 
