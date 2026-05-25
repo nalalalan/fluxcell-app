@@ -131,31 +131,55 @@ const recoveredFeedbackSeed = {
 
 const focus = {
   domain: "fluxcell.aolabs.io",
-  title: "Electropermanent magnetic memory for Sarrus-cell motion.",
-  current: "One-axis proof first, then four two-axis FluxCell cells.",
+  title: "FluxCell memory wall.",
+  current: "Saved ideas, images, links, and references.",
 };
 
-const currentRows = [
-  ["Plan", "One-axis EPM proof first. Then four two-axis FluxCell cells."],
-  ["Design", "Square pole plates. Solid steel inserts. Supplier-cut steel."],
-  ["Proof data needed", "Stroke, release, hold, current, heat, repeatability."],
-  ["Paper state", "Draft exists. Results wait for bench data."],
-];
+const proofEvidenceFeatureStart = Date.parse("2026-05-17T06:55:00.000Z");
+const progressEvidenceFeatureStart = Date.parse("2026-05-18T19:27:00.000Z");
+const memoryWallStart = Date.parse("2026-05-25T20:50:00.000Z");
 
-const fileLinks = [
-  {
-    title: "Proof bundle",
-    href: "/api/generated/hbridge-bundle.md",
+const classifiedEvidence = {
+  "00962251-579b-4e90-91ff-108c50e98e57": {
+    type: "bench-supply-purchase",
+    title: "Bench supply order placed.",
+    detail: "Amazon order screenshot; estimated delivery May 19.",
+    location: "Salisbury Labs, WPI",
   },
-];
+  "06b42849-8b02-496d-9a32-6f001e58bc4c": {
+    type: "bench-supply-purchase",
+    title: "Bench supply choice recorded.",
+    detail: "Jesverty SPS-3010V, 0-32 V / 0-10 A, selected for short EPM pulses.",
+    location: "Salisbury Labs, WPI",
+  },
+};
 
-const designLog = [
-  ["State log", "FluxCell stores notes, files, design decisions, generated artifacts, and the current proof direction."],
-  ["EPM decision", "Fixed center cartridge. Moving steel inserts change magnetic overlap."],
-  ["Layout decision", "Center tongue between Alnico and NdFeB. Fork prongs outside the magnet pair."],
-  ["Dimension decision", '1.00" keepers, 1.25" square pole plates, 0.75" side stroke.'],
-  ["Build order", "One-axis proof before two-axis cell integration."],
-  ["Scale target", "Parts cover one proof, four two-axis cells, and spares."],
+const currentIssueRows = [
+  {
+    title: "No recorded proof result.",
+    detail: "FluxCell has no new synced note or file saying the one-axis proof worked, failed, moved, held, released, or overheated.",
+  },
+  {
+    title: "Bench data are empty.",
+    detail: "The paper has geometry, figures, and a parts list, but no width, current, temperature, hold, or release record.",
+  },
+  {
+    title: "Mechanical risk is unknown.",
+    detail: "The keepers may bind, twist, or stick; the current diagram only proves the intended layout.",
+  },
+  {
+    title: "Electronics risk is unmeasured.",
+    detail: "Pulse current, pulse time, and heat are not tied to actual motion yet.",
+    key: "electronics",
+  },
+  {
+    title: "Two-axis cells still inherit an assumption.",
+    detail: "The four-cell direction depends on one layer producing a recorded result first.",
+  },
+  {
+    title: "The physical-experience story has no object yet.",
+    detail: "The R&D value depends on visible quiet motion and reset, not only the diagram or manuscript.",
+  },
 ];
 
 const purchaseRows = [
@@ -172,21 +196,16 @@ const purchaseRows = [
   ["Heat shrink", "1 kit", "Small heat-shrink tubing for coil strain relief", "Amazon", "https://www.amazon.com/s?k=heat+shrink+tubing+kit", "~$8.00"],
 ];
 
-const designFigures = [
+const cadFigures = [
   {
-    src: "/paper/figures/fixed-cartridge.png",
-    title: "Fixed cartridge",
-    detail: "EPM is fixed; the steel prongs and tongue move through the working gap.",
+    src: "/assets/cell-3d-states.png",
+    title: "Expanded and contracted state",
+    detail: "Both layers together, Alnico/NdFeB rods visible, keeper overlap shown.",
   },
   {
-    src: "/paper/figures/lane-layout.png",
-    title: "Lane layout",
-    detail: "Fork prongs outside, center tongue between Alnico and NdFeB.",
-  },
-  {
-    src: "/assets/fluxcell-one-axis-summary.svg",
-    title: "One-axis overlap",
-    detail: '3.0" expanded/off and 1.5" contracted/on with controlled keeper overlap.',
+    src: "/assets/cell-3d-exploded.png",
+    title: "Exploded stack",
+    detail: "Top-down stack: center tongue between rods, fork prongs outside.",
   },
 ];
 
@@ -2833,6 +2852,7 @@ function normalizeNoteRecord(note) {
     text,
     createdAt: record.createdAt || record.updatedAt || new Date().toISOString(),
     updatedAt: record.updatedAt || record.createdAt || "",
+    ...(normalizeEvidenceLocation(record.location) ? { location: normalizeEvidenceLocation(record.location) } : {}),
   };
 }
 
@@ -2978,6 +2998,45 @@ function formatDate(value) {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
 }
 
+function formatDateTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+  }).format(date)} ET`;
+}
+
+function formatEvidenceLocation(location) {
+  if (typeof location === "string" && location.trim()) return location.trim();
+  const locationRecord = objectRecord(location);
+  if (typeof locationRecord.label === "string" && locationRecord.label.trim()) return locationRecord.label.trim();
+  if (typeof locationRecord.place === "string" && locationRecord.place.trim()) return locationRecord.place.trim();
+  const clean = normalizeEvidenceLocation(locationRecord);
+  if (!clean) return "not saved";
+  return `near ${clean.latitude.toFixed(3)}, ${clean.longitude.toFixed(3)}`;
+}
+
+function formatProgressLocation(record) {
+  return formatEvidenceLocation(record?.classification?.location || record?.location);
+}
+
+function normalizeEvidenceLocation(value) {
+  const record = objectRecord(value);
+  const latitude = Number(record.latitude ?? record.lat);
+  const longitude = Number(record.longitude ?? record.lng ?? record.lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  return {
+    latitude: Number(latitude.toFixed(3)),
+    longitude: Number(longitude.toFixed(3)),
+    capturedAt: record.capturedAt || "",
+    precision: "rounded",
+  };
+}
+
 function formatSize(bytes) {
   if (!Number.isFinite(bytes)) return "";
   if (bytes < 1024) return `${bytes} B`;
@@ -3072,15 +3131,9 @@ function render() {
 
 function createShell() {
   const fragment = document.createDocumentFragment();
-  fragment.append(createTopbar(), createPaperStrip());
-  const shell = el("main", "app-shell");
-  shell.append(createSystemViewSection());
-  shell.append(createWorkspace());
-  const notes = createNotesSection();
-  if (notes) shell.append(createSectionDrawer(`Notes (${userNotes(state.notes).length})`, notes));
-  shell.append(createSectionDrawer("Backlog", createLibrary()));
-  const focusLibrary = createFocusLibrary();
-  if (focusLibrary) shell.append(createSectionDrawer("Saved research", focusLibrary));
+  fragment.append(createTopbar());
+  const shell = el("main", "app-shell memory-shell");
+  shell.append(createMemoryWallSection());
   fragment.append(shell);
   return fragment;
 }
@@ -3100,14 +3153,11 @@ function createTopbar() {
   left.append(home, brand);
 
   const status = el("div", "status-strip");
-  const fileCount = state.files.filter(isVisibleLibraryFile).length;
-  const noteCount = userNotes(state.notes).length;
+  const imageCount = memoryWallFiles().filter(isImageFile).length;
+  const noteCount = memoryWallNotes().length;
   status.append(createStatusPill(syncLabel(), `sync sync-${sync.status}`));
-  if (aiBackendAvailable() || aiFeed.mode === "ai") {
-    status.append(createStatusPill(aiFeed.status === "loading" ? "ai thinking" : "ai feed", "stat ai-stat"));
-  }
-  status.append(createStatusPill(`${fileCount} files`, "stat"));
-  status.append(createStatusPill(`${noteCount} notes`, "stat"));
+  status.append(createStatusPill(countLabel(imageCount, "image"), "stat"));
+  status.append(createStatusPill(countLabel(noteCount, "thought"), "stat"));
 
   const right = el("div", "suite-topbar-actions");
   right.append(status);
@@ -3116,20 +3166,126 @@ function createTopbar() {
   return topbar;
 }
 
+function createMemoryWallSection() {
+  const section = el("section", "memory-wall");
+  const hero = el("div", "memory-hero");
+  const copy = el("div", "memory-hero-copy");
+  copy.append(
+    el("h1", "", "fluxcell"),
+    el("p", "memory-lede", "Saved ideas, images, links, and references. Newest first.")
+  );
+  const counts = el("div", "memory-counts");
+  counts.append(
+    createMemoryCount(memoryWallFiles().filter(isImageFile).length, "image"),
+    createMemoryCount(memoryWallNotes().length, "thought")
+  );
+  hero.append(copy, counts);
+  section.append(hero, createMemoryGallery(), createMemoryCapturePanel());
+  return section;
+}
+
+function createMemoryCount(value, label) {
+  const item = el("span", "memory-count");
+  item.append(el("strong", "", String(value)), el("span", "", pluralize(value, label)));
+  return item;
+}
+
+function countLabel(value, label) {
+  return `${value} ${pluralize(value, label)}`;
+}
+
+function pluralize(value, label) {
+  return value === 1 ? label : `${label}s`;
+}
+
+function createMemoryCapturePanel() {
+  const panel = el("section", "memory-capture");
+  panel.append(el("h2", "", "add note or image"), createCaptureForm());
+  return panel;
+}
+
+function createMemoryGallery() {
+  const section = el("section", "memory-gallery");
+  const items = memoryItems();
+  if (!items.length) {
+    section.append(el("p", "empty memory-empty", "No saved ideas yet. Capture box is ready."));
+    return section;
+  }
+  const grid = el("div", "memory-grid");
+  let imageIndex = 0;
+  items.forEach((item, index) => {
+    const card = createMemoryCard(item, index, imageIndex);
+    if (item.type === "file" && isImageFile(item.file)) imageIndex += 1;
+    grid.append(card);
+  });
+  section.append(grid);
+  return section;
+}
+
+function memoryItems() {
+  const notes = memoryWallNotes().map((note) => ({
+    type: "note",
+    note,
+    time: noteTime(note),
+  }));
+  const files = memoryWallFiles().map((file) => ({
+    type: "file",
+    file,
+    time: latestRecordTime(file) || feedbackTime(file.createdAt),
+  }));
+  return [...notes, ...files].sort((a, b) => b.time - a.time);
+}
+
+function memoryWallNotes() {
+  return userNotes(state.notes).filter((note) => noteTime(note) >= memoryWallStart);
+}
+
+function memoryWallFiles() {
+  return state.files
+    .filter((file) => isVisibleLibraryFile(file) && !isPaperFile(file))
+    .filter((file) => isImageFile(file) || latestRecordTime(file) >= memoryWallStart);
+}
+
+function createMemoryCard(item, index, imageIndex) {
+  if (item.type === "note") {
+    const card = createNoteCard({
+      ...item.note,
+      type: "note",
+      title: item.note.text,
+      meta: formatDate(item.note.createdAt),
+    });
+    card.classList.add("memory-card", "memory-note-card");
+    return card;
+  }
+  const file = {
+    ...item.file,
+    type: "file",
+    title: item.file.name,
+    kind: item.file.kind || classifyFile(item.file),
+    meta: fileMeta(item.file),
+  };
+  const card = createFileCard(file, index);
+  card.classList.add("memory-card");
+  if (isImageFile(file)) {
+    card.classList.add("memory-image-card");
+    if (imageIndex === 0) card.classList.add("memory-featured-card");
+  }
+  return card;
+}
+
 function createPaperStrip() {
   const strip = el("header", "paper-strip");
   strip.setAttribute("aria-label", "fluxcell paper");
   const copy = el("div", "paper-copy");
   copy.append(
-    el("span", "", "Paper"),
-    el("strong", "", "Pulse-programmed mechanical memory for Sarrus-cell robotic matter"),
-    el("p", "", "Fixed cartridge, moving keepers, one-axis proof boundary, and pending bench measurements.")
+    el("span", "", "Archive"),
+    el("strong", "", "Saved FluxCell paper"),
+    el("p", "", "Older research record kept as a secondary archive.")
   );
   const actions = el("div", "paper-actions");
-  const pdf = el("a", "paper-button primary", "Open PDF");
-  pdf.href = "/paper.pdf";
-  pdf.download = "";
-  actions.append(pdf);
+  const paper = el("a", "paper-button primary", "Open paper");
+  paper.href = "/paper.html";
+  actions.append(paper);
   strip.append(copy, actions);
   return strip;
 }
@@ -3141,25 +3297,203 @@ function createStatusPill(text, className) {
 function createSystemViewSection() {
   const section = el("section", "system-view plain-system-view");
   section.append(
-    el("h1", "", "One-axis proof first."),
-    el("p", "plain-lede", "Then four two-axis FluxCell cells.")
+    el("h1", "", "fluxcell"),
+    el("p", "plain-lede", "Saved ideas, images, links, and references. Newest first.")
   );
-
-  const rows = el("dl", "plain-state-list");
-  currentRows.forEach(([label, value]) => {
-    rows.append(el("dt", "", label), el("dd", "", value));
-  });
-  section.append(rows);
-
-  const files = el("nav", "plain-file-links");
-  files.setAttribute("aria-label", "FluxCell files");
-  fileLinks.forEach((item) => files.append(createTextLink(item.title, item.href, "plain-file-link")));
-  section.append(files);
-
-  section.append(createDetailsPanel("Design record", createDesignLogBody()));
-  section.append(createDetailsPanel("Purchase list", createPurchaseBody()));
-  section.append(createDetailsPanel("Paper direction", createPaperDirectionBody()));
   return section;
+}
+
+function createGeometryFigure() {
+  const item = cadFigures[0];
+  const figure = el("figure", "home-geometry");
+  const img = document.createElement("img");
+  img.src = item.src;
+  img.alt = item.title;
+  img.loading = "eager";
+  img.decoding = "async";
+  figure.append(img, el("figcaption", "", item.title));
+  return figure;
+}
+
+function createProgressSection(evidenceProgress) {
+  if (!evidenceProgress.rows.length) return document.createDocumentFragment();
+  const section = el("section", "progress-section");
+  section.append(el("h2", "", "progress"));
+  const table = el("table", "progress-table");
+  const thead = document.createElement("thead");
+  const header = document.createElement("tr");
+  ["date/time", "description", "exact location"].forEach((label) => {
+    header.append(el("th", "", label));
+  });
+  thead.append(header);
+  const tbody = document.createElement("tbody");
+  evidenceProgress.rows.forEach((item) => {
+    const row = document.createElement("tr");
+    const time = el("td", "progress-time", item.time);
+    time.setAttribute("data-label", "date/time");
+    const description = el("td", "progress-description", item.description);
+    description.setAttribute("data-label", "description");
+    const location = el("td", "progress-location", item.location);
+    location.setAttribute("data-label", "exact location");
+    row.append(time, description, location);
+    tbody.append(row);
+  });
+  table.append(thead, tbody);
+  section.append(table);
+  return section;
+}
+
+function createCurrentIssuesSection(proofState, evidenceProgress) {
+  const section = el("section", "issues-section");
+  section.append(el("h2", "", "saved state"));
+  const list = el("div", "issue-list");
+  currentIssues(proofState, evidenceProgress).forEach((item) => {
+    const row = el("article", "issue-item");
+    row.append(el("strong", "", item.title), el("span", "", item.detail));
+    list.append(row);
+  });
+  section.append(list);
+  return section;
+}
+
+function currentEvidenceProgress() {
+  const evidenceRecords = evidenceProgressRecords();
+  const rows = [];
+  const supplyRecord = evidenceRecords.find((record) => record.classification?.type === "bench-supply-purchase");
+  const hasSupplyPurchase = Boolean(supplyRecord);
+  if (hasSupplyPurchase) {
+    rows.push({
+      time: formatDateTime(supplyRecord.time),
+      description: "Power supply purchase recorded. Amazon order screenshot and SPS-3010V discussion are in Evidence.",
+      location: formatProgressLocation(supplyRecord),
+      key: "bench-supply-purchase",
+    });
+  }
+
+  const latest = evidenceRecords[0];
+
+  return {
+    rows,
+    hasSupplyPurchase,
+    latestTime: latest?.time || 0,
+    freshCount: evidenceRecords.length,
+  };
+}
+
+function evidenceProgressRecords() {
+  return [
+    ...userNotes(state.notes).map((note) => ({
+      source: "note",
+      id: note.id,
+      text: note.text,
+      time: latestRecordTime(note),
+      location: normalizeEvidenceLocation(note.location),
+      classification: classifyEvidenceRecord(note),
+    })),
+    ...state.files.filter((file) => !isPaperFile(file) && file.kind !== "paper").map((file) => ({
+      source: "file",
+      id: file.id,
+      text: `${file.name || ""} ${file.paperTitle || ""} ${file.detectedTitle || ""} ${file.title || ""}`,
+      time: latestRecordTime(file),
+      location: normalizeEvidenceLocation(file.location),
+      classification: classifyEvidenceRecord(file),
+    })),
+  ]
+    .filter((record) => record.time >= progressEvidenceFeatureStart)
+    .sort((a, b) => b.time - a.time);
+}
+
+function classifyEvidenceRecord(record) {
+  if (classifiedEvidence[record?.id]) return classifiedEvidence[record.id];
+  const text = `${record?.text || ""} ${record?.name || ""} ${record?.title || ""}`.toLowerCase();
+  if (/\b(power supply|bench supply|jesverty|sps[-\s]?3010|0[-\s]?30v|0[-\s]?32v|0[-\s]?10a|amazon order|order placed)\b/i.test(text)) {
+    return {
+      type: "bench-supply-purchase",
+      title: "Bench supply evidence recorded.",
+      detail: "Evidence mentions a bench supply, order, or 0-10 A pulse-capable supply.",
+    };
+  }
+  return null;
+}
+
+function currentProofState() {
+  return {
+    stage: "memory",
+    title: "FluxCell memory wall.",
+    detail: "Saved ideas, images, links, and references. Newest first.",
+  };
+}
+
+function proofEvidenceState() {
+  const text = proofEvidenceText();
+  if (!text) return { stage: "pending" };
+  const resultContext = /\bone[-\s]?axis\b|\b1[-\s]?axis\b|\bproof result\b|\bbench result\b|\bwidth trace\b|\bcurrent trace\b|\bzero[-\s]?current hold\b|\breverse[-\s]?pulse release\b/i;
+  const hasContext = resultContext.test(text);
+  if (!hasContext) return { stage: "pending" };
+  const hasFailure = /\b(proof|bench|one[-\s]?axis).{0,80}(failed|failure|no motion|did not move|stuck|overheat|overheated|too hot|friction|weak flux|twist|sticking|poor release)\b/i.test(text);
+  const hasMotion = /\b(proof|bench|one[-\s]?axis).{0,80}(worked|works|passed|success|moved|contracted|expanded|width changed|changed width|held|released)\b|\bwidth.{0,40}(changed|trace|before\/after|measured)\b|\bzero[-\s]?current.{0,40}(hold|held)\b|\breverse[-\s]?pulse.{0,40}(release|released)\b/i.test(text);
+  const hasTrace = /\bcurrent trace\b|\btemperature (trace|note)\b|\bheat (trace|note)\b|\bwidth trace\b|\bbefore\/after\b|\bvideo\b|\bclip\b|\bzero[-\s]?current hold\b|\breverse[-\s]?pulse release\b/i.test(text);
+  if (hasMotion && hasTrace && !hasFailure) return { stage: "complete" };
+  if (hasMotion || hasFailure) return { stage: "result" };
+  return { stage: "pending" };
+}
+
+function proofEvidenceText() {
+  const notes = userNotes(state.notes)
+    .filter(isFreshProofEvidenceRecord)
+    .map((note) => note.text)
+    .join(" ");
+  const files = state.files
+    .filter((file) => !isPaperFile(file) && file.kind !== "paper")
+    .filter(isFreshProofEvidenceRecord)
+    .map((file) => `${file.name || ""} ${file.paperTitle || ""} ${file.detectedTitle || ""} ${file.title || ""}`)
+    .join(" ");
+  return `${notes} ${files}`.toLowerCase();
+}
+
+function isFreshProofEvidenceRecord(record) {
+  const time = latestRecordTime(record);
+  return Boolean(time && time >= proofEvidenceFeatureStart);
+}
+
+function latestRecordTime(record) {
+  return Math.max(
+    feedbackTime(record?.createdAt),
+    feedbackTime(record?.updatedAt),
+    feedbackTime(record?.previewUpdatedAt)
+  );
+}
+
+function currentIssues(proofState, evidenceProgress = currentEvidenceProgress()) {
+  const baseRows = currentIssueRows.map((row) => {
+    if (row.key === "electronics" && evidenceProgress.hasSupplyPurchase) {
+      return {
+        title: "Pulse behavior is still unmeasured.",
+        detail: "The supply purchase is recorded; current, pulse time, heat, and motion are still blank.",
+        key: row.key,
+      };
+    }
+    return row;
+  });
+  if (proofState.stage === "complete") {
+    return [
+      {
+        title: "The result needs interpretation.",
+        detail: "FluxCell found completion evidence; the project still needs the result translated into a claim boundary.",
+      },
+      ...baseRows.slice(1),
+    ];
+  }
+  if (proofState.stage === "result") {
+    return [
+      {
+        title: "The proof loop is no longer blank.",
+        detail: "FluxCell found result evidence; the project now depends on whether that evidence shows motion, failure, or an ambiguous partial result.",
+      },
+      ...baseRows.slice(1),
+    ];
+  }
+  return baseRows;
 }
 
 function createDetailsPanel(label, body) {
@@ -3176,36 +3510,24 @@ function createSectionDrawer(label, sectionNode) {
   return details;
 }
 
-function createDesignLogBody() {
-  const body = el("div", "plain-details-body");
-  const rows = el("div", "log-rows");
-  designLog.forEach(([label, value]) => {
-    const row = el("div", "log-row");
-    row.append(el("p", "log-label", label), el("p", "log-value", value));
-    rows.append(row);
-  });
+function createMoreSection(notes, focusLibrary) {
+  const section = el("section", "records-section");
+  const records = createRecordsSection(notes, focusLibrary);
+  if (records) section.append(records);
+  return section;
+}
 
-  const figures = el("div", "design-figure-grid");
-  designFigures.forEach((figure) => {
-    const card = el("figure", "design-figure");
-    const img = document.createElement("img");
-    img.src = figure.src;
-    img.alt = figure.title;
-    img.loading = "lazy";
-    img.decoding = "async";
-    const caption = el("figcaption", "");
-    caption.append(el("strong", "", figure.title), document.createTextNode(` ${figure.detail}`));
-    card.append(img, caption);
-    figures.append(card);
-  });
-
-  body.append(rows, figures);
-  return body;
+function createRecordsSection(notes, focusLibrary) {
+  const section = el("section", "records-section");
+  section.append(createDetailsPanel("Add", createCaptureForm()));
+  if (notes) section.append(notes);
+  section.append(createLibrary());
+  return section;
 }
 
 function createPurchaseBody() {
   const body = el("div", "plain-details-body");
-  body.append(el("p", "section-note", "Locked: square pole plates, solid steel inserts, one-axis proof first, parts for 4 full two-axis cells. Approx total before shipping/tax: ~$456.65."));
+  body.append(el("p", "section-note", "Older parts list kept only as an archive."));
   const scroll = el("div", "table-scroll");
   const table = el("table", "purchase-table");
   const thead = document.createElement("thead");
@@ -3224,21 +3546,6 @@ function createPurchaseBody() {
   table.append(thead, tbody);
   scroll.append(table);
   body.append(scroll);
-  return body;
-}
-
-function createPaperDirectionBody() {
-  const body = el("div", "plain-details-body");
-  const blocks = [
-    ["Paper story", "Pulse-programmed mechanical memory: a small robotic cell changes geometry with a short pulse and holds state without continuous power."],
-    ["R&D/Imagineering relevance", "Portfolio-facing proof for physical computing, quiet show mechanisms, visible state change, repeatable reset, and evidence-rich iteration."],
-    ["Demo target", "Four-cell kinetic surface: synchronized width trace, current trace, temperature note, and zero-current hold after each state change."],
-  ];
-  blocks.forEach(([label, value]) => {
-    const row = el("div", "log-row");
-    row.append(el("p", "log-label", label), el("p", "log-value", value));
-    body.append(row);
-  });
   return body;
 }
 
@@ -3418,21 +3725,6 @@ function syncLabel() {
   return "checking";
 }
 
-function createWorkspace() {
-  const section = el("section", "workspace capture-workspace");
-
-  const capture = el("section", "capture-panel");
-  capture.append(createIntro(), createCaptureForm());
-  section.append(capture);
-  return section;
-}
-
-function createIntro() {
-  const wrap = el("div", "intro");
-  wrap.append(el("h2", "", "Capture log"), el("p", "tagline", "Notes, figures, PDFs, and build evidence stay attached to the project state."));
-  return wrap;
-}
-
 function createCaptureForm() {
   const form = el("form", "composer");
   form.dataset.role = "capture";
@@ -3442,11 +3734,11 @@ function createCaptureForm() {
 
   const textarea = el("textarea", "note-input");
   textarea.name = "note";
-  textarea.placeholder = "Note, measurement, CAD, failure.";
+  textarea.placeholder = "Random thought, image caption, link, or thing to remember.";
   textarea.value = noteDraft;
 
   const fileLabel = el("label", "file-inline");
-  fileLabel.append(icon("upload"), el("span", "", "Drop or attach"));
+  fileLabel.append(icon("upload"), el("span", "", "Drop, paste, or attach pictures"));
   const input = document.createElement("input");
   input.type = "file";
   input.multiple = true;
@@ -4230,7 +4522,7 @@ function approvalDrivenIdeaCandidates() {
     },
     {
       id: `adaptive-fixture-${slugify(magnetic)}`,
-      text: `Make the next fixture isolate ${magnetic}; every other dimension should stay locked.`,
+      text: `Make the next fixture isolate ${magnetic}; every other dimension should stay fixed.`,
       reason: "fixture",
       keywords: [magnetic, "fixture", "variable", "repeatable", "test"],
       core: true,
@@ -4561,7 +4853,7 @@ function createFocusLibrary() {
 
   const section = el("section", "focus-library useful-library backlog-library");
   const head = el("div", "section-head section-head-row");
-  const heading = "Backlog";
+  const heading = "Kept ideas";
   head.append(el("h2", "", heading), createFeedControls(ideas.length));
   section.append(head);
 
@@ -4791,8 +5083,13 @@ function importantStopWords() {
 }
 
 function feedbackTime(value) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+  const raw = String(value || "").trim();
+  const date = new Date(raw);
+  if (!Number.isNaN(date.getTime())) return date.getTime();
+  const normalized = raw.replace(/(\.\d{3})\d+(Z|[+-]\d\d:?\d\d)$/i, "$1$2");
+  const fallback = new Date(normalized);
+  if (!Number.isNaN(fallback.getTime())) return fallback.getTime();
+  return 0;
 }
 
 function fileMeta(file) {
@@ -5154,8 +5451,10 @@ async function saveCapture(event) {
   }
 
   const now = new Date().toISOString();
+  const evidenceLocation = await captureEvidenceLocation();
+  const locationField = evidenceLocation ? { location: evidenceLocation } : {};
   if (text) {
-    const note = { id: createId(), text, createdAt: now };
+    const note = { id: createId(), text, createdAt: now, ...locationField };
     state.notes.unshift(note);
   }
 
@@ -5169,6 +5468,7 @@ async function saveCapture(event) {
           mime: file.type || "application/octet-stream",
           dataUrl,
           kind,
+          ...locationField,
         });
         upsertFile(normalizeSyncFile(response.file));
       } else {
@@ -5181,6 +5481,7 @@ async function saveCapture(event) {
           source: "browser",
           kind,
           createdAt: now,
+          ...locationField,
         };
         await putBrowserFile({ ...record, blob: file });
         upsertFile(record);
@@ -5208,6 +5509,26 @@ function readFileAsDataUrl(file) {
   });
 }
 
+async function captureEvidenceLocation() {
+  if (!navigator.geolocation) return null;
+  try {
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: false,
+        maximumAge: 5 * 60 * 1000,
+        timeout: 3000,
+      });
+    });
+    return normalizeEvidenceLocation({
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      capturedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    return null;
+  }
+}
+
 async function postJson(url, payload) {
   const response = await fetch(url, {
     method: "POST",
@@ -5231,6 +5552,7 @@ function normalizeSyncFile(file) {
     paperTitle: file.paperTitle || file.detectedTitle || "",
     hasPreview: Boolean(file.previewRelativePath),
     previewUpdatedAt: file.previewUpdatedAt || "",
+    ...(normalizeEvidenceLocation(file.location) ? { location: normalizeEvidenceLocation(file.location) } : {}),
   };
 }
 
@@ -5243,7 +5565,7 @@ async function openFile(id) {
   if (!file) return;
   if (file.source === "sync") {
     if (sync.status !== "local") {
-      toast("Start local sync to open this paper.");
+      toast("Start sync to open this file.");
       return;
     }
     window.open(`${sync.base}/api/files/${encodeURIComponent(id)}/view`, "_blank", "noopener");
@@ -5254,7 +5576,7 @@ async function openFile(id) {
   const stored = await getBrowserFile(id).catch(() => null);
   if (!stored?.blob) {
     opened?.close();
-    toast("Paper is not available in this browser.");
+    toast("File is not available in this browser.");
     return;
   }
   const url = URL.createObjectURL(stored.blob);
@@ -5294,12 +5616,7 @@ async function refreshSuggestions() {
   suggestionState.refreshedAt = new Date().toISOString();
   saveSuggestionState();
   render();
-  if (aiBackendAvailable()) {
-    toast("Refreshing AI feed.");
-    await requestAiFeed({ force: true });
-  } else {
-    toast(sync.status === "local" ? "Local backlog refreshed. Add OPENAI_API_KEY for AI." : "Backlog refreshed.");
-  }
+  toast("Wall refreshed.");
 }
 
 function scheduleAiFeedRefresh() {
@@ -5315,7 +5632,7 @@ function aiBackendBase() {
 }
 
 function aiBackendAvailable() {
-  return Boolean(aiBackendBase());
+  return false;
 }
 
 function aiFeedPayload() {
@@ -5403,7 +5720,7 @@ async function requestAiFeed({ force = false, quiet = false } = {}) {
     aiFeed.ideas.forEach(rememberCustomIdea);
     saveAiFeed();
     render();
-    if (!quiet) toast("AI feed updated.");
+    if (!quiet) toast("Wall updated.");
     return true;
   } catch (error) {
     console.error(error);
@@ -5614,30 +5931,7 @@ function configuredApiBase() {
 }
 
 async function detectAiService() {
-  const base = configuredAiApiBase();
-  if (!base) {
-    aiService = { status: "none", base: "", configured: false, model: "" };
-    render();
-    return;
-  }
-  try {
-    const response = await fetch(`${base}/api/health`, { cache: "no-store" });
-    if (!response.ok) throw new Error("AI service health check failed");
-    const json = await response.json();
-    if (!compatibleSyncApps.has(json.app) || !json.aiConfigured) {
-      throw new Error("AI service is not configured");
-    }
-    aiService = {
-      status: "ready",
-      base,
-      configured: true,
-      model: json.aiModel || "",
-    };
-    scheduleAiFeedRefresh();
-  } catch (error) {
-    console.warn(error);
-    aiService = { status: "offline", base, configured: false, model: "" };
-  }
+  aiService = { status: "none", base: "", configured: false, model: "" };
   render();
 }
 
