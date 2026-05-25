@@ -1245,17 +1245,15 @@ async function handleApi(req, res, requestUrl) {
       sync: true,
       storageRoot,
       deleteConfigured: Boolean(deletePassword),
-      aiConfigured: Boolean(openAiKey()),
-      aiModel: openAiKey() ? openAiModel : "",
+      aiConfigured: false,
+      aiModel: "",
       maxUploadMb: Math.round(maxUploadBytes / 1024 / 1024),
     });
     return;
   }
 
   if (requestUrl.pathname === "/api/ai/suggestions" && req.method === "POST") {
-    const payload = await readJsonBody(req, 2 * 1024 * 1024);
-    const result = await createAiSuggestions(payload);
-    sendJson(res, 200, result);
+    sendJson(res, 410, { error: "FluxCell is a saved ideas and images wall; AI suggestions are disabled." });
     return;
   }
 
@@ -1271,7 +1269,7 @@ async function handleApi(req, res, requestUrl) {
   }
 
   if (requestUrl.pathname === "/api/generated/hbridge-bundle.md" && req.method === "GET") {
-    sendMarkdown(res, 200, generatedHBridgeBundleMarkdown());
+    sendMarkdown(res, 410, "FluxCell now stores saved ideas and images. Generated H-bridge work is disabled.\n");
     return;
   }
 

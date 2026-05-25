@@ -2,7 +2,7 @@
   "name": "fluxcell-wall",
   "version": "0.1.0",
   "private": true,
-  "description": "A focused research wall for 3D printed electropermanent magnet actuation of Sarrus-linkage-based cells.",
+  "description": "A FluxCell memory wall for saved ideas, images, links, and thoughts.",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"

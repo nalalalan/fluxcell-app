@@ -1,6 +1,6 @@
 # FluxCell
 
-A focused AO Labs research wall for the 3D printed electropermanent magnet actuation direction: Sarrus-cell images, evidence, CAD uploads, notes, force plots, and build artifacts.
+A FluxCell memory wall for saved ideas, images, links, and thoughts. The public page opens on the saved wall first; it is no longer a brainstorming, to-do, proof, or current-issues surface.
 
 ## Run Locally
 
@@ -32,12 +32,4 @@ Deletion from the local sync folder requires `FLUXCELL_DELETE_PASSWORD`. Do not 
 
 The app is static and deploys from `public` to GitHub Pages with the current custom domain `fluxcell.aolabs.io`.
 
-It can also run on Railway or any Node host with `npm start`. For AI feed generation, set `OPENAI_API_KEY` in the server environment. Optional: set `FLUXCELL_OPENAI_MODEL` to override the default model.
-
-If the static GitHub Pages site should use a Railway backend only for AI, set `window.FLUXCELL_AI_API_BASE` in `public/config.js` to the Railway service URL. This keeps file sync on the local server while the OpenAI key stays on Railway.
-
-```js
-window.FLUXCELL_AI_API_BASE = "https://your-fluxcell-service.up.railway.app";
-```
-
-Set `window.FLUXCELL_API_BASE` only if the Railway service should also replace file sync/upload storage.
+It can also run on Railway or any Node host with `npm start`. AI brainstorming is disabled; the backend is for synced notes and uploads.

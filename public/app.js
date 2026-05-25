@@ -131,12 +131,13 @@ const recoveredFeedbackSeed = {
 
 const focus = {
   domain: "fluxcell.aolabs.io",
-  title: "Electropermanent magnetic memory for Sarrus-cell motion.",
-  current: "One-axis proof first, then four two-axis FluxCell cells.",
+  title: "FluxCell memory wall.",
+  current: "Saved ideas, images, links, and references.",
 };
 
 const proofEvidenceFeatureStart = Date.parse("2026-05-17T06:55:00.000Z");
 const progressEvidenceFeatureStart = Date.parse("2026-05-18T19:27:00.000Z");
+const memoryWallStart = Date.parse("2026-05-25T20:50:00.000Z");
 
 const classifiedEvidence = {
   "00962251-579b-4e90-91ff-108c50e98e57": {
@@ -3130,12 +3131,9 @@ function render() {
 
 function createShell() {
   const fragment = document.createDocumentFragment();
-  fragment.append(createTopbar(), createPaperStrip());
-  const shell = el("main", "app-shell");
-  shell.append(createSystemViewSection());
-  const notes = createNotesSection();
-  const focusLibrary = createFocusLibrary();
-  shell.append(createSectionDrawer("More", createMoreSection(notes, focusLibrary)));
+  fragment.append(createTopbar());
+  const shell = el("main", "app-shell memory-shell");
+  shell.append(createMemoryWallSection());
   fragment.append(shell);
   return fragment;
 }
@@ -3155,14 +3153,11 @@ function createTopbar() {
   left.append(home, brand);
 
   const status = el("div", "status-strip");
-  const fileCount = state.files.filter(isVisibleLibraryFile).length;
-  const noteCount = userNotes(state.notes).length;
+  const imageCount = memoryWallFiles().filter(isImageFile).length;
+  const noteCount = memoryWallNotes().length;
   status.append(createStatusPill(syncLabel(), `sync sync-${sync.status}`));
-  if (aiBackendAvailable() || aiFeed.mode === "ai") {
-    status.append(createStatusPill(aiFeed.status === "loading" ? "ai thinking" : "ai feed", "stat ai-stat"));
-  }
-  status.append(createStatusPill(`${fileCount} files`, "stat"));
-  status.append(createStatusPill(`${noteCount} notes`, "stat"));
+  status.append(createStatusPill(countLabel(imageCount, "image"), "stat"));
+  status.append(createStatusPill(countLabel(noteCount, "thought"), "stat"));
 
   const right = el("div", "suite-topbar-actions");
   right.append(status);
@@ -3171,14 +3166,121 @@ function createTopbar() {
   return topbar;
 }
 
+function createMemoryWallSection() {
+  const section = el("section", "memory-wall");
+  const hero = el("div", "memory-hero");
+  const copy = el("div", "memory-hero-copy");
+  copy.append(
+    el("h1", "", "fluxcell"),
+    el("p", "memory-lede", "Saved ideas, images, links, and references. Newest first.")
+  );
+  const counts = el("div", "memory-counts");
+  counts.append(
+    createMemoryCount(memoryWallFiles().filter(isImageFile).length, "image"),
+    createMemoryCount(memoryWallNotes().length, "thought")
+  );
+  hero.append(copy, counts);
+  section.append(hero, createMemoryGallery(), createMemoryCapturePanel());
+  return section;
+}
+
+function createMemoryCount(value, label) {
+  const item = el("span", "memory-count");
+  item.append(el("strong", "", String(value)), el("span", "", pluralize(value, label)));
+  return item;
+}
+
+function countLabel(value, label) {
+  return `${value} ${pluralize(value, label)}`;
+}
+
+function pluralize(value, label) {
+  return value === 1 ? label : `${label}s`;
+}
+
+function createMemoryCapturePanel() {
+  const panel = el("section", "memory-capture");
+  panel.append(el("h2", "", "add note or image"), createCaptureForm());
+  return panel;
+}
+
+function createMemoryGallery() {
+  const section = el("section", "memory-gallery");
+  const items = memoryItems();
+  if (!items.length) {
+    section.append(el("p", "empty memory-empty", "No saved ideas yet. Capture box is ready."));
+    return section;
+  }
+  const grid = el("div", "memory-grid");
+  let imageIndex = 0;
+  items.forEach((item, index) => {
+    const card = createMemoryCard(item, index, imageIndex);
+    if (item.type === "file" && isImageFile(item.file)) imageIndex += 1;
+    grid.append(card);
+  });
+  section.append(grid);
+  return section;
+}
+
+function memoryItems() {
+  const notes = memoryWallNotes().map((note) => ({
+    type: "note",
+    note,
+    time: noteTime(note),
+  }));
+  const files = memoryWallFiles().map((file) => ({
+    type: "file",
+    file,
+    time: latestRecordTime(file) || feedbackTime(file.createdAt),
+  }));
+  return [...notes, ...files].sort((a, b) => b.time - a.time);
+}
+
+function memoryWallNotes() {
+  return userNotes(state.notes).filter((note) => noteTime(note) >= memoryWallStart);
+}
+
+function memoryWallFiles() {
+  return state.files
+    .filter((file) => isVisibleLibraryFile(file) && !isPaperFile(file))
+    .filter((file) => isImageFile(file) || latestRecordTime(file) >= memoryWallStart);
+}
+
+function createMemoryCard(item, index, imageIndex) {
+  if (item.type === "note") {
+    const card = createNoteCard({
+      ...item.note,
+      type: "note",
+      title: item.note.text,
+      meta: formatDate(item.note.createdAt),
+    });
+    card.classList.add("memory-card", "memory-note-card");
+    return card;
+  }
+  const file = {
+    ...item.file,
+    type: "file",
+    title: item.file.name,
+    kind: item.file.kind || classifyFile(item.file),
+    meta: fileMeta(item.file),
+  };
+  const card = createFileCard(file, index);
+  card.classList.add("memory-card");
+  if (isImageFile(file)) {
+    card.classList.add("memory-image-card");
+    if (imageIndex === 0) card.classList.add("memory-featured-card");
+  }
+  return card;
+}
+
 function createPaperStrip() {
   const strip = el("header", "paper-strip");
   strip.setAttribute("aria-label", "fluxcell paper");
   const copy = el("div", "paper-copy");
   copy.append(
-    el("span", "", "Paper"),
-    el("strong", "", "Pulse-programmed mechanical memory in an electropermanent robotic cell"),
-    el("p", "", "Fixed cartridge, moving keepers, one-axis proof boundary, and pending bench measurements.")
+    el("span", "", "Archive"),
+    el("strong", "", "Saved FluxCell paper"),
+    el("p", "", "Older research record kept as a secondary archive.")
   );
   const actions = el("div", "paper-actions");
   const paper = el("a", "paper-button primary", "Open paper");
@@ -3194,17 +3296,10 @@ function createStatusPill(text, className) {
 
 function createSystemViewSection() {
   const section = el("section", "system-view plain-system-view");
-  const proofState = currentProofState();
-  const evidenceProgress = currentEvidenceProgress();
   section.append(
-    el("h1", "", proofState.title),
-    el("p", "plain-lede", proofState.detail)
+    el("h1", "", "fluxcell"),
+    el("p", "plain-lede", "Saved ideas, images, links, and references. Newest first.")
   );
-
-  section.append(createGeometryFigure());
-  section.append(createProgressSection(evidenceProgress));
-  section.append(createCurrentIssuesSection(proofState, evidenceProgress));
-
   return section;
 }
 
@@ -3250,7 +3345,7 @@ function createProgressSection(evidenceProgress) {
 
 function createCurrentIssuesSection(proofState, evidenceProgress) {
   const section = el("section", "issues-section");
-  section.append(el("h2", "", "current issues"));
+  section.append(el("h2", "", "saved state"));
   const list = el("div", "issue-list");
   currentIssues(proofState, evidenceProgress).forEach((item) => {
     const row = el("article", "issue-item");
@@ -3322,25 +3417,10 @@ function classifyEvidenceRecord(record) {
 }
 
 function currentProofState() {
-  const evidence = proofEvidenceState();
-  if (evidence.stage === "complete") {
-    return {
-      stage: "complete",
-      title: "One-axis proof recorded.",
-      detail: "Four two-axis cells can start from the recorded width, hold, release, current, and heat evidence.",
-    };
-  }
-  if (evidence.stage === "result") {
-    return {
-      stage: "result",
-      title: "One-axis result recorded.",
-      detail: "The blocker is now what the result proves, not whether the system noticed it.",
-    };
-  }
   return {
-    stage: "pending",
-    title: "One-axis proof first.",
-    detail: "Then four two-axis cells.",
+    stage: "memory",
+    title: "FluxCell memory wall.",
+    detail: "Saved ideas, images, links, and references. Newest first.",
   };
 }
 
@@ -3439,17 +3519,15 @@ function createMoreSection(notes, focusLibrary) {
 
 function createRecordsSection(notes, focusLibrary) {
   const section = el("section", "records-section");
-  section.append(createDetailsPanel("Evidence", createCaptureForm()));
-  section.append(createDetailsPanel("Purchase list", createPurchaseBody()));
+  section.append(createDetailsPanel("Add", createCaptureForm()));
   if (notes) section.append(notes);
   section.append(createLibrary());
-  if (focusLibrary) section.append(focusLibrary);
   return section;
 }
 
 function createPurchaseBody() {
   const body = el("div", "plain-details-body");
-  body.append(el("p", "section-note", "Current parts list: square pole plates, solid steel inserts, one-axis proof first, parts for 4 full two-axis cells. Approx total before shipping/tax: ~$456.65."));
+  body.append(el("p", "section-note", "Older parts list kept only as an archive."));
   const scroll = el("div", "table-scroll");
   const table = el("table", "purchase-table");
   const thead = document.createElement("thead");
@@ -3656,11 +3734,11 @@ function createCaptureForm() {
 
   const textarea = el("textarea", "note-input");
   textarea.name = "note";
-  textarea.placeholder = "Note, measurement, CAD, failure.";
+  textarea.placeholder = "Random thought, image caption, link, or thing to remember.";
   textarea.value = noteDraft;
 
   const fileLabel = el("label", "file-inline");
-  fileLabel.append(icon("upload"), el("span", "", "Drop or attach"));
+  fileLabel.append(icon("upload"), el("span", "", "Drop, paste, or attach pictures"));
   const input = document.createElement("input");
   input.type = "file";
   input.multiple = true;
@@ -4775,7 +4853,7 @@ function createFocusLibrary() {
 
   const section = el("section", "focus-library useful-library backlog-library");
   const head = el("div", "section-head section-head-row");
-  const heading = "Backlog";
+  const heading = "Kept ideas";
   head.append(el("h2", "", heading), createFeedControls(ideas.length));
   section.append(head);
 
@@ -5487,7 +5565,7 @@ async function openFile(id) {
   if (!file) return;
   if (file.source === "sync") {
     if (sync.status !== "local") {
-      toast("Start local sync to open this paper.");
+      toast("Start sync to open this file.");
       return;
     }
     window.open(`${sync.base}/api/files/${encodeURIComponent(id)}/view`, "_blank", "noopener");
@@ -5498,7 +5576,7 @@ async function openFile(id) {
   const stored = await getBrowserFile(id).catch(() => null);
   if (!stored?.blob) {
     opened?.close();
-    toast("Paper is not available in this browser.");
+    toast("File is not available in this browser.");
     return;
   }
   const url = URL.createObjectURL(stored.blob);
@@ -5538,12 +5616,7 @@ async function refreshSuggestions() {
   suggestionState.refreshedAt = new Date().toISOString();
   saveSuggestionState();
   render();
-  if (aiBackendAvailable()) {
-    toast("Refreshing AI feed.");
-    await requestAiFeed({ force: true });
-  } else {
-    toast(sync.status === "local" ? "Local backlog refreshed. Add OPENAI_API_KEY for AI." : "Backlog refreshed.");
-  }
+  toast("Wall refreshed.");
 }
 
 function scheduleAiFeedRefresh() {
@@ -5559,7 +5632,7 @@ function aiBackendBase() {
 }
 
 function aiBackendAvailable() {
-  return Boolean(aiBackendBase());
+  return false;
 }
 
 function aiFeedPayload() {
@@ -5647,7 +5720,7 @@ async function requestAiFeed({ force = false, quiet = false } = {}) {
     aiFeed.ideas.forEach(rememberCustomIdea);
     saveAiFeed();
     render();
-    if (!quiet) toast("AI feed updated.");
+    if (!quiet) toast("Wall updated.");
     return true;
   } catch (error) {
     console.error(error);
@@ -5858,30 +5931,7 @@ function configuredApiBase() {
 }
 
 async function detectAiService() {
-  const base = configuredAiApiBase();
-  if (!base) {
-    aiService = { status: "none", base: "", configured: false, model: "" };
-    render();
-    return;
-  }
-  try {
-    const response = await fetch(`${base}/api/health`, { cache: "no-store" });
-    if (!response.ok) throw new Error("AI service health check failed");
-    const json = await response.json();
-    if (!compatibleSyncApps.has(json.app) || !json.aiConfigured) {
-      throw new Error("AI service is not configured");
-    }
-    aiService = {
-      status: "ready",
-      base,
-      configured: true,
-      model: json.aiModel || "",
-    };
-    scheduleAiFeedRefresh();
-  } catch (error) {
-    console.warn(error);
-    aiService = { status: "offline", base, configured: false, model: "" };
-  }
+  aiService = { status: "none", base: "", configured: false, model: "" };
   render();
 }
 
