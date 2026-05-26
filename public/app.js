@@ -3131,10 +3131,19 @@ function render() {
 
 function createShell() {
   const fragment = document.createDocumentFragment();
+  fragment.append(createAoLabsButton());
   const shell = el("main", "app-shell memory-shell");
   shell.append(createMemoryWallSection());
   fragment.append(shell);
   return fragment;
+}
+
+function createAoLabsButton() {
+  const link = el("a", "ao-labs-button");
+  link.href = "https://aolabs.io/";
+  link.setAttribute("aria-label", "aolabs.io");
+  link.innerHTML = '<img src="https://aolabs.io/marks/ao-ink.svg?v=20260516-suite-bloom" alt=""><span>aolabs</span>';
+  return link;
 }
 
 function createTopbar() {
