@@ -3194,19 +3194,35 @@ function createMemoryCapturePanel() {
 
 function createMemoryGallery() {
   const section = el("section", "memory-gallery");
-  const items = memoryItems();
-  if (!items.length) {
+  const notes = memoryWallNotes()
+    .map((note) => ({ type: "note", note, time: noteTime(note) }))
+    .sort((a, b) => b.time - a.time);
+  const files = memoryWallFiles()
+    .map((file) => ({ type: "file", file, time: latestRecordTime(file) || feedbackTime(file.createdAt) }))
+    .sort((a, b) => b.time - a.time);
+  const images = files.filter((item) => isImageFile(item.file));
+  const otherFiles = files.filter((item) => !isImageFile(item.file));
+  if (!notes.length && !files.length) {
     section.append(el("p", "empty memory-empty", "No saved ideas yet. Capture box is ready."));
     return section;
   }
-  const grid = el("div", "memory-grid");
-  let imageIndex = 0;
-  items.forEach((item, index) => {
-    const card = createMemoryCard(item, index, imageIndex);
-    if (item.type === "file" && isImageFile(item.file)) imageIndex += 1;
-    grid.append(card);
-  });
-  section.append(grid);
+  const lead = el("div", "memory-lead-wall");
+  if (images.length) {
+    lead.append(createMemoryCard(images[0], 0, 0));
+  }
+  if (notes.length) {
+    const rail = el("aside", "memory-thought-rail");
+    notes.forEach((item, index) => rail.append(createMemoryCard(item, index, 0)));
+    lead.append(rail);
+  }
+  if (lead.childNodes.length) section.append(lead);
+
+  const rest = [...images.slice(1), ...otherFiles].sort((a, b) => b.time - a.time);
+  if (rest.length) {
+    const grid = el("div", "memory-grid");
+    rest.forEach((item, index) => grid.append(createMemoryCard(item, index + 1, index + 1)));
+    section.append(grid);
+  }
   return section;
 }
 
