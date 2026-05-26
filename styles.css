@@ -175,7 +175,7 @@ a {
 .ao-labs-button {
   position: fixed;
   left: 12px;
-  bottom: 12px;
+  top: 12px;
   z-index: 90;
   display: inline-flex;
   align-items: center;
@@ -298,7 +298,7 @@ a {
 }
 
 .memory-wall {
-  padding: 12px 0 56px;
+  padding: 56px 0 56px;
 }
 
 .memory-hero {
@@ -1895,7 +1895,7 @@ svg {
   }
 
   .memory-wall {
-    padding-top: 6px;
+    padding-top: 52px;
   }
 
   .memory-hero h1 {
