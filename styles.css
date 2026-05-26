@@ -342,7 +342,21 @@ a {
 }
 
 .memory-gallery {
+  display: grid;
+  gap: 14px;
   padding-top: 0;
+}
+
+.memory-lead-wall {
+  display: grid;
+  grid-template-columns: minmax(0, 1.48fr) minmax(280px, .52fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.memory-thought-rail {
+  display: grid;
+  gap: 10px;
 }
 
 .memory-grid {
@@ -368,10 +382,23 @@ a {
     linear-gradient(150deg, rgba(255, 252, 246, .98), rgba(238, 225, 205, .82));
 }
 
+.memory-thought-rail .memory-note-card {
+  padding: 15px 48px 13px 15px;
+  border-color: rgba(73, 55, 36, .10);
+  background: rgba(255, 252, 246, .70);
+  box-shadow: 0 1px 1px rgba(73, 55, 36, .06);
+}
+
 .memory-note-card .item-text {
   font-size: clamp(17px, 1.25vw, 22px);
   line-height: 1.22;
   font-weight: 760;
+}
+
+.memory-thought-rail .item-text {
+  font-size: 15px;
+  line-height: 1.25;
+  font-weight: 720;
 }
 
 .memory-image-card {
@@ -387,6 +414,10 @@ a {
   height: auto;
   object-fit: contain;
   border-radius: 5px;
+}
+
+.memory-lead-wall > .memory-image-card .file-visual {
+  padding: 10px;
 }
 
 .memory-wall .file-card {
@@ -1750,6 +1781,10 @@ svg {
 
   .memory-counts {
     justify-content: flex-start;
+  }
+
+  .memory-lead-wall {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .memory-grid {
