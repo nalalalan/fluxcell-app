@@ -359,6 +359,10 @@ a {
 
 .memory-note-card {
   min-height: 248px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px 56px 16px 18px;
   background:
     linear-gradient(150deg, rgba(255, 252, 246, .96), rgba(237, 222, 199, .72));
 }
@@ -366,13 +370,6 @@ a {
 .memory-note-card .item-text {
   font-size: clamp(17px, 1.55vw, 22px);
   line-height: 1.28;
-}
-
-.memory-note-card .item-body {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
 }
 
 .memory-image-card {
