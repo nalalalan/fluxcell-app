@@ -1034,7 +1034,7 @@ async function enrichPdfEntries(files) {
   return nextFiles;
 }
 
-async function saveTrackedFile({ name, mime, buffer, kind = "file", location = null }) {
+async function saveTrackedFile({ name, mime, buffer, kind = "file", location = null, sourceCreatedAt = "" }) {
   if (buffer.length > maxUploadBytes) {
     const maxMb = Math.round(maxUploadBytes / 1024 / 1024);
     throw new Error(`File exceeds ${maxMb} MB`);
@@ -1057,6 +1057,7 @@ async function saveTrackedFile({ name, mime, buffer, kind = "file", location = n
   await fsp.writeFile(filePath, buffer);
 
   const cleanLocation = cleanEvidenceLocation(location);
+  const cleanSourceCreatedAt = cleanIsoTimestamp(sourceCreatedAt);
   const entry = {
     id,
     name: originalName,
@@ -1065,6 +1066,7 @@ async function saveTrackedFile({ name, mime, buffer, kind = "file", location = n
     kind,
     relativePath: path.relative(storageRoot, filePath).split(path.sep).join("/"),
     createdAt: now,
+    ...(cleanSourceCreatedAt ? { sourceCreatedAt: cleanSourceCreatedAt } : {}),
     ...(cleanLocation ? { location: cleanLocation } : {}),
   };
 
@@ -1076,6 +1078,13 @@ async function saveTrackedFile({ name, mime, buffer, kind = "file", location = n
 
 function compactString(value, max = 1400) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+function cleanIsoTimestamp(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const time = Date.parse(raw);
+  return Number.isFinite(time) ? new Date(time).toISOString() : "";
 }
 
 function compactArray(items, maxItems, mapper) {
@@ -1362,6 +1371,7 @@ async function handleApi(req, res, requestUrl) {
         ? "paper"
         : "file",
       location: payload.location,
+      sourceCreatedAt: payload.sourceCreatedAt || payload.lastModified || "",
     });
     const files = await enrichPdfEntries(await readIndex());
     const entry = files.find((file) => file.id === saved.id) || saved;

@@ -3272,7 +3272,7 @@ function memoryItems() {
   const files = memoryWallFiles().map((file) => ({
     type: "file",
     file,
-    time: latestRecordTime(file) || feedbackTime(file.createdAt),
+    time: sourceCreatedTime(file),
   }));
   return [...notes, ...files].sort((a, b) => b.time - a.time);
 }
@@ -3284,7 +3284,32 @@ function memoryWallNotes() {
 function memoryWallFiles() {
   return state.files
     .filter((file) => isVisibleLibraryFile(file) && !isPaperFile(file))
-    .filter((file) => isImageFile(file) || latestRecordTime(file) >= memoryWallStart);
+    .filter((file) => isImageFile(file) || sourceCreatedTime(file) >= memoryWallStart);
+}
+
+function sourceCreatedTime(record) {
+  return (
+    feedbackTime(record?.sourceCreatedAt)
+    || sourceFilenameTime(record)
+    || feedbackTime(record?.createdAt)
+    || latestRecordTime(record)
+  );
+}
+
+function sourceFilenameTime(record) {
+  const name = String(record?.name || "");
+  const match = name.match(/^Screenshot\s+(\d{4})-(\d{2})-(\d{2})\s+(\d{2})(\d{2})(\d{2})/i);
+  if (!match) return 0;
+  const [, year, month, day, hour, minute, second] = match;
+  const time = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second)
+  ).getTime();
+  return Number.isFinite(time) ? time : 0;
 }
 
 function createMemoryCard(item, index, imageIndex) {
@@ -5526,6 +5551,7 @@ async function saveCapture(event) {
             mime: file.type || "application/octet-stream",
             dataUrl,
             kind,
+            sourceCreatedAt: file.lastModified ? new Date(file.lastModified).toISOString() : "",
             ...locationField,
           });
           upsertFile(normalizeSyncFile(response.file));
@@ -5539,6 +5565,7 @@ async function saveCapture(event) {
             source: "browser",
             kind,
             createdAt: now,
+            sourceCreatedAt: file.lastModified ? new Date(file.lastModified).toISOString() : "",
             ...locationField,
           };
           await putBrowserFile({ ...record, blob: file });
@@ -5608,6 +5635,7 @@ function normalizeSyncFile(file) {
     size: file.size,
     mime: file.mime,
     createdAt: file.createdAt,
+    sourceCreatedAt: file.sourceCreatedAt || "",
     source: "sync",
     kind: file.kind || classifyFile(file),
     paperTitle: file.paperTitle || file.detectedTitle || "",
