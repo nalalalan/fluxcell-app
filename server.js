@@ -21,6 +21,7 @@ const indexPath = focusedIndexPath;
 const appStatePath = path.join(storageRoot, ".fluxcell-app-state.json");
 const paperPreviewRoot = path.join(storageRoot, ".fluxcell-paper-previews");
 const paperPreviewVersion = 5;
+const duplicateNoteWindowMs = 5 * 60 * 1000;
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -422,6 +423,64 @@ function cleanNote(note) {
   };
 }
 
+function timestampMs(value) {
+  const time = Date.parse(String(value || "").trim());
+  return Number.isFinite(time) ? time : 0;
+}
+
+function noteTime(note) {
+  return Math.max(timestampMs(note?.updatedAt), timestampMs(note?.createdAt));
+}
+
+function normalizeNoteTextKey(text) {
+  return String(text || "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function mergeDuplicateNoteRecord(first, second) {
+  const firstTime = noteTime(first);
+  const secondTime = noteTime(second);
+  const keep = secondTime >= firstTime ? second : first;
+  const other = keep === second ? first : second;
+  return {
+    ...keep,
+    location: keep.location || other.location,
+    updatedAt: firstTime >= secondTime
+      ? (first.updatedAt || first.createdAt || keep.updatedAt || "")
+      : (second.updatedAt || second.createdAt || keep.updatedAt || ""),
+  };
+}
+
+function dedupeNotesWithDeletedIds(notes, deletedIds = []) {
+  const deleted = new Set(deletedIds);
+  const dropped = new Set();
+  const kept = [];
+  (Array.isArray(notes) ? notes : [])
+    .map(cleanNote)
+    .filter((note) => note && !deleted.has(note.id))
+    .sort((a, b) => noteTime(b) - noteTime(a))
+    .forEach((note) => {
+      const key = normalizeNoteTextKey(note.text);
+      const time = noteTime(note);
+      const duplicateIndex = kept.findIndex((existing) => {
+        if (normalizeNoteTextKey(existing.text) !== key) return false;
+        return Math.abs(noteTime(existing) - time) <= duplicateNoteWindowMs;
+      });
+      if (duplicateIndex === -1) {
+        kept.push(note);
+        return;
+      }
+      const previous = kept[duplicateIndex];
+      const merged = mergeDuplicateNoteRecord(previous, note);
+      if (previous.id && previous.id !== merged.id) dropped.add(previous.id);
+      if (note.id && note.id !== merged.id) dropped.add(note.id);
+      kept[duplicateIndex] = merged;
+    });
+  return {
+    notes: kept.sort((a, b) => noteTime(b) - noteTime(a)).slice(0, 1000),
+    deletedNoteIds: [...new Set([...deletedIds, ...dropped])].slice(0, 5000),
+  };
+}
+
 function cleanFeedbackStore(store) {
   return Object.entries(objectRecord(store)).reduce((cleaned, [id, record]) => {
     const key = String(id || "").trim().slice(0, 180);
@@ -603,12 +662,10 @@ function cleanAppState(record = {}) {
   const deletedNoteIds = Array.isArray(state.deletedNoteIds)
     ? state.deletedNoteIds.map((id) => String(id || "").trim()).filter(Boolean).slice(0, 5000)
     : [];
-  const deletedNotes = new Set(deletedNoteIds);
+  const dedupedNotes = dedupeNotesWithDeletedIds(state.notes, deletedNoteIds);
   return {
-    notes: Array.isArray(state.notes)
-      ? state.notes.map(cleanNote).filter(Boolean).filter((note) => !deletedNotes.has(note.id)).slice(0, 1000)
-      : [],
-    deletedNoteIds,
+    notes: dedupedNotes.notes,
+    deletedNoteIds: dedupedNotes.deletedNoteIds,
     paperFeedback: cleanFeedbackStore(state.paperFeedback),
     ideaFeedback: cleanFeedbackStore(state.ideaFeedback),
     suggestionState: cleanSuggestionState(state.suggestionState),
@@ -1328,8 +1385,14 @@ async function handleApi(req, res, requestUrl) {
     });
     appState.deletedNoteIds = (appState.deletedNoteIds || []).filter((id) => id !== note.id);
     appState.notes = [note, ...appState.notes.filter((item) => item.id !== note.id)];
-    await writeAppState(appState);
-    sendJson(res, 201, { note });
+    const nextState = await writeAppState(appState);
+    const savedNote = nextState.notes.find((item) => item.id === note.id)
+      || nextState.notes.find((item) => {
+        if (normalizeNoteTextKey(item.text) !== normalizeNoteTextKey(note.text)) return false;
+        return Math.abs(noteTime(item) - noteTime(note)) <= duplicateNoteWindowMs;
+      })
+      || note;
+    sendJson(res, 201, { note: savedNote });
     return;
   }
 

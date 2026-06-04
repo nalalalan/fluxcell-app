@@ -2453,6 +2453,7 @@ const seedNotes = [
 ];
 
 const seedNoteIds = new Set(seedNotes.map((note) => note.id));
+const duplicateNoteWindowMs = 5 * 60 * 1000;
 
 let state = loadState();
 let paperFeedback = loadPaperFeedback();
@@ -2468,6 +2469,7 @@ let toastTimer = 0;
 let aiRefreshTimer = 0;
 let cloudSaveTimer = 0;
 let tipWindowIndex = 0;
+let captureSaveInFlight = false;
 let suppressCloudStateSave = false;
 let lastCloudStateSignature = "";
 const previewUrls = new Map();
@@ -2508,9 +2510,11 @@ function finalizeLoadedState(next) {
 }
 
 function saveState() {
-  const deleted = new Set(deletedNoteIds);
-  state.notes = userNotes(state.notes).filter((note) => !deleted.has(note.id));
+  const deduped = dedupeNotesWithDeletedIds(state.notes, deletedNoteIds);
+  state.notes = deduped.notes;
+  deletedNoteIds = deduped.deletedNoteIds;
   state.files = state.files.filter(isVisibleLibraryFile);
+  localStorage.setItem(deletedNoteKey, JSON.stringify(deletedNoteIds));
   localStorage.setItem(stateKey, JSON.stringify(state));
   queueCloudStateSave();
 }
@@ -2793,9 +2797,12 @@ function cloudStateBase() {
 }
 
 function cloudStatePayload() {
+  const deduped = dedupeNotesWithDeletedIds(state.notes, deletedNoteIds);
+  state.notes = deduped.notes;
+  deletedNoteIds = deduped.deletedNoteIds;
   const deleted = [...new Set(deletedNoteIds)].slice(0, 5000);
   return {
-    notes: userNotes(state.notes).filter((note) => !deleted.includes(note.id)),
+    notes: state.notes.filter((note) => !deleted.includes(note.id)),
     deletedNoteIds: deleted,
     paperFeedback,
     ideaFeedback,
@@ -2860,16 +2867,53 @@ function noteTime(note) {
   return Math.max(feedbackTime(note?.updatedAt), feedbackTime(note?.createdAt));
 }
 
-function mergeNotes(remoteNotes, localNotes, deletedIds) {
+function normalizeNoteTextKey(text) {
+  return String(text || "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function mergeDuplicateNoteRecord(first, second) {
+  const firstTime = noteTime(first);
+  const secondTime = noteTime(second);
+  const keep = secondTime >= firstTime ? second : first;
+  const other = keep === second ? first : second;
+  return {
+    ...keep,
+    location: keep.location || other.location,
+    updatedAt: firstTime >= secondTime
+      ? (first.updatedAt || first.createdAt || keep.updatedAt || "")
+      : (second.updatedAt || second.createdAt || keep.updatedAt || ""),
+  };
+}
+
+function dedupeNotesWithDeletedIds(notes, deletedIds = []) {
   const deleted = new Set(deletedIds);
-  const map = new Map();
-  [...remoteNotes, ...localNotes].forEach((note) => {
-    const clean = normalizeNoteRecord(note);
-    if (!clean || deleted.has(clean.id)) return;
-    const existing = map.get(clean.id);
-    if (!existing || noteTime(clean) >= noteTime(existing)) map.set(clean.id, clean);
-  });
-  return [...map.values()].sort((a, b) => noteTime(b) - noteTime(a));
+  const dropped = new Set();
+  const kept = [];
+  userNotes(notes)
+    .map(normalizeNoteRecord)
+    .filter((note) => note && !deleted.has(note.id))
+    .sort((a, b) => noteTime(b) - noteTime(a))
+    .forEach((note) => {
+      const key = normalizeNoteTextKey(note.text);
+      const time = noteTime(note);
+      const duplicateIndex = kept.findIndex((existing) => {
+        if (normalizeNoteTextKey(existing.text) !== key) return false;
+        return Math.abs(noteTime(existing) - time) <= duplicateNoteWindowMs;
+      });
+      if (duplicateIndex === -1) {
+        kept.push(note);
+        return;
+      }
+      const previous = kept[duplicateIndex];
+      const merged = mergeDuplicateNoteRecord(previous, note);
+      if (previous.id && previous.id !== merged.id) dropped.add(previous.id);
+      if (note.id && note.id !== merged.id) dropped.add(note.id);
+      kept[duplicateIndex] = merged;
+    });
+  return {
+    notes: kept.sort((a, b) => noteTime(b) - noteTime(a)),
+    deletedNoteIds: [...new Set([...deletedIds, ...dropped])].slice(0, 5000),
+  };
 }
 
 function feedbackRecordTime(record) {
@@ -2967,9 +3011,10 @@ async function refreshCloudState() {
     const json = await response.json();
     const remote = normalizeCloudAppState(json.state || {});
     const deleted = [...new Set([...(remote.deletedNoteIds || []), ...deletedNoteIds])];
+    const dedupedNotes = dedupeNotesWithDeletedIds([...remote.notes, ...userNotes(state.notes)], deleted);
     const merged = {
-      notes: mergeNotes(remote.notes, userNotes(state.notes), deleted),
-      deletedNoteIds: deleted,
+      notes: dedupedNotes.notes,
+      deletedNoteIds: dedupedNotes.deletedNoteIds,
       paperFeedback: mergeFeedbackStore(remote.paperFeedback, paperFeedback),
       ideaFeedback: mergeFeedbackStore(remote.ideaFeedback, ideaFeedback),
       suggestionState: mergeSuggestionStates(remote.suggestionState, suggestionState),
@@ -3763,7 +3808,16 @@ function createCaptureForm() {
   const footer = el("div", "composer-footer");
   const save = el("button", "save-button");
   save.type = "submit";
-  save.append(icon("spark"), el("span", "", pendingFiles.length ? `Add ${pendingFiles.length + (noteDraft.trim() ? 1 : 0)}` : "Add"));
+  save.disabled = captureSaveInFlight;
+  save.setAttribute("aria-busy", captureSaveInFlight ? "true" : "false");
+  save.append(
+    icon("spark"),
+    el("span", "", captureSaveInFlight
+      ? "Saving"
+      : pendingFiles.length
+        ? `Add ${pendingFiles.length + (noteDraft.trim() ? 1 : 0)}`
+        : "Add")
+  );
 
   footer.append(createPendingList(), save);
   form.append(dropzone, footer);
@@ -5456,6 +5510,7 @@ async function hydrateBrowserPreviews() {
 
 async function saveCapture(event) {
   event.preventDefault();
+  if (captureSaveInFlight) return;
   const text = noteDraft.trim();
   const files = [...pendingFiles];
   if (!text && !files.length) {
@@ -5463,54 +5518,64 @@ async function saveCapture(event) {
     return;
   }
 
-  const now = new Date().toISOString();
-  const evidenceLocation = await captureEvidenceLocation();
-  const locationField = evidenceLocation ? { location: evidenceLocation } : {};
-  if (text) {
-    const note = { id: createId(), text, createdAt: now, ...locationField };
-    state.notes.unshift(note);
-  }
+  captureSaveInFlight = true;
+  root.querySelectorAll("[data-role='capture'] button[type='submit']").forEach((button) => {
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+  });
 
-  for (const file of files) {
-    try {
-      const kind = classifyFile(file);
-      if (sync.status === "local") {
-        const dataUrl = await readFileAsDataUrl(file);
-        const response = await postJson(`${sync.base}/api/files`, {
-          name: file.name,
-          mime: file.type || "application/octet-stream",
-          dataUrl,
-          kind,
-          ...locationField,
-        });
-        upsertFile(normalizeSyncFile(response.file));
-      } else {
-        const id = createId();
-        const record = {
-          id,
-          name: file.name,
-          size: file.size,
-          mime: file.type || "application/octet-stream",
-          source: "browser",
-          kind,
-          createdAt: now,
-          ...locationField,
-        };
-        await putBrowserFile({ ...record, blob: file });
-        upsertFile(record);
-      }
-    } catch (error) {
-      console.error(error);
-      toast(`Could not save ${file.name}.`);
+  try {
+    const now = new Date().toISOString();
+    const evidenceLocation = await captureEvidenceLocation();
+    const locationField = evidenceLocation ? { location: evidenceLocation } : {};
+    if (text) {
+      const note = { id: createId(), text, createdAt: now, updatedAt: now, ...locationField };
+      state.notes.unshift(note);
     }
-  }
 
-  noteDraft = "";
-  pendingFiles = [];
-  saveState();
-  render();
-  scheduleAiFeedRefresh();
-  toast(sync.status === "local" ? "Saved and synced." : "Saved in browser.");
+    for (const file of files) {
+      try {
+        const kind = classifyFile(file);
+        if (sync.status === "local") {
+          const dataUrl = await readFileAsDataUrl(file);
+          const response = await postJson(`${sync.base}/api/files`, {
+            name: file.name,
+            mime: file.type || "application/octet-stream",
+            dataUrl,
+            kind,
+            ...locationField,
+          });
+          upsertFile(normalizeSyncFile(response.file));
+        } else {
+          const id = createId();
+          const record = {
+            id,
+            name: file.name,
+            size: file.size,
+            mime: file.type || "application/octet-stream",
+            source: "browser",
+            kind,
+            createdAt: now,
+            ...locationField,
+          };
+          await putBrowserFile({ ...record, blob: file });
+          upsertFile(record);
+        }
+      } catch (error) {
+        console.error(error);
+        toast(`Could not save ${file.name}.`);
+      }
+    }
+
+    noteDraft = "";
+    pendingFiles = [];
+    saveState();
+    scheduleAiFeedRefresh();
+    toast(sync.status === "local" ? "Saved and synced." : "Saved in browser.");
+  } finally {
+    captureSaveInFlight = false;
+    render();
+  }
 }
 
 function readFileAsDataUrl(file) {
