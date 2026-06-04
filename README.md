@@ -15,7 +15,7 @@ For the public page at `fluxcell.aolabs.io` to sync with this computer, run the 
 ```bash
 $env:PORT="3010"
 $env:FLUXCELL_STORAGE_DIR="C:\Users\phama\Documents\research\PhD Chapter 2\FluxCell Files"
-$env:FLUXCELL_DELETE_PASSWORD="<set locally>"
+$env:FLUXCELL_PAPER_PASSWORD="031120"
 $env:OPENAI_API_KEY="<set locally>"
 npm start
 ```
@@ -26,7 +26,7 @@ Notes are stored in the browser with `localStorage`.
 
 Files are saved to the browser vault unless the local sync server is running. With local sync running, uploads save into `FLUXCELL_STORAGE_DIR`.
 
-Deletion from the local sync folder requires `FLUXCELL_DELETE_PASSWORD`. Do not commit that password into this repo.
+Deletion from the local sync folder uses `FLUXCELL_DELETE_PASSWORD` when it is set. Otherwise it uses the FluxCell paper access code, currently `031120`.
 
 ## Deploy
 
