@@ -3197,7 +3197,7 @@ function createTopbar() {
   const brand = el("a", "suite-app-brand");
   brand.href = "/";
   brand.setAttribute("aria-label", "phd home");
-  brand.innerHTML = '<span class="suite-app-name">phd</span>';
+  brand.innerHTML = '<img class="suite-app-mark" src="/icon.svg?v=20260607-phi-mark" alt=""><span class="suite-app-name">phd</span>';
   const home = el("a", "suite-ao-home");
   home.href = "https://aolabs.io/";
   home.setAttribute("aria-label", "aolabs.io");
