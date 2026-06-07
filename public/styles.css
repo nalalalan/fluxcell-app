@@ -172,36 +172,56 @@ a {
   width: min(calc(100% - 24px), 1780px);
 }
 
-.ao-labs-button {
+.memory-brand {
   position: fixed;
   left: 12px;
   top: 12px;
   z-index: 90;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  min-height: 36px;
+  gap: 9px;
   border: 1px solid rgba(73, 55, 36, .14);
-  border-radius: 8px;
-  padding: 6px 10px 6px 7px;
-  background: rgba(255, 252, 246, .86);
+  border-radius: 999px;
+  padding: 5px 9px 5px 7px;
+  background: rgba(255, 252, 246, .9);
   color: rgba(37, 29, 21, .82);
   box-shadow: 0 10px 24px rgba(73, 55, 36, .12);
-  font-size: 12px;
+}
+
+.memory-brand a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  color: rgba(37, 29, 21, .84);
+  font-size: 13px;
   font-weight: 820;
   line-height: 1;
+  letter-spacing: 0;
   text-decoration: none;
 }
 
-.ao-labs-button img {
+.memory-brand-home img {
   display: block;
   width: 22px;
   height: 22px;
 }
 
-.ao-labs-button:hover,
-.ao-labs-button:focus-visible {
-  background: rgba(255, 252, 246, .96);
+.memory-brand-app {
+  padding-left: 9px;
+  border-left: 1px solid rgba(73, 55, 36, .13);
+}
+
+.memory-brand-mark {
+  display: block;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 8px rgba(51, 35, 42, .18));
+}
+
+.memory-brand a:hover,
+.memory-brand a:focus-visible {
   color: var(--ink);
   outline: none;
 }
