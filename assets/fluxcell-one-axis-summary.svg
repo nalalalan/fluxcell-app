@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-labelledby="title desc">
+  <title id="title">FluxCell one-axis state summary</title>
+  <desc id="desc">Expanded off state at 3.0 inches and contracted on state at 1.5 inches using keeper overlap.</desc>
+  <rect width="900" height="520" fill="#f7f4ed"/>
+  <text x="450" y="42" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="800" fill="#111">One-axis proof target</text>
+  <text x="450" y="72" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="650" fill="#333">1.00 in keepers, 1.25 in pole plates, side stroke 0.75 in</text>
+
+  <g transform="translate(70 112)">
+    <text x="155" y="0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="800" fill="#111">Expanded / off</text>
+    <text x="155" y="25" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="750" fill="#333">outer width 3.0 in</text>
+    <rect x="50" y="62" width="210" height="35" fill="#cfe0f4" stroke="#17476d" stroke-width="3"/>
+    <rect x="50" y="300" width="210" height="35" fill="#cfe0f4" stroke="#17476d" stroke-width="3"/>
+    <rect x="82" y="95" width="26" height="210" fill="#3f3f3f" stroke="#111" stroke-width="2"/>
+    <rect x="202" y="95" width="26" height="210" fill="#3f3f3f" stroke="#111" stroke-width="2"/>
+    <rect x="127" y="145" width="86" height="108" fill="#999" stroke="#111" stroke-width="3"/>
+    <rect x="158" y="145" width="24" height="108" fill="#f7f4ed"/>
+    <circle cx="146" cy="197" r="24" fill="#f2a33b" stroke="#b8651c" stroke-width="5"/>
+    <text x="146" y="205" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="900" fill="#111">A</text>
+    <circle cx="198" cy="197" r="19" fill="#69bce8" stroke="#275e80" stroke-width="4"/>
+    <text x="198" y="204" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="900" fill="#111">N</text>
+    <rect x="154" y="235" width="36" height="84" fill="#252525"/>
+    <path d="M20 62 V335" stroke="#222" stroke-width="2"/>
+    <path d="M20 62 l-6 12 M20 62 l6 12 M20 335 l-6 -12 M20 335 l6 -12" stroke="#222" stroke-width="2" fill="none"/>
+    <text x="280" y="202" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="750" fill="#277a45">overlap about 0.125 in</text>
+  </g>
+
+  <g transform="translate(525 112)">
+    <text x="155" y="0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="800" fill="#111">Contracted / on</text>
+    <text x="155" y="25" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="750" fill="#333">outer width 1.5 in</text>
+    <rect x="80" y="116" width="150" height="35" fill="#cfe0f4" stroke="#17476d" stroke-width="3"/>
+    <rect x="80" y="250" width="150" height="35" fill="#cfe0f4" stroke="#17476d" stroke-width="3"/>
+    <rect x="98" y="145" width="24" height="106" fill="#3f3f3f" stroke="#111" stroke-width="2"/>
+    <rect x="188" y="145" width="24" height="106" fill="#3f3f3f" stroke="#111" stroke-width="2"/>
+    <rect x="118" y="164" width="86" height="82" fill="#999" stroke="#111" stroke-width="3"/>
+    <rect x="149" y="164" width="24" height="82" fill="#f7f4ed"/>
+    <circle cx="137" cy="205" r="22" fill="#f2a33b" stroke="#b8651c" stroke-width="5"/>
+    <text x="137" y="213" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="900" fill="#111">A</text>
+    <circle cx="188" cy="205" r="18" fill="#69bce8" stroke="#275e80" stroke-width="4"/>
+    <text x="188" y="212" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="900" fill="#111">N</text>
+    <rect x="145" y="190" width="38" height="88" fill="#252525"/>
+    <path d="M45 116 V285" stroke="#222" stroke-width="2"/>
+    <path d="M45 116 l-6 12 M45 116 l6 12 M45 285 l-6 -12 M45 285 l6 -12" stroke="#222" stroke-width="2" fill="none"/>
+    <text x="238" y="205" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="750" fill="#277a45">overlap about 0.875 in</text>
+  </g>
+
+  <rect x="120" y="454" width="660" height="34" rx="4" fill="#111"/>
+  <text x="450" y="476" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="760" fill="#fffaf0">Proof question: pulse in, hold at zero current, reverse pulse out</text>
+</svg>

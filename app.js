@@ -1,6 +1,6 @@
 const root = document.getElementById("app");
 
-const appName = "fluxcell";
+const appName = "phd";
 const stateKey = "fluxcell.lab.v1";
 const ownerKey = "fluxcell.owner.delete.hash.v1";
 const dbName = "fluxcell-file-vault";
@@ -131,8 +131,8 @@ const recoveredFeedbackSeed = {
 
 const focus = {
   domain: "fluxcell.aolabs.io",
-  title: "FluxCell memory wall.",
-  current: "Saved ideas, images, links, and references.",
+  title: "PhD capture inbox.",
+  current: "Thoughts, files, links, screenshots, and fragments.",
 };
 
 const proofEvidenceFeatureStart = Date.parse("2026-05-17T06:55:00.000Z");
@@ -2453,6 +2453,7 @@ const seedNotes = [
 ];
 
 const seedNoteIds = new Set(seedNotes.map((note) => note.id));
+const duplicateNoteWindowMs = 5 * 60 * 1000;
 
 let state = loadState();
 let paperFeedback = loadPaperFeedback();
@@ -2468,6 +2469,7 @@ let toastTimer = 0;
 let aiRefreshTimer = 0;
 let cloudSaveTimer = 0;
 let tipWindowIndex = 0;
+let captureSaveInFlight = false;
 let suppressCloudStateSave = false;
 let lastCloudStateSignature = "";
 const previewUrls = new Map();
@@ -2508,9 +2510,11 @@ function finalizeLoadedState(next) {
 }
 
 function saveState() {
-  const deleted = new Set(deletedNoteIds);
-  state.notes = userNotes(state.notes).filter((note) => !deleted.has(note.id));
+  const deduped = dedupeNotesWithDeletedIds(state.notes, deletedNoteIds);
+  state.notes = deduped.notes;
+  deletedNoteIds = deduped.deletedNoteIds;
   state.files = state.files.filter(isVisibleLibraryFile);
+  localStorage.setItem(deletedNoteKey, JSON.stringify(deletedNoteIds));
   localStorage.setItem(stateKey, JSON.stringify(state));
   queueCloudStateSave();
 }
@@ -2793,9 +2797,12 @@ function cloudStateBase() {
 }
 
 function cloudStatePayload() {
+  const deduped = dedupeNotesWithDeletedIds(state.notes, deletedNoteIds);
+  state.notes = deduped.notes;
+  deletedNoteIds = deduped.deletedNoteIds;
   const deleted = [...new Set(deletedNoteIds)].slice(0, 5000);
   return {
-    notes: userNotes(state.notes).filter((note) => !deleted.includes(note.id)),
+    notes: state.notes.filter((note) => !deleted.includes(note.id)),
     deletedNoteIds: deleted,
     paperFeedback,
     ideaFeedback,
@@ -2860,16 +2867,53 @@ function noteTime(note) {
   return Math.max(feedbackTime(note?.updatedAt), feedbackTime(note?.createdAt));
 }
 
-function mergeNotes(remoteNotes, localNotes, deletedIds) {
+function normalizeNoteTextKey(text) {
+  return String(text || "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function mergeDuplicateNoteRecord(first, second) {
+  const firstTime = noteTime(first);
+  const secondTime = noteTime(second);
+  const keep = secondTime >= firstTime ? second : first;
+  const other = keep === second ? first : second;
+  return {
+    ...keep,
+    location: keep.location || other.location,
+    updatedAt: firstTime >= secondTime
+      ? (first.updatedAt || first.createdAt || keep.updatedAt || "")
+      : (second.updatedAt || second.createdAt || keep.updatedAt || ""),
+  };
+}
+
+function dedupeNotesWithDeletedIds(notes, deletedIds = []) {
   const deleted = new Set(deletedIds);
-  const map = new Map();
-  [...remoteNotes, ...localNotes].forEach((note) => {
-    const clean = normalizeNoteRecord(note);
-    if (!clean || deleted.has(clean.id)) return;
-    const existing = map.get(clean.id);
-    if (!existing || noteTime(clean) >= noteTime(existing)) map.set(clean.id, clean);
-  });
-  return [...map.values()].sort((a, b) => noteTime(b) - noteTime(a));
+  const dropped = new Set();
+  const kept = [];
+  userNotes(notes)
+    .map(normalizeNoteRecord)
+    .filter((note) => note && !deleted.has(note.id))
+    .sort((a, b) => noteTime(b) - noteTime(a))
+    .forEach((note) => {
+      const key = normalizeNoteTextKey(note.text);
+      const time = noteTime(note);
+      const duplicateIndex = kept.findIndex((existing) => {
+        if (normalizeNoteTextKey(existing.text) !== key) return false;
+        return Math.abs(noteTime(existing) - time) <= duplicateNoteWindowMs;
+      });
+      if (duplicateIndex === -1) {
+        kept.push(note);
+        return;
+      }
+      const previous = kept[duplicateIndex];
+      const merged = mergeDuplicateNoteRecord(previous, note);
+      if (previous.id && previous.id !== merged.id) dropped.add(previous.id);
+      if (note.id && note.id !== merged.id) dropped.add(note.id);
+      kept[duplicateIndex] = merged;
+    });
+  return {
+    notes: kept.sort((a, b) => noteTime(b) - noteTime(a)),
+    deletedNoteIds: [...new Set([...deletedIds, ...dropped])].slice(0, 5000),
+  };
 }
 
 function feedbackRecordTime(record) {
@@ -2967,9 +3011,10 @@ async function refreshCloudState() {
     const json = await response.json();
     const remote = normalizeCloudAppState(json.state || {});
     const deleted = [...new Set([...(remote.deletedNoteIds || []), ...deletedNoteIds])];
+    const dedupedNotes = dedupeNotesWithDeletedIds([...remote.notes, ...userNotes(state.notes)], deleted);
     const merged = {
-      notes: mergeNotes(remote.notes, userNotes(state.notes), deleted),
-      deletedNoteIds: deleted,
+      notes: dedupedNotes.notes,
+      deletedNoteIds: dedupedNotes.deletedNoteIds,
       paperFeedback: mergeFeedbackStore(remote.paperFeedback, paperFeedback),
       ideaFeedback: mergeFeedbackStore(remote.ideaFeedback, ideaFeedback),
       suggestionState: mergeSuggestionStates(remote.suggestionState, suggestionState),
@@ -3148,11 +3193,11 @@ function createAoLabsButton() {
 
 function createTopbar() {
   const topbar = el("header", "suite-topbar");
-  topbar.setAttribute("aria-label", "fluxcell navigation");
+  topbar.setAttribute("aria-label", "phd navigation");
   const brand = el("a", "suite-app-brand");
   brand.href = "/";
-  brand.setAttribute("aria-label", "fluxcell home");
-  brand.innerHTML = '<img class="suite-app-mark" src="https://aolabs.io/icons/fluxcell.svg?v=20260508-icon-pass2" alt=""><span class="suite-app-name">fluxcell.aolabs.io</span>';
+  brand.setAttribute("aria-label", "phd home");
+  brand.innerHTML = '<img class="suite-app-mark" src="/icon.svg?v=20260607-phd" alt=""><span class="suite-app-name">phd</span>';
   const home = el("a", "suite-ao-home");
   home.href = "https://aolabs.io/";
   home.setAttribute("aria-label", "aolabs.io");
@@ -3176,7 +3221,7 @@ function createTopbar() {
 
 function createMemoryWallSection() {
   const section = el("section", "memory-wall");
-  section.setAttribute("aria-label", "fluxcell saved ideas and images");
+  section.setAttribute("aria-label", "phd thoughts, files, and images");
   section.append(createMemoryGallery(), createMemoryCapturePanel());
   return section;
 }
@@ -3197,41 +3242,24 @@ function pluralize(value, label) {
 
 function createMemoryCapturePanel() {
   const panel = el("section", "memory-capture");
-  panel.append(el("h2", "", "add note or image"), createCaptureForm());
+  panel.append(el("h2", "", "add thought or file"), createCaptureForm());
   return panel;
 }
 
 function createMemoryGallery() {
   const section = el("section", "memory-gallery");
-  const notes = memoryWallNotes()
-    .map((note) => ({ type: "note", note, time: noteTime(note) }))
-    .sort((a, b) => b.time - a.time);
-  const files = memoryWallFiles()
-    .map((file) => ({ type: "file", file, time: latestRecordTime(file) || feedbackTime(file.createdAt) }))
-    .sort((a, b) => b.time - a.time);
-  const images = files.filter((item) => isImageFile(item.file));
-  const otherFiles = files.filter((item) => !isImageFile(item.file));
-  if (!notes.length && !files.length) {
-    section.append(el("p", "empty memory-empty", "No saved ideas yet. Capture box is ready."));
+  const items = memoryItems();
+  if (!items.length) {
+    section.append(el("p", "empty memory-empty", "No saved PhD thoughts yet. Capture box is ready."));
     return section;
   }
-  const lead = el("div", "memory-lead-wall");
-  if (images.length) {
-    lead.append(createMemoryCard(images[0], 0, 0));
-  }
-  if (notes.length) {
-    const rail = el("aside", "memory-thought-rail");
-    notes.forEach((item, index) => rail.append(createMemoryCard(item, index, 0)));
-    lead.append(rail);
-  }
-  if (lead.childNodes.length) section.append(lead);
-
-  const rest = [...images.slice(1), ...otherFiles].sort((a, b) => b.time - a.time);
-  if (rest.length) {
-    const grid = el("div", "memory-grid");
-    rest.forEach((item, index) => grid.append(createMemoryCard(item, index + 1, index + 1)));
-    section.append(grid);
-  }
+  const grid = el("div", "memory-grid");
+  let imageIndex = 0;
+  items.forEach((item, index) => {
+    const currentImageIndex = item.type === "file" && isImageFile(item.file) ? imageIndex++ : -1;
+    grid.append(createMemoryCard(item, index, currentImageIndex));
+  });
+  section.append(grid);
   return section;
 }
 
@@ -3244,7 +3272,7 @@ function memoryItems() {
   const files = memoryWallFiles().map((file) => ({
     type: "file",
     file,
-    time: latestRecordTime(file) || feedbackTime(file.createdAt),
+    time: sourceCreatedTime(file),
   }));
   return [...notes, ...files].sort((a, b) => b.time - a.time);
 }
@@ -3256,7 +3284,32 @@ function memoryWallNotes() {
 function memoryWallFiles() {
   return state.files
     .filter((file) => isVisibleLibraryFile(file) && !isPaperFile(file))
-    .filter((file) => isImageFile(file) || latestRecordTime(file) >= memoryWallStart);
+    .filter((file) => isImageFile(file) || sourceCreatedTime(file) >= memoryWallStart);
+}
+
+function sourceCreatedTime(record) {
+  return (
+    feedbackTime(record?.sourceCreatedAt)
+    || sourceFilenameTime(record)
+    || feedbackTime(record?.createdAt)
+    || latestRecordTime(record)
+  );
+}
+
+function sourceFilenameTime(record) {
+  const name = String(record?.name || "");
+  const match = name.match(/^Screenshot\s+(\d{4})-(\d{2})-(\d{2})\s+(\d{2})(\d{2})(\d{2})/i);
+  if (!match) return 0;
+  const [, year, month, day, hour, minute, second] = match;
+  const time = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second)
+  ).getTime();
+  return Number.isFinite(time) ? time : 0;
 }
 
 function createMemoryCard(item, index, imageIndex) {
@@ -3288,12 +3341,12 @@ function createMemoryCard(item, index, imageIndex) {
 
 function createPaperStrip() {
   const strip = el("header", "paper-strip");
-  strip.setAttribute("aria-label", "fluxcell paper");
+  strip.setAttribute("aria-label", "phd paper archive");
   const copy = el("div", "paper-copy");
   copy.append(
     el("span", "", "Archive"),
-    el("strong", "", "Saved FluxCell paper"),
-    el("p", "", "Older research record kept as a secondary archive.")
+    el("strong", "", "Saved project paper"),
+    el("p", "", "Current archived manuscript from the FluxCell work.")
   );
   const actions = el("div", "paper-actions");
   const paper = el("a", "paper-button primary", "Open paper");
@@ -3310,8 +3363,8 @@ function createStatusPill(text, className) {
 function createSystemViewSection() {
   const section = el("section", "system-view plain-system-view");
   section.append(
-    el("h1", "", "fluxcell"),
-    el("p", "plain-lede", "Saved ideas, images, links, and references. Newest first.")
+    el("h1", "", "phd"),
+    el("p", "plain-lede", "Thoughts, files, links, screenshots, and fragments. Newest first.")
   );
   return section;
 }
@@ -3432,8 +3485,8 @@ function classifyEvidenceRecord(record) {
 function currentProofState() {
   return {
     stage: "memory",
-    title: "FluxCell memory wall.",
-    detail: "Saved ideas, images, links, and references. Newest first.",
+    title: "PhD capture inbox.",
+    detail: "Thoughts, files, links, screenshots, and fragments. Newest first.",
   };
 }
 
@@ -3747,11 +3800,11 @@ function createCaptureForm() {
 
   const textarea = el("textarea", "note-input");
   textarea.name = "note";
-  textarea.placeholder = "Random thought, image caption, link, or thing to remember.";
+  textarea.placeholder = "PhD thought, link, reminder, screenshot note, or thing to keep.";
   textarea.value = noteDraft;
 
   const fileLabel = el("label", "file-inline");
-  fileLabel.append(icon("upload"), el("span", "", "Drop, paste, or attach pictures"));
+  fileLabel.append(icon("upload"), el("span", "", "Drop, paste, or attach files"));
   const input = document.createElement("input");
   input.type = "file";
   input.multiple = true;
@@ -3763,7 +3816,16 @@ function createCaptureForm() {
   const footer = el("div", "composer-footer");
   const save = el("button", "save-button");
   save.type = "submit";
-  save.append(icon("spark"), el("span", "", pendingFiles.length ? `Add ${pendingFiles.length + (noteDraft.trim() ? 1 : 0)}` : "Add"));
+  save.disabled = captureSaveInFlight;
+  save.setAttribute("aria-busy", captureSaveInFlight ? "true" : "false");
+  save.append(
+    icon("spark"),
+    el("span", "", captureSaveInFlight
+      ? "Saving"
+      : pendingFiles.length
+        ? `Add ${pendingFiles.length + (noteDraft.trim() ? 1 : 0)}`
+        : "Add")
+  );
 
   footer.append(createPendingList(), save);
   form.append(dropzone, footer);
@@ -5456,6 +5518,7 @@ async function hydrateBrowserPreviews() {
 
 async function saveCapture(event) {
   event.preventDefault();
+  if (captureSaveInFlight) return;
   const text = noteDraft.trim();
   const files = [...pendingFiles];
   if (!text && !files.length) {
@@ -5463,54 +5526,66 @@ async function saveCapture(event) {
     return;
   }
 
-  const now = new Date().toISOString();
-  const evidenceLocation = await captureEvidenceLocation();
-  const locationField = evidenceLocation ? { location: evidenceLocation } : {};
-  if (text) {
-    const note = { id: createId(), text, createdAt: now, ...locationField };
-    state.notes.unshift(note);
-  }
+  captureSaveInFlight = true;
+  root.querySelectorAll("[data-role='capture'] button[type='submit']").forEach((button) => {
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+  });
 
-  for (const file of files) {
-    try {
-      const kind = classifyFile(file);
-      if (sync.status === "local") {
-        const dataUrl = await readFileAsDataUrl(file);
-        const response = await postJson(`${sync.base}/api/files`, {
-          name: file.name,
-          mime: file.type || "application/octet-stream",
-          dataUrl,
-          kind,
-          ...locationField,
-        });
-        upsertFile(normalizeSyncFile(response.file));
-      } else {
-        const id = createId();
-        const record = {
-          id,
-          name: file.name,
-          size: file.size,
-          mime: file.type || "application/octet-stream",
-          source: "browser",
-          kind,
-          createdAt: now,
-          ...locationField,
-        };
-        await putBrowserFile({ ...record, blob: file });
-        upsertFile(record);
-      }
-    } catch (error) {
-      console.error(error);
-      toast(`Could not save ${file.name}.`);
+  try {
+    const now = new Date().toISOString();
+    const evidenceLocation = await captureEvidenceLocation();
+    const locationField = evidenceLocation ? { location: evidenceLocation } : {};
+    if (text) {
+      const note = { id: createId(), text, createdAt: now, updatedAt: now, ...locationField };
+      state.notes.unshift(note);
     }
-  }
 
-  noteDraft = "";
-  pendingFiles = [];
-  saveState();
-  render();
-  scheduleAiFeedRefresh();
-  toast(sync.status === "local" ? "Saved and synced." : "Saved in browser.");
+    for (const file of files) {
+      try {
+        const kind = classifyFile(file);
+        if (sync.status === "local") {
+          const dataUrl = await readFileAsDataUrl(file);
+          const response = await postJson(`${sync.base}/api/files`, {
+            name: file.name,
+            mime: file.type || "application/octet-stream",
+            dataUrl,
+            kind,
+            sourceCreatedAt: file.lastModified ? new Date(file.lastModified).toISOString() : "",
+            ...locationField,
+          });
+          upsertFile(normalizeSyncFile(response.file));
+        } else {
+          const id = createId();
+          const record = {
+            id,
+            name: file.name,
+            size: file.size,
+            mime: file.type || "application/octet-stream",
+            source: "browser",
+            kind,
+            createdAt: now,
+            sourceCreatedAt: file.lastModified ? new Date(file.lastModified).toISOString() : "",
+            ...locationField,
+          };
+          await putBrowserFile({ ...record, blob: file });
+          upsertFile(record);
+        }
+      } catch (error) {
+        console.error(error);
+        toast(`Could not save ${file.name}.`);
+      }
+    }
+
+    noteDraft = "";
+    pendingFiles = [];
+    saveState();
+    scheduleAiFeedRefresh();
+    toast(sync.status === "local" ? "Saved and synced." : "Saved in browser.");
+  } finally {
+    captureSaveInFlight = false;
+    render();
+  }
 }
 
 function readFileAsDataUrl(file) {
@@ -5560,6 +5635,7 @@ function normalizeSyncFile(file) {
     size: file.size,
     mime: file.mime,
     createdAt: file.createdAt,
+    sourceCreatedAt: file.sourceCreatedAt || "",
     source: "sync",
     kind: file.kind || classifyFile(file),
     paperTitle: file.paperTitle || file.detectedTitle || "",
