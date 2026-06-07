@@ -30,6 +30,6 @@ Deletion from the local sync folder uses `FLUXCELL_DELETE_PASSWORD` when it is s
 
 ## Deploy
 
-The app deploys from this repo to Railway with the preferred custom domain `phd.aolabs.io`. Keep `fluxcell.aolabs.io` only as a temporary fallback until the `phd` DNS and Railway custom-domain attachment are verified.
+The app deploys from this repo to Railway with the preferred custom domain `phd.aolabs.io`. Keep `fluxcell.aolabs.io` attached as a temporary recovery alias until Alan confirms old browser-origin storage has been checked. Do not redirect it before that check: notes saved only in the old hostname's `localStorage` need the old hostname to load once and merge into the synced Railway state, and browser-vault files need the old origin to remain reachable for manual recovery.
 
 It can also run on Railway or any Node host with `npm start`. The public identity is `phd`; AI brainstorming is disabled and the backend is only for synced notes and uploads.
