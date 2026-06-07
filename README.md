@@ -10,7 +10,7 @@ npm start
 
 Open `http://localhost:3000`.
 
-For the public page at `fluxcell.aolabs.io` to sync with this computer, run the local sync server on port `3010`:
+For the public page at `phd.aolabs.io` to sync with this computer, run the local sync server on port `3010`:
 
 ```bash
 $env:PORT="3010"
@@ -30,6 +30,6 @@ Deletion from the local sync folder uses `FLUXCELL_DELETE_PASSWORD` when it is s
 
 ## Deploy
 
-The app is static and deploys from `public` to GitHub Pages with the current custom domain `fluxcell.aolabs.io`.
+The app deploys from this repo to Railway with the preferred custom domain `phd.aolabs.io`. Keep `fluxcell.aolabs.io` only as a temporary fallback until the `phd` DNS and Railway custom-domain attachment are verified.
 
 It can also run on Railway or any Node host with `npm start`. The public identity is `phd`; AI brainstorming is disabled and the backend is only for synced notes and uploads.

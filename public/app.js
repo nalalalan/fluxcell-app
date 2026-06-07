@@ -130,7 +130,7 @@ const recoveredFeedbackSeed = {
 };
 
 const focus = {
-  domain: "fluxcell.aolabs.io",
+  domain: "phd.aolabs.io",
   title: "PhD capture inbox.",
   current: "Thoughts, files, links, screenshots, and fragments.",
 };
