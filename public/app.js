@@ -57,7 +57,7 @@ const sprintBoardWallSeedPackVersion = "2026-05-05-fluxcell-sprint-board-wall";
 const monolithicAtlasWallSeedPackVersion = "2026-05-05-fluxcell-monolithic-atlas-wall";
 const seedPackVersion = "2026-05-05-fluxcell-bridge-coupling-wall";
 const seedPackOrder = [baseSeedPackVersion, integratedSeedPackVersion, monolithicSeedPackVersion, actuationSeedPackVersion, fabricationSeedPackVersion, printableSeedPackVersion, validationSeedPackVersion, cellIntegrationSeedPackVersion, forceBudgetSeedPackVersion, monolithicEndgameSeedPackVersion, printingRoadmapSeedPackVersion, cellEpmIntegrationSeedPackVersion, mechanismCouplingSeedPackVersion, prototypeProtocolSeedPackVersion, monolithicActuationRouteSeedPackVersion, northStarWallSeedPackVersion, galleryObjectSeedPackVersion, proudCellObjectSeedPackVersion, integratedProofSeedPackVersion, sarrusActuationProofSeedPackVersion, memoryFigureObjectSeedPackVersion, cartridgeProofWallSeedPackVersion, sarrusFirstExperimentWallSeedPackVersion, proudObjectWallSeedPackVersion, dopamineObjectWallSeedPackVersion, northStarJewelWallSeedPackVersion, mechanicalMemoryWallSeedPackVersion, oneCellProofWallSeedPackVersion, printableMaterialsWallSeedPackVersion, benchProofWallSeedPackVersion, monolithicIntegrationWallSeedPackVersion, actuatorCandidatesWallSeedPackVersion, magneticCircuitWallSeedPackVersion, integratedCellWallSeedPackVersion, proofObjectWallSeedPackVersion, absorbablePlaybookWallSeedPackVersion, nextBuildProtocolWallSeedPackVersion, sprintBoardWallSeedPackVersion, monolithicAtlasWallSeedPackVersion, seedPackVersion];
-const compatibleSyncApps = new Set(["FluxCell"]);
+const compatibleSyncApps = new Set(["phd", "FluxCell"]);
 const recoveredFeedbackSeed = {
   ideas: {
     "short-gap-long-stroke": "not-useful",
