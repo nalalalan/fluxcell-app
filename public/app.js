@@ -3232,7 +3232,7 @@ function createTopbar() {
 function createMemoryWallSection() {
   const section = el("section", "memory-wall");
   section.setAttribute("aria-label", "phd thoughts, files, and images");
-  section.append(createMemoryGallery(), createMemoryCapturePanel());
+  section.append(createMemoryCapturePanel(), createMemoryGallery());
   return section;
 }
 
@@ -3252,7 +3252,7 @@ function pluralize(value, label) {
 
 function createMemoryCapturePanel() {
   const panel = el("section", "memory-capture");
-  panel.append(el("h2", "", "add thought or file"), createCaptureForm());
+  panel.append(createCaptureForm());
   return panel;
 }
 
@@ -3821,9 +3821,6 @@ function createCaptureForm() {
   input.dataset.role = "file-input";
   fileLabel.append(input);
 
-  dropzone.append(textarea, fileLabel);
-
-  const footer = el("div", "composer-footer");
   const save = el("button", "save-button");
   save.type = "submit";
   save.disabled = captureSaveInFlight;
@@ -3837,8 +3834,11 @@ function createCaptureForm() {
         : "Add")
   );
 
-  footer.append(createPendingList(), save);
-  form.append(dropzone, footer);
+  const controls = el("div", "capture-control-row");
+  controls.append(fileLabel, createPendingList(), save);
+
+  dropzone.append(textarea, controls);
+  form.append(dropzone);
   return form;
 }
 
