@@ -109,7 +109,7 @@ function sendPaperGate(res, nextPath) {
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>fluxcell paper access</title>
+    <title>phd paper access</title>
     <style>
       :root {
         color-scheme: dark;
@@ -181,7 +181,7 @@ function sendPaperGate(res, nextPath) {
   </head>
   <body>
     <main>
-      <h1>FluxCell paper</h1>
+      <h1>Saved paper</h1>
       <p>Enter the paper code.</p>
       <form id="paper-gate">
         <input id="paper-password" type="password" inputmode="numeric" autocomplete="current-password" aria-label="Paper code">
@@ -1307,7 +1307,7 @@ async function handleApi(req, res, requestUrl) {
 
   if (requestUrl.pathname === "/api/health" && req.method === "GET") {
     sendJson(res, 200, {
-      app: "FluxCell",
+      app: "phd",
       sync: true,
       storageRoot,
       deleteConfigured: Boolean(deletePassword),
@@ -1319,7 +1319,7 @@ async function handleApi(req, res, requestUrl) {
   }
 
   if (requestUrl.pathname === "/api/ai/suggestions" && req.method === "POST") {
-    sendJson(res, 410, { error: "FluxCell is a saved ideas and images wall; AI suggestions are disabled." });
+    sendJson(res, 410, { error: "phd is a PhD capture inbox; AI suggestions are disabled." });
     return;
   }
 
@@ -1335,7 +1335,7 @@ async function handleApi(req, res, requestUrl) {
   }
 
   if (requestUrl.pathname === "/api/generated/hbridge-bundle.md" && req.method === "GET") {
-    sendMarkdown(res, 410, "FluxCell now stores saved ideas and images. Generated H-bridge work is disabled.\n");
+    sendMarkdown(res, 410, "phd now stores thoughts, files, and images. Generated H-bridge work is disabled.\n");
     return;
   }
 

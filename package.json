@@ -1,8 +1,8 @@
 {
-  "name": "fluxcell-wall",
+  "name": "phd",
   "version": "0.1.0",
   "private": true,
-  "description": "A FluxCell memory wall for saved ideas, images, links, and thoughts.",
+  "description": "A PhD capture inbox for thoughts, files, links, screenshots, and fragments.",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"

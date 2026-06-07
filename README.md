@@ -1,6 +1,6 @@
-# FluxCell
+# phd
 
-A FluxCell memory wall for saved ideas, images, links, and thoughts. The public page opens on the saved wall first; it is no longer a brainstorming, to-do, proof, or current-issues surface.
+A PhD capture inbox for thoughts, files, links, screenshots, and fragments. The public page opens on the saved stream first so nothing gets lost or falls out of view.
 
 ## Run Locally
 
@@ -26,10 +26,10 @@ Notes are stored in the browser with `localStorage`.
 
 Files are saved to the browser vault unless the local sync server is running. With local sync running, uploads save into `FLUXCELL_STORAGE_DIR`.
 
-Deletion from the local sync folder uses `FLUXCELL_DELETE_PASSWORD` when it is set. Otherwise it uses the FluxCell paper access code, currently `031120`.
+Deletion from the local sync folder uses `FLUXCELL_DELETE_PASSWORD` when it is set. Otherwise it uses the current paper access code, `031120`.
 
 ## Deploy
 
 The app is static and deploys from `public` to GitHub Pages with the current custom domain `fluxcell.aolabs.io`.
 
-It can also run on Railway or any Node host with `npm start`. AI brainstorming is disabled; the backend is for synced notes and uploads.
+It can also run on Railway or any Node host with `npm start`. The public identity is `phd`; AI brainstorming is disabled and the backend is only for synced notes and uploads.

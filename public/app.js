@@ -1,6 +1,6 @@
 const root = document.getElementById("app");
 
-const appName = "fluxcell";
+const appName = "phd";
 const stateKey = "fluxcell.lab.v1";
 const ownerKey = "fluxcell.owner.delete.hash.v1";
 const dbName = "fluxcell-file-vault";
@@ -131,8 +131,8 @@ const recoveredFeedbackSeed = {
 
 const focus = {
   domain: "fluxcell.aolabs.io",
-  title: "FluxCell memory wall.",
-  current: "Saved ideas, images, links, and references.",
+  title: "PhD capture inbox.",
+  current: "Thoughts, files, links, screenshots, and fragments.",
 };
 
 const proofEvidenceFeatureStart = Date.parse("2026-05-17T06:55:00.000Z");
@@ -3193,11 +3193,11 @@ function createAoLabsButton() {
 
 function createTopbar() {
   const topbar = el("header", "suite-topbar");
-  topbar.setAttribute("aria-label", "fluxcell navigation");
+  topbar.setAttribute("aria-label", "phd navigation");
   const brand = el("a", "suite-app-brand");
   brand.href = "/";
-  brand.setAttribute("aria-label", "fluxcell home");
-  brand.innerHTML = '<img class="suite-app-mark" src="https://aolabs.io/icons/fluxcell.svg?v=20260508-icon-pass2" alt=""><span class="suite-app-name">fluxcell.aolabs.io</span>';
+  brand.setAttribute("aria-label", "phd home");
+  brand.innerHTML = '<img class="suite-app-mark" src="/icon.svg?v=20260607-phd" alt=""><span class="suite-app-name">phd</span>';
   const home = el("a", "suite-ao-home");
   home.href = "https://aolabs.io/";
   home.setAttribute("aria-label", "aolabs.io");
@@ -3221,7 +3221,7 @@ function createTopbar() {
 
 function createMemoryWallSection() {
   const section = el("section", "memory-wall");
-  section.setAttribute("aria-label", "fluxcell saved ideas and images");
+  section.setAttribute("aria-label", "phd thoughts, files, and images");
   section.append(createMemoryGallery(), createMemoryCapturePanel());
   return section;
 }
@@ -3242,7 +3242,7 @@ function pluralize(value, label) {
 
 function createMemoryCapturePanel() {
   const panel = el("section", "memory-capture");
-  panel.append(el("h2", "", "add note or image"), createCaptureForm());
+  panel.append(el("h2", "", "add thought or file"), createCaptureForm());
   return panel;
 }
 
@@ -3250,7 +3250,7 @@ function createMemoryGallery() {
   const section = el("section", "memory-gallery");
   const items = memoryItems();
   if (!items.length) {
-    section.append(el("p", "empty memory-empty", "No saved ideas yet. Capture box is ready."));
+    section.append(el("p", "empty memory-empty", "No saved PhD thoughts yet. Capture box is ready."));
     return section;
   }
   const grid = el("div", "memory-grid");
@@ -3341,12 +3341,12 @@ function createMemoryCard(item, index, imageIndex) {
 
 function createPaperStrip() {
   const strip = el("header", "paper-strip");
-  strip.setAttribute("aria-label", "fluxcell paper");
+  strip.setAttribute("aria-label", "phd paper archive");
   const copy = el("div", "paper-copy");
   copy.append(
     el("span", "", "Archive"),
-    el("strong", "", "Saved FluxCell paper"),
-    el("p", "", "Older research record kept as a secondary archive.")
+    el("strong", "", "Saved project paper"),
+    el("p", "", "Current archived manuscript from the FluxCell work.")
   );
   const actions = el("div", "paper-actions");
   const paper = el("a", "paper-button primary", "Open paper");
@@ -3363,8 +3363,8 @@ function createStatusPill(text, className) {
 function createSystemViewSection() {
   const section = el("section", "system-view plain-system-view");
   section.append(
-    el("h1", "", "fluxcell"),
-    el("p", "plain-lede", "Saved ideas, images, links, and references. Newest first.")
+    el("h1", "", "phd"),
+    el("p", "plain-lede", "Thoughts, files, links, screenshots, and fragments. Newest first.")
   );
   return section;
 }
@@ -3485,8 +3485,8 @@ function classifyEvidenceRecord(record) {
 function currentProofState() {
   return {
     stage: "memory",
-    title: "FluxCell memory wall.",
-    detail: "Saved ideas, images, links, and references. Newest first.",
+    title: "PhD capture inbox.",
+    detail: "Thoughts, files, links, screenshots, and fragments. Newest first.",
   };
 }
 
@@ -3800,11 +3800,11 @@ function createCaptureForm() {
 
   const textarea = el("textarea", "note-input");
   textarea.name = "note";
-  textarea.placeholder = "Random thought, image caption, link, or thing to remember.";
+  textarea.placeholder = "PhD thought, link, reminder, screenshot note, or thing to keep.";
   textarea.value = noteDraft;
 
   const fileLabel = el("label", "file-inline");
-  fileLabel.append(icon("upload"), el("span", "", "Drop, paste, or attach pictures"));
+  fileLabel.append(icon("upload"), el("span", "", "Drop, paste, or attach files"));
   const input = document.createElement("input");
   input.type = "file";
   input.multiple = true;
