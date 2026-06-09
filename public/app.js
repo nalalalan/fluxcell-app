@@ -3168,10 +3168,45 @@ async function hashText(text) {
   return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
 }
 
-function render() {
+function captureActiveComposerState() {
+  const input = root.querySelector("[data-role='capture'] textarea");
+  if (!input || document.activeElement !== input) return null;
+  noteDraft = input.value;
+  return {
+    selectionStart: input.selectionStart,
+    selectionEnd: input.selectionEnd,
+  };
+}
+
+function restoreActiveComposerState(focusState) {
+  if (!focusState) return;
+  const input = root.querySelector("[data-role='capture'] textarea");
+  if (!input) return;
+  input.focus({ preventScroll: true });
+  const end = input.value.length;
+  const selectionStart = Math.min(focusState.selectionStart ?? end, end);
+  const selectionEnd = Math.min(focusState.selectionEnd ?? selectionStart, end);
+  input.setSelectionRange(selectionStart, selectionEnd);
+}
+
+function isCaptureInputActive() {
+  const input = root.querySelector("[data-role='capture'] textarea");
+  return !!input && document.activeElement === input;
+}
+
+function focusComposer() {
+  const input = root.querySelector("[data-role='capture'] textarea");
+  if (input) input.focus({ preventScroll: true });
+}
+
+function render(options = {}) {
+  const shouldPreserveComposer = options.preserveComposer !== false;
+  const focusState = shouldPreserveComposer ? captureActiveComposerState() : null;
   root.replaceChildren(createShell());
   bind();
   hydrateBrowserPreviews();
+  if (shouldPreserveComposer) restoreActiveComposerState(focusState);
+  if (options.focusComposer) focusComposer();
 }
 
 function createShell() {
@@ -5465,6 +5500,10 @@ function bind() {
 
   let resizeTimer = 0;
   window.onresize = () => {
+    if (isCaptureInputActive()) {
+      noteDraft = document.activeElement.value;
+      return;
+    }
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(render, 140);
   };
@@ -5594,7 +5633,7 @@ async function saveCapture(event) {
     toast(sync.status === "local" ? "Saved and synced." : "Saved in browser.");
   } finally {
     captureSaveInFlight = false;
-    render();
+    render({ preserveComposer: false, focusComposer: true });
   }
 }
 
