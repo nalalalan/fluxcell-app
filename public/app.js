@@ -3845,6 +3845,7 @@ function createCaptureForm() {
 
   const textarea = el("textarea", "note-input");
   textarea.name = "note";
+  textarea.setAttribute("enterkeyhint", "send");
   textarea.placeholder = "PhD thought, link, reminder, screenshot note, or thing to keep.";
   textarea.value = noteDraft;
 
@@ -5437,14 +5438,25 @@ function bind() {
   const form = root.querySelector("[data-role='capture']");
   const dropzone = root.querySelector("[data-role='dropzone']");
   form?.addEventListener("submit", saveCapture);
+  form?.addEventListener("keydown", (event) => {
+    if (!isCaptureSendKey(event)) return;
+    event.preventDefault();
+    submitCapture(form);
+  });
   const noteInput = form?.querySelector("textarea");
   noteInput?.addEventListener("input", (event) => {
     noteDraft = event.currentTarget.value;
   });
   noteInput?.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+    if (event.key === "Enter" && event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey && !event.isComposing) {
+      event.preventDefault();
+      insertCaptureLineBreak(event.currentTarget);
+    }
+  });
+  noteInput?.addEventListener("beforeinput", (event) => {
+    if (event.inputType !== "insertLineBreak" || event.isComposing) return;
     event.preventDefault();
-    form.requestSubmit();
+    submitCapture(form);
   });
   root.querySelector("[data-role='file-input']")?.addEventListener("change", (event) => {
     stageFiles([...event.currentTarget.files]);
@@ -5519,8 +5531,35 @@ function nextTipWindow() {
 function stageFiles(files) {
   if (!files.length) return;
   pendingFiles = [...pendingFiles, ...files];
-  render();
+  render({ focusComposer: true });
   toast(`${files.length} ${files.length === 1 ? "file" : "files"} attached.`);
+}
+
+function isCaptureSendKey(event) {
+  if (event.key !== "Enter" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return false;
+  const target = event.target;
+  if (!(target instanceof HTMLElement) || target.closest("button")) return false;
+  return Boolean(target.closest("[data-role='capture']"));
+}
+
+function submitCapture(form) {
+  if (!form || captureSaveInFlight) return;
+  if (typeof form.requestSubmit === "function") {
+    form.requestSubmit();
+    return;
+  }
+  form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+}
+
+function insertCaptureLineBreak(input) {
+  if (!input) return;
+  const value = input.value || "";
+  const start = Number.isInteger(input.selectionStart) ? input.selectionStart : value.length;
+  const end = Number.isInteger(input.selectionEnd) ? input.selectionEnd : start;
+  input.value = `${value.slice(0, start)}\n${value.slice(end)}`;
+  const cursor = start + 1;
+  input.setSelectionRange(cursor, cursor);
+  noteDraft = input.value;
 }
 
 function handleDrag(event) {

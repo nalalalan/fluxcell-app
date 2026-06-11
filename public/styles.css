@@ -1578,6 +1578,10 @@ a.codex-output-card:focus-visible {
   overflow-wrap: anywhere;
 }
 
+.note-card .item-text {
+  white-space: pre-wrap;
+}
+
 .item-meta {
   margin-top: 12px;
   color: var(--muted);
